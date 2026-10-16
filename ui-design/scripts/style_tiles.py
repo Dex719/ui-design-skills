@@ -34,6 +34,7 @@ WEIGHTS = {
     "Mulish": "400;600;700", "Geologica": "400;600;700", "Fira Sans": "400;500;600;700", "JetBrains Mono": "400;600",
     "Inter": "400;500;600;700",
 }
+FIELDS = ("outline", "filled", "underline", "pill")
 MOTION = {
     "minimal": {"dur": "120ms", "label": "Минимальный: отклик, состояния, загрузка — официальные продукты"},
     "restrained": {"dur": "160ms", "label": "Сдержанный: фейды и смена цвета"},
@@ -78,6 +79,9 @@ def load(path):
         lost = [k for k in keys if k not in s[sect]]
         if lost:
             raise SpecError(f"{path}: в {sect} нет {', '.join(lost)}")
+    field = s["shape"].get("field", "outline")
+    if field not in FIELDS:
+        raise SpecError(f"{path}: shape.field «{field}» — нужно одно из {', '.join(FIELDS)}")
     depth = s.get("depth", {}).get("style", "soft")
     if depth not in DEPTH:
         raise SpecError(f"{path}: depth.style «{depth}» — нужно одно из {', '.join(DEPTH)}")
@@ -251,6 +255,9 @@ BASE_CSS = """
 .ds .badge.ok{ color: var(--success); background: var(--success-soft); } .ds .badge.warn{ color: var(--warning); background: var(--warning-soft); }
 .ds .badge.err{ color: var(--danger); background: var(--danger-soft); } .ds .badge.acc{ color: var(--accent-text); background: var(--accent-soft); }
 .ds .num{ font-variant-numeric: tabular-nums; }
+.ds[data-field="filled"] .input{ background: var(--surface-2); border-color: transparent; border-bottom-color: var(--border-ctrl); border-radius: var(--r-md) var(--r-md) 0 0; }
+.ds[data-field="underline"] .input{ background: transparent; border-width: 0 0 max(1px, var(--border-w)); border-radius: 0; padding-inline: 0; }
+.ds[data-field="pill"] .input{ border-radius: 999px; padding-inline: var(--space-4); }
 .ds[data-btn="chamfer"] .btn, .ds[data-btn="chamfer"] .card{ clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
 """
 
@@ -338,7 +345,7 @@ def decisions(r):
         ("Шрифт", f'<b>{esc(fam)}</b>{" + " + esc(t["mono"]) if t.get("mono") else ""}', t.get("why")),
         ("Размеры", f'<b>база {sz["base"]}, ×{t["ratio"]}</b>: {sz["sm"]} · {sz["base"]} · {sz["lg"]} · {sz["h3"]} · {sz["h2"]} · {sz["h1"]} · {sz["display"]}', None),
         ("Отступы", f'<b>{" · ".join(map(str, sp["scale"]))}</b>, контрол {sp["control"]}', sp.get("why")),
-        ("Форма", f'<b>радиусы {" / ".join(map(str, sh["radius"]))}</b>, кнопка {sh["button"]}, рамка {sh["border"]}', sh.get("why")),
+        ("Форма", f'<b>радиусы {" / ".join(map(str, sh["radius"]))}</b>, кнопка {sh["button"]}, поле {sh.get("field", "outline")}, рамка {sh["border"]}', sh.get("why")),
         ("Цвет", f'<b>H {c["hue"]}, C {c.get("chroma", .12)}</b>, нейтрали {r["_neutral"]}, {theme}{", яркий акцент" if c.get("bright") else ""}', c.get("why")),
         ("Глубина", f'<b>{esc(r.get("depth", {}).get("style", "soft"))}</b>', r.get("depth", {}).get("why")),
         ("Движение", f'<b>{esc(r["_motion"]["label"])}</b>', r.get("motion", {}).get("why")),
@@ -356,7 +363,7 @@ def tile(r):
     nav = "".join(f"<span>{esc(n)}</span>" for n in x["nav"])
     css = f'.tile[data-k="{key}"]{{\n  {tok}\n}}'
     body = f'''
-<section class="tile ds" data-k="{key}" data-btn="{r["shape"]["button"]}" aria-label="Вариант {esc(r["name"])}">
+<section class="tile ds" data-k="{key}" data-btn="{r["shape"]["button"]}" data-field="{r["shape"].get("field", "outline")}" aria-label="Вариант {esc(r["name"])}">
   <div class="tile-label"><b>{esc(r["name"])}</b><span>{esc(r.get("brief", ""))}</span></div>
   <div class="in">
     <nav><span class="logo"><i>{esc(x["brand"][0])}</i>{esc(x["brand"])}</span>{nav}{svg("bell", 18)}</nav>
@@ -408,7 +415,7 @@ def export(r, outdir):
     else:
         theme_css = (f":root{{\n  {light}\n}}\n@media (prefers-color-scheme: dark){{\n  :root:not([data-theme=\"light\"]){{\n  {dark}\n  color-scheme: dark;\n  }}\n}}\n"
                      f":root[data-theme=\"dark\"]{{\n  {dark}\n  color-scheme: dark;\n}}\n")
-    base = BASE_CSS.replace('.ds[data-btn="chamfer"]', 'body[data-btn="chamfer"]').replace(".ds ", "").replace(".ds{", "body{")
+    base = BASE_CSS.replace('.ds[data-btn="chamfer"]', 'body[data-btn="chamfer"]').replace('.ds[data-field=', 'body[data-field=').replace(".ds ", "").replace(".ds{", "body{")
     open(os.path.join(outdir, "design-system.css"), "w", encoding="utf-8").write(
         f"/* Дизайн-система «{r['name']}». Сгенерировано style_tiles.py. Все экраны — только на этих токенах. */\n{theme_css}\n{base}")
     t, sz, sp, sh = r["_type"], sizes(r["_type"]), r["space"], r["shape"]
@@ -426,6 +433,7 @@ def export(r, outdir):
 {font_links(fonts(r))}
 ```
 {'Кнопки и карточки со срезанными углами: `<body data-btn="chamfer">`.' if sh["button"] == "chamfer" else ""}
+Вид полей: `<body data-field="{sh.get("field", "outline")}">`.
 
 ## Решения и причины
 
@@ -580,6 +588,9 @@ def main():
     if len(specs) > 1 and len({s["space"]["control"] for s in specs}) == 1:
         warnings += 1
         print(f"варианты не различаются по высоте контролов ({specs[0]['space']['control']} px у всех) — размер поля тоже часть характера", file=sys.stderr)
+    if len(specs) > 1 and len({s["shape"].get("field", "outline") for s in specs}) == 1:
+        warnings += 1
+        print(f"у всех вариантов один вид поля ({specs[0]['shape'].get('field', 'outline')}) — попробуй контур, заливку, подчёркивание или таблетку", file=sys.stderr)
     if a.strict and warnings: return 1
     if a.check: return 0
     if a.export:
