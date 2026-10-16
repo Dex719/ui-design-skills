@@ -1,50 +1,6 @@
 /* Палитра «game-amber». Сгенерировано make_palette.py, контраст WCAG проверен. */
+/* Тёмная тема по умолчанию; светлая — по системной настройке или data-theme="light". */
 :root{
-  --bg: #f9f9fb;
-  --surface: #ffffff;
-  --surface-2: #f0f0f3;
-  --border: #d9d9e0;
-  --border-strong: #8b8d98;
-  --text: #1c2024;
-  --text-2: #60646c;
-  --accent: #9c6900;
-  --accent-hover: #895c04;
-  --on-accent: #ffffff;
-  --accent-text: #906105;
-  --accent-soft: #feedd7;
-  --focus: #906105;
-  --success: #127a50;
-  --success-soft: #e6f6eb;
-  --warning: #a25f05;
-  --warning-soft: #fff7c2;
-  --danger: #ca282e;
-  --danger-soft: #feebec;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg: #111113;
-    --surface: #18191b;
-    --surface-2: #212225;
-    --border: #363a3f;
-    --border-strong: #60676f;
-    --text: #edeef0;
-    --text-2: #b0b4ba;
-    --accent: #e7ab51;
-    --accent-hover: #f4b85e;
-    --on-accent: #111113;
-    --accent-text: #ebb25f;
-    --accent-soft: #3f2903;
-    --focus: #ebb25f;
-    --success: #3dd68c;
-    --success-soft: #132d21;
-    --warning: #ffca16;
-    --warning-soft: #302008;
-    --danger: #ff9592;
-    --danger-soft: #3b1219;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"]{
   --bg: #111113;
   --surface: #18191b;
   --surface-2: #212225;
@@ -65,6 +21,52 @@
   --danger: #ff9592;
   --danger-soft: #3b1219;
   color-scheme: dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg: #f9f9fb;
+    --surface: #ffffff;
+    --surface-2: #f0f0f3;
+    --border: #d9d9e0;
+    --border-strong: #8b8d98;
+    --text: #1c2024;
+    --text-2: #60646c;
+    --accent: #9c6900;
+    --accent-hover: #895c05;
+    --on-accent: #ffffff;
+    --accent-text: #906105;
+    --accent-soft: #feedd7;
+    --focus: #906105;
+    --success: #127a50;
+    --success-soft: #e6f6eb;
+    --warning: #a25f05;
+    --warning-soft: #fff7c2;
+    --danger: #ca282e;
+    --danger-soft: #feebec;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"]{
+  --bg: #f9f9fb;
+  --surface: #ffffff;
+  --surface-2: #f0f0f3;
+  --border: #d9d9e0;
+  --border-strong: #8b8d98;
+  --text: #1c2024;
+  --text-2: #60646c;
+  --accent: #9c6900;
+  --accent-hover: #895c05;
+  --on-accent: #ffffff;
+  --accent-text: #906105;
+  --accent-soft: #feedd7;
+  --focus: #906105;
+  --success: #127a50;
+  --success-soft: #e6f6eb;
+  --warning: #a25f05;
+  --warning-soft: #fff7c2;
+  --danger: #ca282e;
+  --danger-soft: #feebec;
+  color-scheme: light;
 }
 body{ background: var(--bg); color: var(--text); }
 

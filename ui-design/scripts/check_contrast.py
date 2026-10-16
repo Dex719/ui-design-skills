@@ -2,15 +2,24 @@
 """Проверка контраста WCAG 2 для цветовых токенов.
 
 Использование:
-  python3 check_contrast.py "#1c2024" "#f9f9fb"             # одна пара
+  python3 check_contrast.py "#1c2024" "#f9f9fb"             # одна пара (код выхода 1, если < --need)
+  python3 check_contrast.py "#1c2024" "#f9f9fb" --need 3     # порог для крупного текста и UI
   python3 check_contrast.py page.html                        # токены из CSS, стандартные пары
-  python3 check_contrast.py page.css --pair text:bg --pair on-accent:accent
+  python3 check_contrast.py page.css --pair text:bg --pair border-strong:surface:3
 
-Понимает #rgb, #rrggbb, rgb(), oklch(L C H) (L в 0–1 или %).
-В режиме файла читает токены из `:root{...}` (светлая тема) и из блока
-`:root[data-theme="dark"]{...}` (тёмная). Без --pair проверяет пары по
-распространённым именам токенов (text/bg, text-2/bg, on-accent/accent и т.д.).
+Понимает #rgb, #rgba, #rrggbb, #rrggbbaa, rgb()/rgba() (через запятые или «/ альфа»),
+oklch(L C H [/ A]) (L в 0–1 или %), white, black, transparent.
+Полупрозрачный цвет текста накладывается на фон, полупрозрачный фон — на --bg темы
+(или на белый/чёрный), и только потом считается контраст.
+
+В режиме файла находит обе темы, в каком бы порядке они ни были объявлены:
+  · `:root{...}` — тема по умолчанию; тёмная, если внутри `color-scheme: dark`;
+  · `:root[data-theme="dark"|"light"]{...}` и блоки внутри
+    `@media (prefers-color-scheme: dark|light)` — вторая тема.
+Без --pair проверяет пары по распространённым именам токенов (text/bg, on-accent/accent и т.д.).
+Код выхода: 0 — всё прошло, 1 — есть провалы, 2 — ошибка ввода.
 """
+import argparse
 import math
 import re
 import sys
@@ -53,7 +62,7 @@ def oklch_to_hex(L, C, H):
 
 def hex_to_rgb(h):
     h = h.lstrip("#")
-    if len(h) == 3:
+    if len(h) in (3, 4):
         h = "".join(ch * 2 for ch in h)
     return tuple(int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
 
@@ -72,48 +81,138 @@ def hex_to_oklch(h):
     return L, C, H
 
 
+# ---------- разбор цвета с альфой ----------
+
+NAMED = {"white": "#ffffff", "black": "#000000", "transparent": "#00000000"}
+_NUM = r"([\d.]+%?)"
+
+
+def _alpha(s):
+    if s is None:
+        return 1.0
+    a = float(s[:-1]) / 100 if s.endswith("%") else float(s)
+    return max(0.0, min(1.0, a))
+
+
+def _to_hex(r, g, b, a=1.0):
+    out = "#{:02x}{:02x}{:02x}".format(*(max(0, min(255, round(v))) for v in (r, g, b)))
+    return out if a >= 1 else out + "{:02x}".format(round(a * 255))
+
+
 def parse_color(v):
+    """CSS-цвет → '#rrggbb' или '#rrggbbaa' (если есть прозрачность); None, если не цвет."""
     v = v.strip().lower()
+    if v in NAMED:
+        return NAMED[v]
     if v.startswith("#"):
-        return v if len(v) == 7 else "#" + "".join(ch * 2 for ch in v[1:4])
-    m = re.match(r"rgba?\(\s*([\d.]+)[ ,]+([\d.]+)[ ,]+([\d.]+)", v)
+        h = v[1:]
+        if not re.fullmatch(r"[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8}", h):
+            return None
+        if len(h) in (3, 4):
+            h = "".join(ch * 2 for ch in h)
+        return "#" + (h[:6] if h[6:] == "ff" else h)
+    m = re.match(r"rgba?\(\s*" + _NUM + r"[\s,]+" + _NUM + r"[\s,]+" + _NUM + r"(?:\s*[,/]\s*" + _NUM + r")?\s*\)", v)
     if m:
-        return "#{:02x}{:02x}{:02x}".format(*(round(float(x)) for x in m.groups()))
-    m = re.match(r"oklch\(\s*([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)", v)
+        ch = [float(x[:-1]) * 2.55 if x.endswith("%") else float(x) for x in m.groups()[:3]]
+        return _to_hex(*ch, _alpha(m.group(4)))
+    m = re.match(r"oklch\(\s*([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)(?:deg)?(?:\s*/\s*" + _NUM + r")?\s*\)", v)
     if m:
         L = float(m.group(1)) / (100 if m.group(2) else 1)
-        return oklch_to_hex(L, float(m.group(3)), float(m.group(4)))
+        base = oklch_to_hex(L, float(m.group(3)), float(m.group(4)))
+        a = _alpha(m.group(5))
+        return base if a >= 1 else base + "{:02x}".format(round(a * 255))
     return None
 
 
+def alpha_of(h):
+    return int(h[7:9], 16) / 255 if len(h) == 9 else 1.0
+
+
+def over(fg, bg):
+    """Накладывает fg (возможно полупрозрачный) на непрозрачный bg."""
+    a = alpha_of(fg)
+    if a >= 1:
+        return fg[:7]
+    f, b = hex_to_rgb(fg[:7]), hex_to_rgb(bg[:7])
+    return _to_hex(*((fc * a + bc * (1 - a)) * 255 for fc, bc in zip(f, b)))
+
+
 def luminance(hexcolor):
-    r, g, b = (_srgb_to_lin(v) for v in hex_to_rgb(hexcolor))
+    r, g, b = (_srgb_to_lin(v) for v in hex_to_rgb(hexcolor[:7]))
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
 
-def contrast(fg, bg):
+def contrast(fg, bg, base="#ffffff"):
+    """Контраст WCAG 2. Прозрачный bg кладётся на base, прозрачный fg — на получившийся bg."""
+    bg = over(bg, base)
+    fg = over(fg, bg)
     a, b = luminance(fg), luminance(bg)
     hi, lo = max(a, b), min(a, b)
     return (hi + 0.05) / (lo + 0.05)
 
 # ---------- разбор CSS ----------
 
-def _block(css, selector_regex):
-    m = re.search(selector_regex + r"\s*\{([^{}]*)\}", css)
-    return m.group(1) if m else ""
+def _blocks(css, selector_regex):
+    return [m.group(1) for m in re.finditer(selector_regex + r"\s*\{([^{}]*)\}", css)]
+
+
+def _at_rules(css):
+    """(начало, конец, заголовок, тело) для каждого @-блока верхнего уровня (@media, @supports…)."""
+    out = []
+    for m in re.finditer(r"@[\w-]+[^{;]*\{", css):
+        if out and m.start() < out[-1][1]:
+            continue
+        depth, i = 1, m.end()
+        while i < len(css) and depth:
+            depth += {"{": 1, "}": -1}.get(css[i], 0)
+            i += 1
+        out.append((m.start(), i, m.group(0), css[m.end():i - 1]))
+    return out
+
+
+def _media_blocks(css, scheme):
+    """Тела `:root…{}` внутри @media (prefers-color-scheme: scheme){ … }."""
+    out = []
+    for _, _, head, body in _at_rules(css):
+        if re.search(r"prefers-color-scheme\s*:\s*" + scheme, head):
+            out += _blocks(body, r":root[^{]*")
+    return out
+
+
+def _top_level(css):
+    """CSS без @-блоков: чтобы `:root{}` внутри @media не смешивался с темой по умолчанию."""
+    for start, end, _, _ in reversed(_at_rules(css)):
+        css = css[:start] + css[end:]
+    return css
 
 
 def tokens_from(block, base=None):
     out = dict(base or {})
-    for name, val in re.findall(r"--([\w-]+)\s*:\s*([^;]+);", block):
+    for name, val in re.findall(r"--([\w-]+)\s*:\s*([^;]+?)\s*(?:;|$)", block.strip()):
         col = parse_color(val)
         if col:
             out[name] = col
         else:
-            ref = re.match(r"var\(--([\w-]+)\)", val.strip())
+            ref = re.match(r"var\(--([\w-]+)\s*(?:,\s*([^)]+))?\)", val.strip())
             if ref and ref.group(1) in out:
                 out[name] = out[ref.group(1)]
+            elif ref and ref.group(2) and parse_color(ref.group(2)):
+                out[name] = parse_color(ref.group(2))
     return out
+
+
+def themes_from(css):
+    """{'светлая тема': tokens, 'тёмная тема': tokens} — обе темы, если они есть в файле."""
+    top = _top_level(css)
+    root = "".join(_blocks(top, r":root(?![\[:\w-])"))
+    default_dark = bool(re.search(r"color-scheme\s*:\s*dark", root))
+    base = tokens_from(root)
+    themes = {("тёмная тема" if default_dark else "светлая тема"): base}
+    other = "light" if default_dark else "dark"
+    blocks = _blocks(top, r':root\[data-theme="?' + other + r'"?\]') or _media_blocks(css, other)
+    if blocks:
+        themes["светлая тема" if default_dark else "тёмная тема"] = tokens_from("".join(blocks), base)
+    return themes
 
 
 DEFAULT_PAIRS = [
@@ -129,43 +228,73 @@ DEFAULT_PAIRS = [
 ]
 
 
-def check(tokens, pairs, label):
+def check(tokens, pairs, label, dark=False):
     fails = 0
+    page = over(tokens.get("bg", "#000000" if dark else "#ffffff"), "#000000" if dark else "#ffffff")
     print(f"\n[{label}]")
     for fg, bg, need in pairs:
         if fg not in tokens or bg not in tokens:
             continue
-        c = contrast(tokens[fg], tokens[bg])
+        c = contrast(tokens[fg], tokens[bg], page)
         ok = c >= need
         fails += not ok
-        print(f"  {'OK ' if ok else 'FAIL'} {fg:>14} on {bg:<14} {c:5.2f}:1 (нужно {need})")
+        print(f"  {'OK  ' if ok else 'FAIL'} {fg:>14} on {bg:<14} {c:5.2f}:1 (нужно {need:g})")
     return fails
 
 
+def _pair(s):
+    parts = s.split(":")
+    if len(parts) not in (2, 3) or not all(parts[:2]):
+        raise argparse.ArgumentTypeError(f"ожидается fg:bg или fg:bg:порог, получено «{s}»")
+    try:
+        need = float(parts[2]) if len(parts) == 3 else 4.5
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"порог должен быть числом: «{parts[2]}»")
+    return parts[0], parts[1], need
+
+
 def main(argv):
-    if len(argv) >= 2 and argv[0].startswith(("#", "rgb", "oklch")):
-        fg, bg = parse_color(argv[0]), parse_color(argv[1])
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("inputs", nargs="+", metavar="ЦВЕТ_ИЛИ_ФАЙЛ", help="два цвета (текст и фон) или путь к CSS/HTML")
+    p.add_argument("--pair", action="append", type=_pair, default=[], metavar="FG:BG[:ПОРОГ]",
+                   help="пара токенов для проверки (по умолчанию порог 4.5); можно несколько раз")
+    p.add_argument("--need", type=float, default=4.5, help="порог для режима пары (4.5 текст, 3 крупный текст и UI, 7 AAA)")
+    a = p.parse_args(argv)
+
+    if len(a.inputs) == 2:
+        fg, bg = parse_color(a.inputs[0]), parse_color(a.inputs[1])
+        bad = [s for s, c in zip(a.inputs, (fg, bg)) if c is None]
+        if bad:
+            print(f"Не понимаю цвет: {', '.join(bad)}. Нужен #rgb, #rrggbb, rgb(), oklch() или white/black.", file=sys.stderr)
+            return 2
         c = contrast(fg, bg)
-        print(f"{fg} on {bg}: {c:.2f}:1  текст AA {'OK' if c >= 4.5 else 'FAIL'} · крупный/UI {'OK' if c >= 3 else 'FAIL'}")
-        return 0
-    if not argv:
-        print(__doc__)
-        return 1
-    css = open(argv[0], encoding="utf-8").read()
-    pairs = []
-    for i, a in enumerate(argv):
-        if a == "--pair" and i + 1 < len(argv):
-            fg, bg = argv[i + 1].split(":")
-            pairs.append((fg, bg, 4.5))
-    pairs = pairs or DEFAULT_PAIRS
-    light = tokens_from(_block(css, r":root(?![\[:])"))
-    dark_block = _block(css, r':root\[data-theme="dark"\]')
-    fails = check(light, pairs, "светлая тема")
-    if dark_block:
-        fails += check(tokens_from(dark_block, light), pairs, "тёмная тема")
+        note = " (прозрачный фон наложен на белый)" if alpha_of(bg) < 1 else ""
+        print(f"{fg} on {bg}: {c:.2f}:1{note}  текст AA {'OK' if c >= 4.5 else 'FAIL'} · "
+              f"крупный/UI {'OK' if c >= 3 else 'FAIL'} · AAA {'OK' if c >= 7 else 'FAIL'}")
+        return 0 if c >= a.need else 1
+    if len(a.inputs) != 1:
+        p.error("нужен один файл или два цвета")
+
+    try:
+        with open(a.inputs[0], encoding="utf-8-sig") as f:
+            css = f.read()
+    except OSError as e:
+        print(f"Не могу открыть файл: {e}", file=sys.stderr)
+        return 2
+    themes = themes_from(css)
+    if not any(themes.values()):
+        print("В файле не найдено цветовых токенов в :root{...}.", file=sys.stderr)
+        return 2
+    pairs = a.pair or DEFAULT_PAIRS
+    fails = sum(check(t, pairs, label, dark=label.startswith("тёмн")) for label, t in themes.items())
+    if len(themes) == 1:
+        print("\nВторая тема не найдена (нет :root[data-theme=…] и @media prefers-color-scheme).")
     print(f"\nИтого провалов: {fails}")
     return 1 if fails else 0
 
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     sys.exit(main(sys.argv[1:]))

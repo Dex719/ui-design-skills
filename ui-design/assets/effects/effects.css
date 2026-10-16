@@ -28,6 +28,7 @@
 .fx-check circle, .fx-check path{ stroke-dasharray: 1; stroke-dashoffset: 1; }
 .fx-check.is-on circle, .fx-check.is-on path{ stroke-dashoffset: 0; }
 
+/* Спиннер и скелетон — единственные бесконечные анимации: это индикаторы загрузки, они исчезают вместе с ожиданием. */
 .fx-btn-loading{ position: relative; color: transparent !important; pointer-events: none; }
 .fx-btn-loading::after{
   content: ""; position: absolute; inset: 0; margin: auto; width: 1.1em; height: 1.1em;
@@ -54,7 +55,14 @@ dialog.fx-dialog::backdrop{ background: rgb(0 0 0 / .4); }
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
 }
-.fx-toast{ pointer-events: auto; }
+.fx-toast{ pointer-events: auto; display: flex; align-items: center; gap: 12px; }
+.fx-toast-text{ flex: 1; }
+.fx-toast-close{
+  flex: none; min-width: 24px; min-height: 24px; margin: -4px -6px -4px 0; padding: 0 4px; border: 0; border-radius: 4px;
+  background: none; color: inherit; font: inherit; font-size: 20px; line-height: 1; cursor: pointer; opacity: .75;
+}
+.fx-toast-close:hover{ opacity: 1; }
+.fx-toast-close:focus-visible{ outline: 2px solid currentColor; outline-offset: 2px; opacity: 1; }
 .fx-toast[data-state="enter"], .fx-toast[data-state="exit"]{ opacity: 0; }
 
 .fx-scroll-progress{
@@ -160,9 +168,9 @@ dialog.fx-dialog::backdrop{ background: rgb(0 0 0 / .4); }
   :root:not([data-motion="reduce"]) .fx-hp-ghost{ transition: transform 400ms var(--fx-ease-out) 450ms; }
   :root:not([data-motion="reduce"]) .fx-dmg{ animation: fx-dmg 900ms var(--fx-ease-out) forwards; }
   :root:not([data-motion="reduce"]) .fx-vignette{ transition: opacity .3s var(--fx-ease-out); }
-  :root:not([data-motion="reduce"]) .fx-vignette.is-low{ animation: fx-beat 1s ease-in-out infinite; }
-  :root:not([data-motion="reduce"]) .fx-rarity.is-revealed{ animation: fx-glow 1.8s ease-in-out infinite; }
-  :root:not([data-motion="reduce"]) .fx-timer.is-warning{ animation: fx-tick 1s var(--fx-ease-out) infinite; }
+  :root:not([data-motion="reduce"]) .fx-vignette.is-low{ animation: fx-beat 1s ease-in-out 5; /* ≤ 5 с: ничего бесконечного */ }
+  :root:not([data-motion="reduce"]) .fx-rarity.is-revealed{ animation: fx-glow 1.8s ease-in-out 2; }
+  :root:not([data-motion="reduce"]) .fx-timer.is-warning{ animation: fx-tick 1s var(--fx-ease-out) 5; }
   :root:not([data-motion="reduce"]) .fx-ping.is-pinging::after{
     content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid currentColor;
     animation: fx-ring 700ms var(--fx-ease-out) 3;
@@ -205,14 +213,14 @@ dialog.fx-dialog::backdrop{ background: rgb(0 0 0 / .4); }
 @media (prefers-reduced-motion: no-preference){
   /* Хореография входа: CSS-only, fill: backwards — до старта элемент в начальной точке, после конца анимация
      полностью отпускает свойства (hover и другие transform продолжают работать).
-     Порядок — --i (ставит fx.sequence()), шаг 60 мс, суммарная задержка ограничена. */
+     Порядок — --i (ставит fx.sequence()), шаг 50 мс, не больше 8 шагов (≤ 400 мс задержки). */
   :root:not([data-motion="reduce"]) .fx-enter{
-    animation: fx-enter 600ms var(--fx-ease-emph) backwards;
-    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+    animation: fx-enter 400ms var(--fx-ease-emph) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 50ms);
   }
   :root:not([data-motion="reduce"]) .fx-enter-fade{
-    animation: fx-fade 500ms var(--fx-ease-out) backwards;
-    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+    animation: fx-fade 400ms var(--fx-ease-out) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 50ms);
   }
 
   /* Кнопки: при наведении — только смена цвета (без движения); сжатие — на нажатие */
@@ -340,9 +348,9 @@ dialog.fx-dialog::backdrop{ background: rgb(0 0 0 / .4); }
   :root[data-motion="full"] .fx-hp-ghost{ transition: transform 400ms var(--fx-ease-out) 450ms; }
   :root[data-motion="full"] .fx-dmg{ animation: fx-dmg 900ms var(--fx-ease-out) forwards; }
   :root[data-motion="full"] .fx-vignette{ transition: opacity .3s var(--fx-ease-out); }
-  :root[data-motion="full"] .fx-vignette.is-low{ animation: fx-beat 1s ease-in-out infinite; }
-  :root[data-motion="full"] .fx-rarity.is-revealed{ animation: fx-glow 1.8s ease-in-out infinite; }
-  :root[data-motion="full"] .fx-timer.is-warning{ animation: fx-tick 1s var(--fx-ease-out) infinite; }
+  :root[data-motion="full"] .fx-vignette.is-low{ animation: fx-beat 1s ease-in-out 5; /* ≤ 5 с: ничего бесконечного */ }
+  :root[data-motion="full"] .fx-rarity.is-revealed{ animation: fx-glow 1.8s ease-in-out 2; }
+  :root[data-motion="full"] .fx-timer.is-warning{ animation: fx-tick 1s var(--fx-ease-out) 5; }
   :root[data-motion="full"] .fx-ping.is-pinging::after{
     content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid currentColor;
     animation: fx-ring 700ms var(--fx-ease-out) 3;
@@ -351,14 +359,14 @@ dialog.fx-dialog::backdrop{ background: rgb(0 0 0 / .4); }
 
   /* Хореография входа: CSS-only, fill: backwards — до старта элемент в начальной точке, после конца анимация
      полностью отпускает свойства (hover и другие transform продолжают работать).
-     Порядок — --i (ставит fx.sequence()), шаг 60 мс, суммарная задержка ограничена. */
+     Порядок — --i (ставит fx.sequence()), шаг 50 мс, не больше 8 шагов (≤ 400 мс задержки). */
   :root[data-motion="full"] .fx-enter{
-    animation: fx-enter 600ms var(--fx-ease-emph) backwards;
-    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+    animation: fx-enter 400ms var(--fx-ease-emph) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 50ms);
   }
   :root[data-motion="full"] .fx-enter-fade{
-    animation: fx-fade 500ms var(--fx-ease-out) backwards;
-    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+    animation: fx-fade 400ms var(--fx-ease-out) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 50ms);
   }
 
   /* Кнопки: при наведении — только смена цвета (без движения); сжатие — на нажатие */

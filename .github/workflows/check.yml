@@ -1,0 +1,68 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  scripts:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.9", "3.13"]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      S: ui-design/scripts
+      A: ui-design/assets
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Every script answers --help
+        run: for s in $S/*.py; do python -I "$s" --help > /dev/null; done
+
+      - name: Help survives a legacy Windows console encoding
+        env:
+          PYTHONIOENCODING: cp1251
+        run: python -I $S/make_palette.py --help > /dev/null && python -I $S/style_tiles.py --help > /dev/null
+
+      - name: Palettes match palettes.json and references/20
+        run: python -I $S/build_palettes.py --check
+
+      - name: All palettes pass contrast in both themes
+        run: for f in $A/palettes/*.css; do python -I $S/check_contrast.py "$f" > /dev/null || { python -I $S/check_contrast.py "$f"; exit 1; }; done
+
+      - name: Example system passes style_tiles without warnings
+        run: |
+          python -I $S/style_tiles.py --check --strict $A/styles/system.example.json
+          python -I $S/style_tiles.py $A/styles/system.example.json -o "$RUNNER_TEMP/tiles.html"
+          python -I $S/style_tiles.py --export $A/styles/system.example.json -d "$RUNNER_TEMP/design"
+
+      - name: Motion override block in effects.css is up to date
+        run: python -I $S/build_motion_override.py --check $A/effects/effects.css
+
+      - name: Icon tool
+        run: |
+          python -I $S/icon.py --list > /dev/null
+          python -I $S/icon.py trash-2 --label 'Delete "all"' | grep -q 'aria-label="Delete &quot;all&quot;"'
+
+      - name: Docs agree with files
+        run: python -I tests/check_repo.py
+
+  effects:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: effects.js parses
+        run: node --check ui-design/assets/effects/effects.js
+      - name: No line in the repo ends with CRLF
+        run: "! git grep -I -l $'\\r' -- . ':!*.png' ':!*.jpg'"

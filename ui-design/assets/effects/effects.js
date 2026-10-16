@@ -23,6 +23,14 @@
   }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
+  /* Строки интерфейса библиотеки. Для другого языка: fx.setStrings({ done: "Done", copied: "Copied", ... }). */
+  var strings = {
+    locale: document.documentElement.lang || "ru-RU",
+    done: "Готово", copied: "Скопировано", copiedLong: "Скопировано в буфер обмена",
+    copyFailed: "Выделите и скопируйте", close: "Закрыть"
+  };
+  function setStrings(s) { for (var k in s) if (Object.prototype.hasOwnProperty.call(s, k)) strings[k] = s[k]; }
+
   /* Гладкий псевдошум из суммы синусов: для тряски лучше, чем random() на каждом кадре. */
   function noise(seed) {
     var p1 = seed * 12.9898, p2 = seed * 78.233, p3 = seed * 37.719;
@@ -59,14 +67,23 @@
       errorEl.textContent = message;
       errorEl.hidden = false;
       if (!errorEl.id) errorEl.id = "fx-err-" + Math.random().toString(36).slice(2, 8);
-      field.setAttribute("aria-describedby", errorEl.id);
+      setIds(field, "aria-describedby", ids(field, "aria-describedby").concat(errorEl.id));
     }
     shake(field.closest("[data-fx-shake]") || field);
   }
   function clearFieldError(field, errorEl) {
     field.classList.remove("fx-field-error");
     field.removeAttribute("aria-invalid");
-    if (errorEl) { errorEl.textContent = ""; errorEl.hidden = true; }
+    if (errorEl) {
+      errorEl.textContent = ""; errorEl.hidden = true;
+      if (errorEl.id) setIds(field, "aria-describedby", ids(field, "aria-describedby").filter(function (id) { return id !== errorEl.id; }));
+    }
+  }
+  /* aria-describedby может уже указывать на подсказку к полю — ошибку добавляем рядом, а не вместо. */
+  function ids(el, attr) { return (el.getAttribute(attr) || "").split(/\s+/).filter(Boolean); }
+  function setIds(el, attr, list) {
+    var uniq = list.filter(function (id, i) { return list.indexOf(id) === i; });
+    if (uniq.length) el.setAttribute(attr, uniq.join(" ")); else el.removeAttribute(attr);
   }
 
   /** Галочка успеха: SVG с pathLength="1" у circle и path. */
@@ -78,17 +95,27 @@
 
   /* ---------- Кнопки ---------- */
 
-  /** Кнопка в загрузке: ширина сохраняется, повторный клик заблокирован. */
-  function loading(btn, on) {
+  /**
+   * Кнопка в загрузке: ширина сохраняется, повторный клик заблокирован.
+   * Не ставим disabled: у disabled-кнопки браузер отнимает фокус, и клавиатурный пользователь теряет место.
+   * Вместо этого aria-disabled + перехват кликов; opts.label — что объявить скринридеру («Отправляем платёж»).
+   */
+  function loading(btn, on, opts) {
+    opts = opts || {};
     if (on) {
+      if (btn._fxBlock) return;
       btn.style.minWidth = btn.getBoundingClientRect().width + "px";
       btn.classList.add("fx-btn-loading");
       btn.setAttribute("aria-busy", "true");
-      btn.disabled = true;
+      btn.setAttribute("aria-disabled", "true");
+      btn._fxBlock = function (e) { e.preventDefault(); e.stopImmediatePropagation(); };
+      btn.addEventListener("click", btn._fxBlock, true);
+      if (opts.label) announce(opts.label);
     } else {
       btn.classList.remove("fx-btn-loading");
       btn.removeAttribute("aria-busy");
-      btn.disabled = false;
+      btn.removeAttribute("aria-disabled");
+      if (btn._fxBlock) { btn.removeEventListener("click", btn._fxBlock, true); btn._fxBlock = null; }
       btn.style.minWidth = "";
     }
   }
@@ -98,37 +125,57 @@
    * Кнопка → успех: заливка цветом успеха, текст сменяется рисующейся галочкой, ширина не меняется.
    * Отдельной надписи рядом не нужно; текст для скринридера — opts.label. opts.reset — вернуть исходный вид через N мс.
    */
+  var SVG = "http://www.w3.org/2000/svg";
   function success(btn, opts) {
     opts = opts || {};
     if (btn.classList.contains("fx-btn-success")) return;
-    btn.setAttribute("data-fx-label", btn.innerHTML);
+    var label = opts.label || strings.done;
     btn.style.minWidth = btn.getBoundingClientRect().width + "px";
+    /* Исходные узлы переносим во фрагмент, а не копируем innerHTML: так сохраняются обработчики и состояние. */
+    var saved = document.createDocumentFragment();
+    while (btn.firstChild) saved.appendChild(btn.firstChild);
+    btn._fxSaved = saved;
     btn.classList.add("fx-btn-success");
-    btn.innerHTML = '<svg class="fx-btn-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" pathLength="1"/></svg><span class="fx-sr">' + (opts.label || "Готово") + "</span>";
-    announce(opts.label || "Готово");
-    if (opts.reset) setTimeout(function () { resetSuccess(btn); }, opts.reset);
+    var svg = document.createElementNS(SVG, "svg");
+    svg.setAttribute("class", "fx-btn-check"); svg.setAttribute("viewBox", "0 0 24 24"); svg.setAttribute("aria-hidden", "true");
+    var path = document.createElementNS(SVG, "path");
+    path.setAttribute("d", "M5 12.5l4.5 4.5L19 7.5"); path.setAttribute("pathLength", "1");
+    svg.appendChild(path);
+    var sr = document.createElement("span");
+    sr.className = "fx-sr"; sr.textContent = label;   /* textContent: подпись не может внедрить разметку */
+    btn.appendChild(svg); btn.appendChild(sr);
+    announce(label);
+    if (opts.reset) btn._fxReset = setTimeout(function () { resetSuccess(btn); }, opts.reset);
   }
   function resetSuccess(btn) {
     if (!btn.classList.contains("fx-btn-success")) return;
+    clearTimeout(btn._fxReset);
     btn.classList.remove("fx-btn-success");
-    btn.innerHTML = btn.getAttribute("data-fx-label");
-    btn.removeAttribute("data-fx-label");
+    while (btn.firstChild) btn.removeChild(btn.firstChild);
+    if (btn._fxSaved) btn.appendChild(btn._fxSaved);
+    btn._fxSaved = null;
     btn.style.minWidth = "";
   }
 
   /** Копирование: смена подписи на «Скопировано» на 1.6 с + объявление. */
   function copy(btn, text, labelEl) {
     var label = labelEl || btn;
-    var original = label.textContent;
+    /* Исходный текст запоминаем один раз: повторный клик за 1.6 с не должен сохранить «Скопировано» как исходное. */
+    if (label._fxOriginal == null) label._fxOriginal = label.textContent;
+    var restore = function (ms) {
+      clearTimeout(label._fxTimer);
+      label._fxTimer = setTimeout(function () { label.textContent = label._fxOriginal; label._fxOriginal = null; }, ms);
+    };
+    var fail = function () { label.textContent = strings.copyFailed; restore(3000); };
     var done = function () {
-      label.textContent = "Скопировано";
-      announce("Скопировано в буфер обмена");
+      label.textContent = strings.copied;
+      announce(strings.copiedLong);
       pop(btn);
-      setTimeout(function () { label.textContent = original; }, 1600);
+      restore(1600);
     };
     try {
-      navigator.clipboard.writeText(text).then(done, function () { label.textContent = "Выделите и скопируйте"; });
-    } catch (e) { label.textContent = "Выделите и скопируйте"; }
+      navigator.clipboard.writeText(text).then(done, fail);
+    } catch (e) { fail(); }
   }
 
   /** Короткий «поп» масштаба (лайк, чекбокс, значок). */
@@ -148,17 +195,23 @@
 
   /* ---------- Оверлеи ---------- */
 
+  /* Live-регион создаётся при загрузке страницы: скринридеры часто пропускают
+     первое сообщение в регионе, который появился в DOM одновременно с текстом. */
   var liveRegion;
+  function ensureLive() {
+    if (liveRegion || !document.body) return;
+    liveRegion = document.createElement("div");
+    liveRegion.setAttribute("role", "status");
+    liveRegion.setAttribute("aria-live", "polite");
+    liveRegion.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap";
+    document.body.appendChild(liveRegion);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ensureLive);
+  else ensureLive();
   function announce(text) {
-    if (!liveRegion) {
-      liveRegion = document.createElement("div");
-      liveRegion.setAttribute("role", "status");
-      liveRegion.setAttribute("aria-live", "polite");
-      liveRegion.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap";
-      document.body.appendChild(liveRegion);
-    }
+    ensureLive();
     liveRegion.textContent = "";
-    setTimeout(function () { liveRegion.textContent = text; }, 30);
+    setTimeout(function () { liveRegion.textContent = text; }, 100);
   }
 
   var toastHost;
@@ -174,47 +227,100 @@
     }
     var t = document.createElement("div");
     t.className = "fx-toast " + (opts.className || "");
-    t.textContent = message;
+    var text = document.createElement("span");
+    text.className = "fx-toast-text";
+    text.textContent = message;
+    var x = document.createElement("button");
+    x.type = "button";
+    x.className = "fx-toast-close";
+    x.setAttribute("aria-label", strings.close);
+    x.textContent = "\u00d7";
+    t.appendChild(text); t.appendChild(x);
     t.setAttribute("data-state", "enter");
     toastHost.appendChild(t);
     while (toastHost.children.length > 3) toastHost.removeChild(toastHost.firstChild);
     requestAnimationFrame(function () { requestAnimationFrame(function () { t.removeAttribute("data-state"); }); });
-    var timer, remaining = opts.duration || 4000, started = Date.now();
+    /* ≥ 5 с по умолчанию; пауза, пока на тосте курсор или фокус (WCAG 2.2.1); всегда можно закрыть вручную. */
+    var timer, remaining = opts.duration || 5000, started = Date.now(), paused = 0, closed = false;
     var close = function () {
+      if (closed) return;
+      closed = true; clearTimeout(timer);
       t.setAttribute("data-state", "exit");
       setTimeout(function () { t.remove(); }, reduced() ? 0 : 300);
     };
-    var run = function () { started = Date.now(); timer = setTimeout(close, remaining); };
-    t.addEventListener("mouseenter", function () { clearTimeout(timer); remaining -= Date.now() - started; });
-    t.addEventListener("mouseleave", run);
-    run();
+    var pause = function () { if (paused++ === 0) { clearTimeout(timer); remaining -= Date.now() - started; } };
+    var resume = function () {
+      if (--paused > 0) return;
+      paused = 0; started = Date.now(); timer = setTimeout(close, Math.max(remaining, 1000));
+    };
+    x.addEventListener("click", close);
+    t.addEventListener("mouseenter", pause);
+    t.addEventListener("mouseleave", resume);
+    t.addEventListener("focusin", pause);
+    t.addEventListener("focusout", resume);
+    started = Date.now(); timer = setTimeout(close, remaining);
+    t.close = close;
     return t;
   }
 
   /* ---------- Навигация ---------- */
 
-  /** Скользящее подчёркивание вкладок: контейнер .fx-tabs с кнопками [role=tab] и .fx-tabs-ind. */
+  /**
+   * Вкладки по паттерну WAI-ARIA: контейнер .fx-tabs[role=tablist] с кнопками [role=tab] и .fx-tabs-ind.
+   * Стрелки влево/вправо, Home/End, roving tabindex; панели из aria-controls показываются и прячутся сами,
+   * иначе — container.onTabChange(tab). Возвращает функцию destroy() для SPA.
+   */
   function tabs(container) {
     var ind = container.querySelector(".fx-tabs-ind");
-    var tabsEls = container.querySelectorAll("[role=tab]");
+    var tabsEls = Array.prototype.slice.call(container.querySelectorAll("[role=tab]"));
+    function current() {
+      return tabsEls.filter(function (t) { return t.getAttribute("aria-selected") === "true"; })[0];
+    }
     function move(tab) {
+      if (!ind) return;
       var c = container.getBoundingClientRect(), r = tab.getBoundingClientRect();
       ind.style.setProperty("--x", (r.left - c.left + container.scrollLeft) + "px");
       ind.style.setProperty("--w", r.width);
     }
-    tabsEls.forEach(function (tab) {
-      tab.addEventListener("click", function () {
-        tabsEls.forEach(function (t) { t.setAttribute("aria-selected", String(t === tab)); });
-        move(tab);
-        if (container.onTabChange) container.onTabChange(tab);
+    function select(tab, focus) {
+      tabsEls.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute("aria-selected", String(on));
+        t.tabIndex = on ? 0 : -1;
+        var panel = t.getAttribute("aria-controls") && document.getElementById(t.getAttribute("aria-controls"));
+        if (panel) panel.hidden = !on;
       });
-    });
-    var sel = container.querySelector("[role=tab][aria-selected=true]") || tabsEls[0];
-    if (sel) move(sel);
-    window.addEventListener("resize", function () {
-      var s = container.querySelector("[role=tab][aria-selected=true]");
-      if (s) move(s);
-    });
+      if (focus) tab.focus();
+      move(tab);
+      if (container.onTabChange) container.onTabChange(tab);
+    }
+    function onClick(e) {
+      var tab = e.target.closest("[role=tab]");
+      if (tab && tabsEls.indexOf(tab) > -1) select(tab, false);
+    }
+    function onKey(e) {
+      var i = tabsEls.indexOf(document.activeElement);
+      if (i < 0) return;
+      var n = tabsEls.length, next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: n - 1 }[e.key];
+      if (next == null) return;
+      e.preventDefault();
+      select(tabsEls[(next + n) % n], true);
+    }
+    container.addEventListener("click", onClick);
+    container.addEventListener("keydown", onKey);
+    var sel = current() || tabsEls[0];
+    if (sel) {
+      tabsEls.forEach(function (t) { t.tabIndex = t === sel ? 0 : -1; });
+      move(sel);
+    }
+    var relayout = function () { var s = current(); if (s) move(s); };
+    var ro = window.ResizeObserver ? new ResizeObserver(relayout) : null;
+    if (ro) ro.observe(container); else window.addEventListener("resize", relayout);
+    return function destroy() {
+      container.removeEventListener("click", onClick);
+      container.removeEventListener("keydown", onKey);
+      if (ro) ro.disconnect(); else window.removeEventListener("resize", relayout);
+    };
   }
 
   /* ---------- Числа ---------- */
@@ -223,10 +329,13 @@
   function countUp(el, to, opts) {
     opts = opts || {};
     var from = opts.from != null ? opts.from : parseFloat(el.dataset.value || "0") || 0;
-    var fmt = opts.format || function (v) { return Math.round(v).toLocaleString("ru-RU"); };
+    var fmt = opts.format || function (v) { return Math.round(v).toLocaleString(strings.locale); };
     el.dataset.value = to;
-    el.setAttribute("aria-label", fmt(to));
+    /* Новый вызов отменяет предыдущий, иначе два цикла rAF спорят за текст. */
+    if (el._fxRaf) cancelAnimationFrame(el._fxRaf);
     if (reduced()) { el.textContent = fmt(to); return; }
+    /* Промежуточные числа скрыты от скринридера (aria-busy), итог читается, когда счёт закончен. */
+    el.setAttribute("aria-busy", "true");
     var diff = Math.abs(to - from) || 1;
     var dur = opts.duration || clamp(350 + Math.log10(diff + 1) * 220, 350, 1200);
     var t0 = performance.now();
@@ -234,8 +343,10 @@
       var p = clamp((now - t0) / dur, 0, 1);
       var e = 1 - Math.pow(1 - p, 3);
       el.textContent = fmt(from + (to - from) * e);
-      if (p < 1) requestAnimationFrame(step);
-      else if (opts.punch !== false) punch(el, 1.15, 160);
+      if (p < 1) { el._fxRaf = requestAnimationFrame(step); return; }
+      el._fxRaf = 0;
+      el.removeAttribute("aria-busy");
+      if (opts.punch !== false) punch(el, 1.15, 160);
     })(t0);
   }
 
@@ -474,7 +585,8 @@
     });
   }
 
-  /** Плавная смена текста/содержимого (вкладки, значения): уход 120 мс, вход 200 мс. */
+  /** Плавная смена текста/содержимого (вкладки, значения): уход 120 мс, вход 200 мс.
+      isHTML = true только для своей, доверенной разметки: пользовательский текст передавайте без него. */
   function swap(el, content, isHTML) {
     var set = function () { if (isHTML) el.innerHTML = content; else el.textContent = content; };
     if (reduced() || !el.animate) { set(); return; }
@@ -666,7 +778,7 @@
   }
 
   window.fx = {
-    reduced: reduced, systemReduced: systemReduced, setMotion: setMotion, shake: shake, fieldError: fieldError, clearFieldError: clearFieldError, check: check,
+    reduced: reduced, systemReduced: systemReduced, setMotion: setMotion, setStrings: setStrings, shake: shake, fieldError: fieldError, clearFieldError: clearFieldError, check: check,
     loading: loading, success: success, resetSuccess: resetSuccess, copy: copy, pop: pop, punch: punch, announce: announce, toast: toast, tabs: tabs,
     countUp: countUp, stagger: stagger, once: once, burst: burst, confetti: confetti,
     trauma: trauma, hitFlash: hitFlash, hitstop: hitstop, damageNumber: damageNumber, health: health,

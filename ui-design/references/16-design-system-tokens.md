@@ -9,7 +9,8 @@
 ```json
 {
   "color": {
-    "blue": { "500": { "$type": "color", "$value": "#2563EB" } },
+    "blue": { "500": { "$type": "color",
+                       "$value": { "colorSpace": "oklch", "components": [0.546, 0.215, 262.9], "hex": "#2563eb" } } },
     "bg":   { "accent": { "$type": "color", "$value": "{color.blue.500}" } }
   }
 }

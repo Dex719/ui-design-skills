@@ -1,0 +1,19 @@
+[
+  {"id": "bank-petrol", "mood": "Доверие, спокойствие", "where": "Банки, финтех, госуслуги", "args": "--hue 215 --chroma 0.11 --neutral slate"},
+  {"id": "editorial-terracotta", "mood": "Тёплое чтение", "where": "Медиа, блоги, портфолио", "args": "--hue 38 --chroma 0.13 --neutral sand"},
+  {"id": "wellness-sage", "mood": "Мягко, свежо", "where": "Здоровье, медитации, эко", "args": "--hue 165 --chroma 0.09 --neutral sage"},
+  {"id": "friendly-apricot", "mood": "Тепло, энергия", "where": "Еда, доставка, сервисы для людей", "args": "--hue 55 --chroma 0.15 --neutral sand"},
+  {"id": "premium-bordeaux", "mood": "Сдержанная роскошь", "where": "Вино, ювелирка, премиум", "args": "--hue 12 --chroma 0.12 --neutral sand --max-l 0.42"},
+  {"id": "tech-cobalt", "mood": "Ясность, точность", "where": "Dev-tools, SaaS, документация", "args": "--hue 252 --chroma 0.16 --neutral slate"},
+  {"id": "playful-raspberry", "mood": "Смело, весело", "where": "Детское, креатив, соцсети", "args": "--hue 355 --chroma 0.17 --neutral mauve"},
+  {"id": "nature-olive", "mood": "Органика, покой", "where": "Агро, туризм, локальные бренды", "args": "--hue 128 --chroma 0.10 --neutral olive"},
+  {"id": "game-amber", "mood": "Азарт; тёмная по умолчанию", "where": "Игровые меню и HUD", "args": "--hue 75 --chroma 0.15 --neutral slate --dark-first"},
+  {"id": "lime-graphite", "mood": "Энергия, рост; тёмная по умолчанию", "where": "Финтех нового типа, трекеры", "args": "--hue 125 --chroma 0.18 --neutral gray --bright --dark-first"},
+  {"id": "sunflower", "mood": "Солнечно, громко", "where": "Необрутализм, дети, промо", "args": "--hue 92 --chroma 0.16 --bright"},
+  {"id": "ocean-navy", "mood": "Глубоко, серьёзно", "where": "Госуслуги, юристы, страхование", "args": "--hue 255 --chroma 0.13 --max-l 0.42"},
+  {"id": "sakura", "mood": "Мягко, нежно", "where": "Мода, красота, свадьбы", "args": "--hue 355 --chroma 0.08"},
+  {"id": "plum-night", "mood": "Ночь, игры; тёмная по умолчанию", "where": "Киберспорт, стриминг", "args": "--hue 320 --chroma 0.13 --dark-first"},
+  {"id": "forest", "mood": "Хвоя, плотность", "where": "Аналитика, агро, outdoor", "args": "--hue 150 --chroma 0.11 --max-l 0.42"},
+  {"id": "sky-bright", "mood": "Воздух, лёгкость", "where": "Путешествия, погода, wellness", "args": "--hue 225 --chroma 0.12 --bright"},
+  {"id": "coral-midnight", "mood": "Ночной город; тёмная по умолчанию", "where": "Музыка, события, ночная жизнь", "args": "--hue 28 --chroma 0.16 --neutral slate --dark-first"}
+]
