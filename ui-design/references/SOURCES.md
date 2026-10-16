@@ -233,3 +233,15 @@
 - https://developer.chrome.com/docs/identity/web-apis/web-otp — формат SMS для WebOTP
 - https://pages.nist.gov/800-63-4/sp800-63b.html — требования к паролям (ред. 4)
 - https://baymard.com/research/checkout-usability
+
+## Современный CSS и режимы доступности (раздел 26)
+- https://web.dev/baseline — Baseline
+- https://developer.mozilla.org/en-US/docs/Web/CSS/:has
+- https://developer.mozilla.org/en-US/docs/Web/CSS/:user-invalid
+- https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/light-dark
+- https://developer.mozilla.org/en-US/docs/Web/API/Popover_API
+- https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_anchor_positioning
+- https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API
+- https://developer.mozilla.org/en-US/docs/Web/CSS/@media/forced-colors
+- https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-contrast
+- https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/inert

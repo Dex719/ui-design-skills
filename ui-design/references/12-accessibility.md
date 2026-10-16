@@ -80,3 +80,5 @@
 - Только drag-and-drop без кнопок (2.5.7).
 - Тултип с важной информацией только при наведении мыши.
 - Контраст проверен на макете, но не на реальных данных и фото.
+
+Контрастная тема Windows (`forced-colors`), `prefers-contrast`, `inert`, `dialog` и `popover` — `references/26-modern-css-a11y-modes.md`.
