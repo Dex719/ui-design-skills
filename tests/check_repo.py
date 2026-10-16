@@ -54,6 +54,19 @@ def main():
             if not glob.glob(os.path.join(SKILL, "references", m.group(1) + "-*.md")):
                 errors.append(f"{rel}: нет главы references/{m.group(1)}")
 
+    # Оглавления в больших главах (<!-- toc -->) совпадают с заголовками ## / ### после них.
+    for doc in glob.glob(os.path.join(SKILL, "references", "*.md")):
+        text = read(doc)
+        m = re.search(r"<!-- toc -->(.*?)<!-- /toc -->", text, re.S)
+        if not m:
+            continue
+        toc = [ln.strip()[2:] for ln in m.group(1).splitlines() if ln.strip().startswith("- ")]
+        deep = any(ln.startswith("  - ") for ln in m.group(1).splitlines())
+        body = re.sub(r"```.*?```", "", text[m.end():], flags=re.S)
+        heads = [h for lvl, h in re.findall(r"^(#{2,3}) (.+)$", body, re.M) if lvl == "##" or deep]
+        if toc != [h.strip() for h in heads]:
+            errors.append(f"{os.path.relpath(doc, ROOT)}: оглавление устарело — сверь с заголовками")
+
     for readme in ("README.md", "README.ru.md"):
         listed = set(re.findall(r"`(\w+)",re.search(r"window\.fx.*?\n## ", read(os.path.join(ROOT, readme)), re.S).group(0)))
         missing = sorted(api - listed - {"fx"})
