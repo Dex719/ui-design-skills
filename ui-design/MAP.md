@@ -67,7 +67,7 @@ mindmap
 | `references/19-game-feel-onboarding-accessibility.md` | Juice, hitstop, тряска, coyote time, онбординг (Hodent), меню и настройки, GAG, субтитры, укачивание, локализация, F2P | Игровой геймплей-UX, меню, доступность игр |
 | `scripts/make_palette.py`, `scripts/check_contrast.py`, `assets/palettes/` | Генератор палитры (`--bright`, `--dark-first`), проверка контраста, 17 примеров | При любом выборе цветов и перед сдачей |
 | `scripts/style_tiles.py`, `assets/styles/system.example.json` | Варианты стиля рядом из своих `system.json`, проверки, экспорт `design-system.css` + `DESIGN.md` | Шаг «система до экранов» |
-| `scripts/icon.py`, `assets/icons/` | 118 иконок Lucide (ISC): inline-SVG, спрайт, группы | Всегда вместо эмодзи |
+| `scripts/icon.py`, `assets/icons/` | 127 иконок Lucide (ISC): inline-SVG, спрайт, группы | Всегда вместо эмодзи |
 | `references/22-game-vfx-juice.md` | Каталог игровых эффектов: тряска, хитстоп, вспышки, цифры урона, HP-призрак, частицы, награды, хаптика, фоточувствительность | Игровой UI и отклик геймплея |
 | `assets/effects/` | Библиотека эффектов `fx.*` (CSS + JS) и живая витрина `demo.html` | При любой анимации — подключай, а не пиши заново |
 | `references/SOURCES.md` | Первоисточники по разделам | Проверить или процитировать норму |

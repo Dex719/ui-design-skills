@@ -40,7 +40,7 @@ Notable house rules: no emoji anywhere (real SVG icons instead), no hover *motio
 |---|---|
 | Color | **OKLCH** color space, Radix-style tinted neutral scales, WCAG 2 contrast math |
 | Fonts | Google Fonts (online) or `@fontsource` packages embedded as base64 (offline) |
-| Icons | **Lucide** (ISC license), 118 icons as inline SVG and a `<symbol>` sprite |
+| Icons | **Lucide** (ISC license), 127 icons as inline SVG and a `<symbol>` sprite |
 | Motion | Web Animations API, CSS transitions, FLIP, `prefers-reduced-motion` + manual `data-motion` override |
 | Scripts | Python 3, **standard library only** — no `pip install` needed |
 | Effects | Vanilla JS + CSS, zero dependencies |

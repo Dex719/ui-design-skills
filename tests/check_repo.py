@@ -34,7 +34,7 @@ def main():
     api = set(re.findall(r"(\w+):\s*\w+", re.search(r"window\.fx\s*=\s*\{(.*?)\};", js, re.S).group(1)))
 
     claims = [
-        (r"\b(\d+)\s+(?:иконок|icons)\b", len(icons), "иконок"),
+        (r"\b(\d+)\s+(?:SVG-иконок|иконок|icons|SVG files)\b", len(icons), "иконок"),
         (r"\b(\d+)\s+(?:примеров палитр|палитр|calibration palettes)\b", len(palettes), "палитр"),
     ]
     for doc in DOCS:

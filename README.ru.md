@@ -40,7 +40,7 @@
 |---|---|
 | Цвет | Цветовое пространство **OKLCH**, тонированные нейтрали в духе Radix, формула контраста WCAG 2 |
 | Шрифты | Google Fonts (онлайн) или пакеты `@fontsource`, встроенные в base64 (офлайн) |
-| Иконки | **Lucide** (лицензия ISC), 118 иконок inline-SVG и спрайтом `<symbol>` |
+| Иконки | **Lucide** (лицензия ISC), 127 иконок inline-SVG и спрайтом `<symbol>` |
 | Движение | Web Animations API, CSS-переходы, FLIP, `prefers-reduced-motion` + ручной режим `data-motion` |
 | Скрипты | Python 3, **только стандартная библиотека** — `pip install` не нужен |
 | Эффекты | Чистый JS + CSS, без зависимостей |
