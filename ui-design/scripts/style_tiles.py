@@ -17,7 +17,7 @@ import argparse, base64, json, os, sys, html
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from make_palette import build, neutral_for_hue, NEUTRALS, ORDER  # noqa: E402
+from make_palette import build, neutral_for_hue, NEUTRALS, ORDER, BG_KINDS  # noqa: E402
 from check_contrast import hex_to_rgb  # noqa: E402
 
 ROOT = os.path.join(HERE, "..")
@@ -34,6 +34,7 @@ WEIGHTS = {
     "Mulish": "400;600;700", "Geologica": "400;600;700", "Fira Sans": "400;500;600;700", "JetBrains Mono": "400;600",
     "Inter": "400;500;600;700",
 }
+FIELDS = ("outline", "filled", "underline", "pill")
 MOTION = {
     "minimal": {"dur": "120ms", "label": "Минимальный: отклик, состояния, загрузка — официальные продукты"},
     "restrained": {"dur": "160ms", "label": "Сдержанный: фейды и смена цвета"},
@@ -78,6 +79,13 @@ def load(path):
         lost = [k for k in keys if k not in s[sect]]
         if lost:
             raise SpecError(f"{path}: в {sect} нет {', '.join(lost)}")
+    if s["color"].get("bg", "tinted") not in BG_KINDS:
+        raise SpecError(f"{path}: color.bg «{s['color'].get('bg')}» — нужно одно из {', '.join(BG_KINDS)}")
+    if not 0 <= s["color"].get("tint", 0) <= 1:
+        raise SpecError(f"{path}: color.tint — от 0 до 1")
+    field = s["shape"].get("field", "outline")
+    if field not in FIELDS:
+        raise SpecError(f"{path}: shape.field «{field}» — нужно одно из {', '.join(FIELDS)}")
     depth = s.get("depth", {}).get("style", "soft")
     if depth not in DEPTH:
         raise SpecError(f"{path}: depth.style «{depth}» — нужно одно из {', '.join(DEPTH)}")
@@ -94,7 +102,8 @@ def resolve(s):
     neutral = c.get("neutral", "auto")
     neutral = neutral_for_hue(c["hue"]) if neutral in (None, "auto") else neutral
     s["_neutral"] = neutral
-    s["_colors"] = build(c["hue"], c.get("chroma", 0.12), neutral, c.get("accent_l", 0.62), c.get("bright", False))
+    s["_colors"] = build(c["hue"], c.get("chroma", 0.12), neutral, c.get("accent_l", 0.62), c.get("bright", False),
+                         c.get("bg", "tinted"), c.get("tint", 0.0))
     s["_dark_first"] = c.get("dark_first", False)
     t.setdefault("display", t["body"]); t.setdefault("display_weight", 700); t.setdefault("body_weight", 400)
     t.setdefault("line", 1.5); t.setdefault("heading_line", 1.15); t.setdefault("display_max", 56)
@@ -126,6 +135,8 @@ def check(s):
     if t["heading_line"] > 1.35: w.append("межстрочный заголовков > 1.35 — строки распадаются")
     for f in {t["body"], t["display"], t.get("mono") or t["body"]}:
         if f not in WEIGHTS: w.append(f"шрифт «{f}» не из проверенного списка — сам проверь кириллицу, казахские буквы и ₸")
+    if sp["control"] >= 52 and t["base"] < 18:
+        w.append(f"контрол {sp['control']} px при тексте {t['base']} px — крупные поля нужны для 55+, киосков и крупных CTA; для обычного продукта выведи высоту из плотности")
     if sp["control"] < 24: w.append("контрол меньше 24 px (WCAG 2.5.8)")
     elif sp["control"] < 40: w.append(f"контрол {sp['control']} px — только для плотных десктопных интерфейсов; на мобильном ≥ 44")
     sc = sp["scale"]
@@ -139,18 +150,21 @@ def check(s):
         w.append("индиго-фиолетовый — самый шаблонный тон; оставь, только если причина в бренде (color.brand: true)")
     elif 180 <= h <= 250 and c.get("chroma", 0.12) >= 0.09 and not c.get("brand"):
         w.append("бирюза и синий — перегруженные семьи; убедись, что причина в why не «надёжно и спокойно» по привычке")
+    if (h >= 325 or h < 10) and c.get("chroma", 0.12) <= 0.13 and not c.get("bright") and c.get("accent_l", 0.62) <= 0.5 and not c.get("brand"):
+        w.append("тёмная приглушённая слива или ягода — частый выбор «по привычке»; убедись, что тон и приглушённость следуют из брифа")
     if c.get("neutral") in (None, "auto"): w.append("нейтраль выбрана автоматически — реши температуру сам (slate, sand, sage, olive, mauve, gray)")
     return w
 
 
 def distinct(a, b):
-    """Сколько из 5 признаков палитры различаются (references/23, «Как не повторяться»)."""
+    """Сколько из 6 признаков палитры различаются (references/23, «Как не повторяться»)."""
     fam = lambda h: int(((h + 15) % 360) // 30)
     ca, cb = a["color"], b["color"]
     band = lambda x: 0 if x < 0.09 else 1 if x < 0.14 else 2
     return sum([fam(ca["hue"]) != fam(cb["hue"]), band(ca.get("chroma", .12)) != band(cb.get("chroma", .12)),
                 a["_neutral"] != b["_neutral"], a["_dark_first"] != b["_dark_first"],
-                bool(ca.get("bright")) != bool(cb.get("bright"))])
+                bool(ca.get("bright")) != bool(cb.get("bright")),
+                (ca.get("bg", "tinted"), ca.get("tint", 0) > 0) != (cb.get("bg", "tinted"), cb.get("tint", 0) > 0)])
 
 
 def fonts(r):
@@ -249,6 +263,9 @@ BASE_CSS = """
 .ds .badge.ok{ color: var(--success); background: var(--success-soft); } .ds .badge.warn{ color: var(--warning); background: var(--warning-soft); }
 .ds .badge.err{ color: var(--danger); background: var(--danger-soft); } .ds .badge.acc{ color: var(--accent-text); background: var(--accent-soft); }
 .ds .num{ font-variant-numeric: tabular-nums; }
+.ds[data-field="filled"] .input{ background: var(--surface-2); border-color: transparent; border-bottom-color: var(--border-ctrl); border-radius: var(--r-md) var(--r-md) 0 0; }
+.ds[data-field="underline"] .input{ background: transparent; border-width: 0 0 max(1px, var(--border-w)); border-radius: 0; padding-inline: 0; }
+.ds[data-field="pill"] .input{ border-radius: 999px; padding-inline: var(--space-4); }
 .ds[data-btn="chamfer"] .btn, .ds[data-btn="chamfer"] .card{ clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
 """
 
@@ -332,12 +349,13 @@ def decisions(r):
     t, sz, sp, sh, c = r["_type"], sizes(r["_type"]), r["space"], r["shape"], r["color"]
     theme = "тёмная" if r["_dark_first"] else "светлая"
     fam = t["display"] if t["display"] == t["body"] else f'{t["display"]} {t["display_weight"]} / {t["body"]}'
+    tint = ", оттенок " + str(c["tint"]) if c.get("tint") else ""
     return [
         ("Шрифт", f'<b>{esc(fam)}</b>{" + " + esc(t["mono"]) if t.get("mono") else ""}', t.get("why")),
         ("Размеры", f'<b>база {sz["base"]}, ×{t["ratio"]}</b>: {sz["sm"]} · {sz["base"]} · {sz["lg"]} · {sz["h3"]} · {sz["h2"]} · {sz["h1"]} · {sz["display"]}', None),
         ("Отступы", f'<b>{" · ".join(map(str, sp["scale"]))}</b>, контрол {sp["control"]}', sp.get("why")),
-        ("Форма", f'<b>радиусы {" / ".join(map(str, sh["radius"]))}</b>, кнопка {sh["button"]}, рамка {sh["border"]}', sh.get("why")),
-        ("Цвет", f'<b>H {c["hue"]}, C {c.get("chroma", .12)}</b>, нейтрали {r["_neutral"]}, {theme}{", яркий акцент" if c.get("bright") else ""}', c.get("why")),
+        ("Форма", f'<b>радиусы {" / ".join(map(str, sh["radius"]))}</b>, кнопка {sh["button"]}, поле {sh.get("field", "outline")}, рамка {sh["border"]}', sh.get("why")),
+        ("Цвет", f'<b>H {c["hue"]}, C {c.get("chroma", .12)}</b>, нейтрали {r["_neutral"]}, фон {c.get("bg", "tinted")}{tint}, {theme}{", яркий акцент" if c.get("bright") else ""}', c.get("why")),
         ("Глубина", f'<b>{esc(r.get("depth", {}).get("style", "soft"))}</b>', r.get("depth", {}).get("why")),
         ("Движение", f'<b>{esc(r["_motion"]["label"])}</b>', r.get("motion", {}).get("why")),
     ]
@@ -354,7 +372,7 @@ def tile(r):
     nav = "".join(f"<span>{esc(n)}</span>" for n in x["nav"])
     css = f'.tile[data-k="{key}"]{{\n  {tok}\n}}'
     body = f'''
-<section class="tile ds" data-k="{key}" data-btn="{r["shape"]["button"]}" aria-label="Вариант {esc(r["name"])}">
+<section class="tile ds" data-k="{key}" data-btn="{r["shape"]["button"]}" data-field="{r["shape"].get("field", "outline")}" aria-label="Вариант {esc(r["name"])}">
   <div class="tile-label"><b>{esc(r["name"])}</b><span>{esc(r.get("brief", ""))}</span></div>
   <div class="in">
     <nav><span class="logo"><i>{esc(x["brand"][0])}</i>{esc(x["brand"])}</span>{nav}{svg("bell", 18)}</nav>
@@ -406,7 +424,7 @@ def export(r, outdir):
     else:
         theme_css = (f":root{{\n  {light}\n}}\n@media (prefers-color-scheme: dark){{\n  :root:not([data-theme=\"light\"]){{\n  {dark}\n  color-scheme: dark;\n  }}\n}}\n"
                      f":root[data-theme=\"dark\"]{{\n  {dark}\n  color-scheme: dark;\n}}\n")
-    base = BASE_CSS.replace('.ds[data-btn="chamfer"]', 'body[data-btn="chamfer"]').replace(".ds ", "").replace(".ds{", "body{")
+    base = BASE_CSS.replace('.ds[data-btn="chamfer"]', 'body[data-btn="chamfer"]').replace('.ds[data-field=', 'body[data-field=').replace(".ds ", "").replace(".ds{", "body{")
     open(os.path.join(outdir, "design-system.css"), "w", encoding="utf-8").write(
         f"/* Дизайн-система «{r['name']}». Сгенерировано style_tiles.py. Все экраны — только на этих токенах. */\n{theme_css}\n{base}")
     t, sz, sp, sh = r["_type"], sizes(r["_type"]), r["space"], r["shape"]
@@ -424,6 +442,7 @@ def export(r, outdir):
 {font_links(fonts(r))}
 ```
 {'Кнопки и карточки со срезанными углами: `<body data-btn="chamfer">`.' if sh["button"] == "chamfer" else ""}
+Вид полей: `<body data-field="{sh.get("field", "outline")}">`.
 
 ## Решения и причины
 
@@ -574,7 +593,13 @@ def main():
             n = distinct(specs[i], specs[j])
             if n < 3:
                 warnings += 1
-                print(f"[{specs[i]['_key']} ↔ {specs[j]['_key']}] палитры различаются только по {n} из 5 признаков — это почти один вариант", file=sys.stderr)
+                print(f"[{specs[i]['_key']} ↔ {specs[j]['_key']}] палитры различаются только по {n} из 6 признаков — это почти один вариант", file=sys.stderr)
+    if len(specs) > 1 and len({s["space"]["control"] for s in specs}) == 1:
+        warnings += 1
+        print(f"варианты не различаются по высоте контролов ({specs[0]['space']['control']} px у всех) — размер поля тоже часть характера", file=sys.stderr)
+    if len(specs) > 1 and len({s["shape"].get("field", "outline") for s in specs}) == 1:
+        warnings += 1
+        print(f"у всех вариантов один вид поля ({specs[0]['shape'].get('field', 'outline')}) — попробуй контур, заливку, подчёркивание или таблетку", file=sys.stderr)
     if a.strict and warnings: return 1
     if a.check: return 0
     if a.export:

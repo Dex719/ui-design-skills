@@ -86,6 +86,7 @@ ui-design/
 ```bash
 # Палитра: один акцент + тонированные нейтрали, светлая и тёмная тема, контраст подгоняется сам
 python3 ui-design/scripts/make_palette.py --hue 215 --chroma 0.11 --name brand
+python3 ui-design/scripts/make_palette.py --hue 45 --chroma 0.16 --bg cream --tint 0.4 --name warm   # фон и оттенок нейтралей — тоже решения
 
 # Проверка контраста: одна пара или все токены в CSS/HTML-файле
 python3 ui-design/scripts/check_contrast.py "#1c2024" "#f9f9fb"

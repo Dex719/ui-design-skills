@@ -86,6 +86,7 @@ Run them from anywhere, passing paths as arguments:
 ```bash
 # Palette: one accent + tinted neutrals, light + dark theme, contrast auto-fixed
 python3 ui-design/scripts/make_palette.py --hue 215 --chroma 0.11 --name brand
+python3 ui-design/scripts/make_palette.py --hue 45 --chroma 0.16 --bg cream --tint 0.4 --name warm   # background and neutral tint are choices too
 
 # Contrast check: a single pair, or all tokens in a CSS/HTML file
 python3 ui-design/scripts/check_contrast.py "#1c2024" "#f9f9fb"

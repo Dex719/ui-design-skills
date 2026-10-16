@@ -75,7 +75,34 @@ def ensure(fg, bgs, target, step, chroma=None):
     return fg
 
 
-def build(hue, chroma, neutral, max_l=0.62, bright=False):
+BG_KINDS = ("tinted", "white", "cream", "cool", "accent")
+
+
+def neutral_base(L, D, kind, hue, chroma, tint):
+    """Фон и сила оттенка нейтралей — решения из брифа, а не одна шкала на все продукты.
+
+    kind: tinted — почти белый с оттенком серого (шкала Radix как есть) · white — чистый белый ·
+    cream — тёплый кремовый · cool — холодный светло-серый · accent — светлый тинт тона акцента.
+    tint 0…1 — сколько тона акцента подмешать в поверхности и рамки (0 — нейтрали Radix без изменений)."""
+    if kind == "white":
+        L["bg"], L["surface"] = "#ffffff", "#ffffff"
+    elif kind == "cream":
+        L["bg"], L["surface"] = oklch_to_hex(0.972, 0.016, 85), oklch_to_hex(0.992, 0.007, 85)
+    elif kind == "cool":
+        L["bg"], L["surface"] = oklch_to_hex(0.965, 0.008, 250), "#ffffff"
+    elif kind == "accent":
+        L["bg"], L["surface"] = oklch_to_hex(0.962, min(chroma * 0.3, 0.035), hue), "#ffffff"
+    if tint > 0:
+        keys = ["surface-2", "border"] + (["bg"] if kind == "tinted" else [])
+        for k in keys:
+            l, c, _ = hex_to_oklch(L[k])
+            L[k] = oklch_to_hex(l, c + tint * 0.03, hue)
+        for k in ("bg", "surface", "surface-2", "border"):
+            l, c, _ = hex_to_oklch(D[k])
+            D[k] = oklch_to_hex(l, c + tint * 0.025, hue)
+
+
+def build(hue, chroma, neutral, max_l=0.62, bright=False, bg="tinted", tint=0.0):
     nl, nd = NEUTRALS[neutral]
     t = {"light": {}, "dark": {}}
 
@@ -83,6 +110,10 @@ def build(hue, chroma, neutral, max_l=0.62, bright=False):
     L = t["light"]
     L.update(bg=nl[1], surface="#ffffff", **{"surface-2": nl[2], "border": nl[5],
              "border-strong": nl[8], "text": nl[11], "text-2": nl[10]})
+    D = t["dark"]
+    D.update(bg=nd[0], surface=nd[1], **{"surface-2": nd[2], "border": nd[5],
+             "border-strong": nd[7], "text": nd[11], "text-2": nd[10]})
+    neutral_base(L, D, bg, hue, chroma, tint)
     L["accent-soft"] = oklch_to_hex(0.955, min(chroma * 0.3, 0.035), hue)
     if bright:   # яркая кнопка с тёмным текстом (жёлтый, лайм, мята, небесный)
         acc = ensure(oklch_to_hex(0.84, chroma, hue), [nl[11]], 4.6, +0.01, chroma)
@@ -106,9 +137,6 @@ def build(hue, chroma, neutral, max_l=0.62, bright=False):
         L[k] = ensure(fg, [L["surface"], L["bg"], soft], 4.6, -0.01)
 
     # ---- тёмная тема ----
-    D = t["dark"]
-    D.update(bg=nd[0], surface=nd[1], **{"surface-2": nd[2], "border": nd[5],
-             "border-strong": nd[7], "text": nd[11], "text-2": nd[10]})
     dacc = ensure(oklch_to_hex(0.78, chroma * 0.85, hue), [nd[0]], 4.6, +0.01, chroma * 0.85)
     d_l = hex_to_oklch(dacc)[0]
     D["accent"] = dacc
@@ -171,6 +199,9 @@ def parser():
     p.add_argument("--name", default="custom")
     p.add_argument("--bright", action="store_true", help="яркая кнопка с тёмным текстом (жёлтый, лайм, мята, небесный)")
     p.add_argument("--dark-first", action="store_true", help="тёмная тема по умолчанию")
+    p.add_argument("--bg", choices=BG_KINDS, default="tinted",
+                   help="фон светлой темы: tinted (почти белый с оттенком), white, cream (тёплый), cool (холодный), accent (тинт акцента)")
+    p.add_argument("--tint", type=float, default=0.0, help="0…1 — сколько тона акцента в поверхностях и рамках (0 — нейтрали Radix)")
     p.add_argument("--json", action="store_true", help="вывести токены JSON-ом (для превью)")
     return p
 
@@ -182,14 +213,18 @@ def validate(p, a):
         p.error(f"--chroma {a.chroma}: нужно 0…0.37 (0.06 мягко, 0.12 уверенно, 0.18 ярко; выше sRGB не вмещает)")
     if not 0.2 <= a.max_l <= 0.95:
         p.error(f"--max-l {a.max_l}: нужно 0.2…0.95 (0.42 глубокий акцент, 0.62 обычный)")
+    if not 0 <= a.tint <= 1:
+        p.error(f"--tint {a.tint}: нужно 0…1")
 
 
-def habit_warning(hue, chroma):
+def habit_warning(hue, chroma, bright=False, max_l=0.62):
     """То же правило, что в style_tiles.py: перегруженные тона — только с причиной."""
     if 260 <= hue <= 295:
         return "индиго-фиолетовый — самый шаблонный тон; оставь, только если причина в бренде"
     if 180 <= hue <= 250 and chroma >= 0.09:
         return "бирюза и синий — перегруженные семьи; убедись, что причина не «надёжно и спокойно» по привычке"
+    if (hue >= 325 or hue < 10) and chroma <= 0.13 and not bright and max_l <= 0.5:
+        return "тёмная приглушённая слива или ягода — частый выбор «по привычке»; убедись, что тон и приглушённость следуют из брифа"
     return None
 
 
@@ -198,16 +233,16 @@ def main(argv=None):
     a = p.parse_args(argv)
     validate(p, a)
     neutral = neutral_for_hue(a.hue) if a.neutral == "auto" else a.neutral
-    t = build(a.hue, a.chroma, neutral, a.max_l, a.bright)
+    t = build(a.hue, a.chroma, neutral, a.max_l, a.bright, a.bg, a.tint)
     rep, fails = report(t)
-    warn = habit_warning(a.hue, a.chroma)
+    warn = habit_warning(a.hue, a.chroma, a.bright, a.max_l)
     if warn:
         print(f"предупреждение: {warn}", file=sys.stderr)
     if fails:
         print(f"ошибка: {fails} пар не прошли контраст — попробуй другую --max-l или --bright", file=sys.stderr)
     if a.json:
         print(json.dumps({"name": a.name, "neutral": neutral, "hue": a.hue, "chroma": a.chroma, "bright": a.bright,
-                          "dark_first": a.dark_first, "contrast_fails": fails, **t}, ensure_ascii=False))
+                          "dark_first": a.dark_first, "bg": a.bg, "tint": a.tint, "contrast_fails": fails, **t}, ensure_ascii=False))
     else:
         print(css(t, a.name, a.dark_first))
         print(f"/* нейтрали: {neutral} (Radix) */\n{rep}")
