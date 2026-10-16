@@ -74,10 +74,6 @@ h1{ margin: 0; font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem); line-height: 1.08; 
 .fx-check{ width: 28px; height: 28px; }
 .fx-check circle, .fx-check path{ fill: none; stroke: var(--success); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 
-.summary{ border: 2px solid var(--danger); border-radius: var(--r-sm); padding: 12px 14px; background: var(--danger-soft); }
-.summary h4{ margin: 0 0 6px; font-size: 15px; color: var(--danger); }
-.summary ul{ margin: 0; padding-left: 18px; }
-.summary a{ color: var(--danger); }
 
 .heart svg{ width: 22px; height: 22px; }
 .heart[aria-pressed="true"] svg path{ fill: var(--danger); stroke: var(--danger); }
@@ -323,16 +319,12 @@ dialog.fx-dialog p{ margin: 0 0 20px; color: var(--text-2); }
       </article>
 
       <article class="card fx-enter">
-        <h3>Сводка ошибок формы</h3>
-        <p class="when">Отправка формы с несколькими ошибками. Сводка стоит рядом с кнопкой отправки — там, куда смотрит человек; ссылки ведут к полям, у каждого поля своё сообщение. В длинных формах (выше экрана) сводку ставят сверху и переводят на неё фокус.</p>
-        <div class="chips"><span class="chip">у кнопки отправки</span><span class="chip">появление 180 мс</span><span class="chip">без тряски</span></div>
+        <h3>Ошибки при отправке</h3>
+        <p class="when">Отправка формы с несколькими ошибками. Сообщение — у каждого поля, фокус и прокрутка — к первому ошибочному. Отдельного списка ошибок нет: он повторял бы то, что уже написано у полей.</p>
+        <div class="chips"><span class="chip">ошибка у поля</span><span class="chip">фокус на первое</span><span class="chip">без тряски</span></div>
         <form class="demo" id="regForm" novalidate>
           <div class="field"><label for="regEmail">Почта</label><input id="regEmail" type="email" autocomplete="email" value="anna@"><p class="err" id="regEmailErr" hidden></p></div>
           <div class="field"><label for="regPhone">Телефон</label><input id="regPhone" type="tel" autocomplete="tel" value="+7 777 12"><p class="err" id="regPhoneErr" hidden></p></div>
-          <div class="summary" id="regSummary" tabindex="-1" hidden>
-            <h4>Исправьте 2 ошибки</h4>
-            <ul><li><a class="fx-link" href="#regEmail">Укажите почту в формате name@example.com</a></li><li><a class="fx-link" href="#regPhone">В номере телефона 11 цифр</a></li></ul>
-          </div>
           <div class="row"><button class="btn btn-primary fx-btn" type="submit">Отправить заявку</button></div>
         </form>
       </article>
@@ -688,9 +680,9 @@ dialog.fx-dialog p{ margin: 0 0 20px; color: var(--text-2); }
     fx.resetSuccess($("loginBtn"));
   });
 
-  /* Сводка ошибок формы */
-  var reg = [["regEmail", /^[^@\s]+@[^@\s]+\.[^@\s]+$/, "Укажите почту в формате name@example.com"],
-             ["regPhone", /^\D*(\d\D*){11}$/, "В номере телефона 11 цифр"]];
+  /* Ошибки при отправке: у полей, фокус на первое */
+  var reg = [["regEmail", /^[^@\s]+@[^@\s]+\.[^@\s]+$/, "Неверная почта"],
+             ["regPhone", /^\D*(\d\D*){11}$/, "Неверный номер"]];
   $("regForm").addEventListener("submit", function (e) {
     e.preventDefault();
     var bad = reg.filter(function (r) { return !r[1].test($(r[0]).value); });
@@ -699,18 +691,11 @@ dialog.fx-dialog p{ margin: 0 0 20px; color: var(--text-2); }
       if (bad.indexOf(r) >= 0) { f.classList.add("fx-field-error"); f.setAttribute("aria-invalid", "true"); err.textContent = r[2]; err.hidden = false; f.setAttribute("aria-describedby", err.id); }
       else fx.clearFieldError(f, err);
     });
-    var s = $("regSummary");
     if (bad.length) {
-      s.querySelector("h4").textContent = bad.length === 1 ? "Исправьте 1 ошибку" : "Исправьте " + bad.length + " ошибки";
-      s.querySelector("ul").innerHTML = bad.map(function (r) { return '<li><a href="#' + r[0] + '">' + r[2] + "</a></li>"; }).join("");
-      s.hidden = false;
-      if (!fx.reduced() && s.animate) s.animate([{ opacity: 0, transform: "translateY(-4px)" }, { opacity: 1, transform: "none" }], { duration: 180, easing: "cubic-bezier(.2,0,0,1)" });
-      s.focus();
-    } else { s.hidden = true; fx.toast("Заявка отправлена"); }
-  });
-  $("regSummary").addEventListener("click", function (e) {
-    var a = e.target.closest("a"); if (!a) return;
-    e.preventDefault(); $(a.getAttribute("href").slice(1)).focus();
+      var first = $(bad[0][0]);
+      first.scrollIntoView({ block: "center", behavior: fx.reduced() ? "auto" : "smooth" });
+      first.focus({ preventScroll: true });
+    } else fx.toast("Заявка отправлена");
   });
 
   /* Кнопки */

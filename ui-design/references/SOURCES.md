@@ -166,7 +166,6 @@
 - https://developer.chrome.com/docs/css-ui/animate-to-height-auto
 - https://developer.mozilla.org/en-US/docs/Web/CSS/@starting-style
 - https://developer.mozilla.org/en-US/docs/Web/CSS/transition-behavior
-- https://design-system.service.gov.uk/components/error-summary/
 - https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html
 - https://alistapart.com/article/designing-safer-web-animation-for-motion-sensitivity/
 - https://bevy.org/examples/camera/2d-screen-shake/
