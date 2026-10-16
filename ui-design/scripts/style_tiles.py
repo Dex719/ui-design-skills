@@ -126,6 +126,8 @@ def check(s):
     if t["heading_line"] > 1.35: w.append("межстрочный заголовков > 1.35 — строки распадаются")
     for f in {t["body"], t["display"], t.get("mono") or t["body"]}:
         if f not in WEIGHTS: w.append(f"шрифт «{f}» не из проверенного списка — сам проверь кириллицу, казахские буквы и ₸")
+    if sp["control"] >= 52 and t["base"] < 18:
+        w.append(f"контрол {sp['control']} px при тексте {t['base']} px — крупные поля нужны для 55+, киосков и крупных CTA; для обычного продукта выведи высоту из плотности")
     if sp["control"] < 24: w.append("контрол меньше 24 px (WCAG 2.5.8)")
     elif sp["control"] < 40: w.append(f"контрол {sp['control']} px — только для плотных десктопных интерфейсов; на мобильном ≥ 44")
     sc = sp["scale"]
@@ -575,6 +577,9 @@ def main():
             if n < 3:
                 warnings += 1
                 print(f"[{specs[i]['_key']} ↔ {specs[j]['_key']}] палитры различаются только по {n} из 5 признаков — это почти один вариант", file=sys.stderr)
+    if len(specs) > 1 and len({s["space"]["control"] for s in specs}) == 1:
+        warnings += 1
+        print(f"варианты не различаются по высоте контролов ({specs[0]['space']['control']} px у всех) — размер поля тоже часть характера", file=sys.stderr)
     if a.strict and warnings: return 1
     if a.check: return 0
     if a.export:
