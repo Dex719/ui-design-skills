@@ -69,12 +69,8 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/tw" && cd "$RUNNER_TEMP/tw"
           python -I "$GITHUB_WORKSPACE/ui-design/scripts/style_tiles.py" --export "$GITHUB_WORKSPACE/ui-design/assets/styles/system.example.json" -d design
-          printf '<div class="bg-surface text-text-2 bg-primary text-h2 rounded-md shadow-surface font-heading p-4"></div>
-' > index.html
-          printf '@import "tailwindcss";
-@import "./design/tailwind.css";
-@source "./index.html";
-' > input.css
+          printf '<div class="bg-surface text-text-2 bg-primary text-h2 rounded-md shadow-surface font-heading p-4"></div>\n' > index.html
+          printf '@import "tailwindcss";\n@import "./design/tailwind.css";\n@source "./index.html";\n' > input.css
           npm init -y > /dev/null
           npm install --no-audit --no-fund tailwindcss@4.1.11 @tailwindcss/cli@4.1.11
           npx tailwindcss -i input.css -o out.css
