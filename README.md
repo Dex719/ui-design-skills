@@ -9,7 +9,7 @@ The skill content itself is written in **Russian**; Claude reads it and answers 
 | Skill | What it is | Size |
 |---|---|---|
 | [`ui-design/`](ui-design) | Full version: process, 27 rules, 23 reference chapters, Python tools, effects library, palettes, icons | ~730 KB, 180 files |
-| [`ui-design-slim/`](ui-design-slim) | Compact single-file cheat sheet with the key rules and numbers, no tools | 1 file, ~44 KB |
+| [`ui-design-slim/`](ui-design-slim) | Compact single-file cheat sheet with the key rules and numbers, no tools | 1 file, ~19 KB |
 
 Install one of them, not both: their trigger descriptions overlap.
 
