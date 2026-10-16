@@ -349,12 +349,13 @@ def decisions(r):
     t, sz, sp, sh, c = r["_type"], sizes(r["_type"]), r["space"], r["shape"], r["color"]
     theme = "тёмная" if r["_dark_first"] else "светлая"
     fam = t["display"] if t["display"] == t["body"] else f'{t["display"]} {t["display_weight"]} / {t["body"]}'
+    tint = ", оттенок " + str(c["tint"]) if c.get("tint") else ""
     return [
         ("Шрифт", f'<b>{esc(fam)}</b>{" + " + esc(t["mono"]) if t.get("mono") else ""}', t.get("why")),
         ("Размеры", f'<b>база {sz["base"]}, ×{t["ratio"]}</b>: {sz["sm"]} · {sz["base"]} · {sz["lg"]} · {sz["h3"]} · {sz["h2"]} · {sz["h1"]} · {sz["display"]}', None),
         ("Отступы", f'<b>{" · ".join(map(str, sp["scale"]))}</b>, контрол {sp["control"]}', sp.get("why")),
         ("Форма", f'<b>радиусы {" / ".join(map(str, sh["radius"]))}</b>, кнопка {sh["button"]}, поле {sh.get("field", "outline")}, рамка {sh["border"]}', sh.get("why")),
-        ("Цвет", f'<b>H {c["hue"]}, C {c.get("chroma", .12)}</b>, нейтрали {r["_neutral"]}, фон {c.get("bg", "tinted")}{f", оттенок {c.get('tint')}" if c.get("tint") else ""}, {theme}{", яркий акцент" if c.get("bright") else ""}', c.get("why")),
+        ("Цвет", f'<b>H {c["hue"]}, C {c.get("chroma", .12)}</b>, нейтрали {r["_neutral"]}, фон {c.get("bg", "tinted")}{tint}, {theme}{", яркий акцент" if c.get("bright") else ""}', c.get("why")),
         ("Глубина", f'<b>{esc(r.get("depth", {}).get("style", "soft"))}</b>', r.get("depth", {}).get("why")),
         ("Движение", f'<b>{esc(r["_motion"]["label"])}</b>', r.get("motion", {}).get("why")),
     ]
