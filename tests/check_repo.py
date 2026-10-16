@@ -65,7 +65,25 @@ def main():
         body = re.sub(r"```.*?```", "", text[m.end():], flags=re.S)
         heads = [h for lvl, h in re.findall(r"^(#{2,3}) (.+)$", body, re.M) if lvl == "##" or deep]
         if toc != [h.strip() for h in heads]:
-            errors.append(f"{os.path.relpath(doc, ROOT)}: оглавление устарело — сверь с заголовками")
+            errors.append(f"{os.path.relpath(doc, ROOT)}: оглавление устарело — запусти python3 tools/build_toc.py")
+
+    # Наборы для проверки срабатывания скиллов (evals/*.trigger.json) — в формате skill-creator.
+    for path in glob.glob(os.path.join(ROOT, "evals", "*.trigger.json")):
+        rel = os.path.relpath(path, ROOT)
+        try:
+            items = json.load(open(path, encoding="utf-8"))
+        except ValueError as e:
+            errors.append(f"{rel}: неверный JSON ({e})"); continue
+        bad = [i for i, x in enumerate(items) if not (isinstance(x, dict) and isinstance(x.get("query"), str)
+                                                      and x["query"].strip() and isinstance(x.get("should_trigger"), bool))]
+        if bad:
+            errors.append(f"{rel}: элементы {bad} без query или should_trigger")
+        pos = sum(1 for x in items if isinstance(x, dict) and x.get("should_trigger") is True)
+        if not 0 < pos < len(items):
+            errors.append(f"{rel}: нужны и положительные, и отрицательные запросы")
+        skill = os.path.basename(path).split(".")[0]
+        if not os.path.isfile(os.path.join(ROOT, skill, "SKILL.md")):
+            errors.append(f"{rel}: нет скилла {skill}/SKILL.md")
 
     for readme in ("README.md", "README.ru.md"):
         listed = set(re.findall(r"`(\w+)",re.search(r"window\.fx.*?\n## ", read(os.path.join(ROOT, readme)), re.S).group(0)))

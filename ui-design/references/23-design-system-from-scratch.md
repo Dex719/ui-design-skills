@@ -65,7 +65,7 @@
 4. **Запиши систему** в `system.json` (схема в конце файла).
 5. **Собери 2–3 варианта**, которые различаются минимум по трём осям, и покажи их пользователю:
    `python3 scripts/style_tiles.py a.json b.json c.json -o tiles.html`.
-6. **Зафиксируй выбранный вариант:** `python3 scripts/style_tiles.py --export a.json -d design/` создаёт `design-system.css` и `DESIGN.md`.
+6. **Зафиксируй выбранный вариант:** `python3 scripts/style_tiles.py --export a.json -d design/` создаёт `design-system.css` (токены в обеих темах, размеры шрифта в rem), `DESIGN.md` (решения и причины), `tokens.json` (W3C DTCG 2025.10 — для Style Dictionary, Tokens Studio, Figma) и `tailwind.css` (Tailwind v4: `@theme inline` и цветовые имена shadcn/ui).
 7. **Строй экраны только на токенах.** Нужно новое значение — сначала добавь его в систему и объясни, потом используй.
 
 ---

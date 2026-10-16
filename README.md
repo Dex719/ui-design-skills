@@ -8,7 +8,7 @@ The skill content itself is written in **Russian**; Claude reads it and answers 
 
 | Skill | What it is | Size |
 |---|---|---|
-| [`ui-design/`](ui-design) | Full version: process, 27 rules, 25 reference chapters, Python tools, effects library, palettes, icons | ~730 KB, 180 files |
+| [`ui-design/`](ui-design) | Full version: process, 27 rules, 27 reference chapters, Python tools, effects library, palettes, icons | ~730 KB, 180 files |
 | [`ui-design-slim/`](ui-design-slim) | Compact single-file cheat sheet with the key rules and numbers, no tools | 1 file, ~19 KB |
 
 Install one of them, not both: their trigger descriptions overlap.
@@ -51,7 +51,7 @@ Notable house rules: no emoji anywhere (real SVG icons instead), no hover *motio
 ui-design/
 ├── SKILL.md          entry point: process, 27 golden rules, key numbers, output format
 ├── MAP.md            mind map, task routes ("landing page: read 23 → 03 → 11 → …"), topic index
-├── references/       25 chapters, read on demand
+├── references/       27 chapters, read on demand
 ├── scripts/          Python CLI tools
 └── assets/
     ├── effects/      effects.css + effects.js (window.fx) + demo.html
@@ -64,19 +64,20 @@ ui-design/
 
 | # | Topic | # | Topic |
 |---|---|---|---|
-| 01 | Usability foundations, response times | 13 | UX writing, i18n, RTL, plurals |
-| 02 | UX laws, Gestalt, Nielsen heuristics | 14 | Data viz and dashboards |
-| 03 | Visual hierarchy, spacing, shadows, radii | 15 | Trust, dark patterns, AI features |
-| 04 | Color, contrast, dark mode | 16 | Design system and tokens (DTCG) |
-| 05 | Typography, Cyrillic, ₸ | 17 | Audit and usability testing |
-| 06 | Layout, grids, breakpoints, container queries | 18 | Game UI, HUD, safe areas, gamepad |
-| 07 | Navigation, forms, screen states, toasts, modals | 19 | Game feel, onboarding, game accessibility |
-| 08 | Motion and interaction | 20 | Color palettes |
-| 09 | Imagery, art direction, icons | 21 | Micro-interactions and effects catalog |
-| 10 | Web media and performance (CWV, srcset, OG) | 22 | Game VFX and "juice" |
-| 11 | Landing pages and web style | 23 | Design system from scratch |
-| 12 | Accessibility (WCAG 2.2, ARIA, EAA) | 24 | AI interfaces: chat, streaming, sources, agents |
-| | | 25 | Forms: autofill, passkeys, OTP, KZ formats, ₸, dates, files |
+| 01 | Usability foundations, response times | 15 | Trust, dark patterns, AI features |
+| 02 | UX laws, Gestalt, Nielsen heuristics | 16 | Design system and tokens (DTCG) |
+| 03 | Visual hierarchy, spacing, shadows, radii | 17 | Audit and usability testing |
+| 04 | Color, contrast, dark mode | 18 | Game UI, HUD, safe areas, gamepad |
+| 05 | Typography, Cyrillic, ₸ | 19 | Game feel, onboarding, game accessibility |
+| 06 | Layout, grids, breakpoints, container queries | 20 | Color palettes |
+| 07 | Navigation, forms, screen states, toasts, modals | 21 | Micro-interactions and effects catalog |
+| 08 | Motion and interaction | 22 | Game VFX and "juice" |
+| 09 | Imagery, art direction, icons | 23 | Design system from scratch |
+| 10 | Web media and performance (CWV, srcset, OG) | 24 | AI interfaces: chat, streaming, sources, agents |
+| 11 | Landing pages and web style | 25 | Forms: autofill, passkeys, OTP, KZ formats, ₸, dates, files |
+| 12 | Accessibility (WCAG 2.2, ARIA, EAA) | 26 | Modern CSS and accessibility modes |
+| 13 | UX writing, i18n, RTL, plurals | 27 | Data tables |
+| 14 | Data viz and dashboards | | |
 
 ### Tools
 
@@ -92,7 +93,7 @@ python3 ui-design/scripts/check_contrast.py ui-design/assets/palettes/forest.css
 
 # Style tiles: render 2–3 design-system variants side by side, then export the chosen one
 python3 ui-design/scripts/style_tiles.py a.json b.json c.json -o tiles.html
-python3 ui-design/scripts/style_tiles.py --export a.json -d ./design   # design-system.css + DESIGN.md
+python3 ui-design/scripts/style_tiles.py --export a.json -d ./design   # design-system.css, DESIGN.md, tokens.json (DTCG), tailwind.css (v4)
 
 # Icons instead of emoji
 python3 ui-design/scripts/icon.py --list
@@ -111,13 +112,14 @@ On Windows use `python` or `py -3` instead of `python3`. Every script has `--hel
 
 ### Effects library (`window.fx`)
 
-Include `effects.css` and `effects.js`, then call `fx.*`. Every effect checks reduced-motion and, when it is on, keeps the meaning (color, text, `aria-live`) but drops the movement. Open [`assets/effects/demo.html`](ui-design/assets/effects/demo.html) for a live showcase.
+Include `effects.css` and `effects.js`, then call `fx.*` — or `import fx, { toast } from "./effects.mjs"`. TypeScript types: `effects.d.ts` (global) and `effects.d.mts` (ESM). API v2 convention: target first, then an options object (`fx.zoom(el, { scale: 1.1, ms: 300 })`); every effect returns a Promise that resolves when it ends; the short positional forms of v1 still work. `fx.flash` skips calls beyond 3 per second (WCAG 2.3.1). Every effect checks reduced-motion and, when it is on, keeps the meaning (color, text, `aria-live`) but drops the movement. Open [`assets/effects/demo.html`](ui-design/assets/effects/demo.html) for a live showcase.
 
 - **Forms and UI:** `shake`, `fieldError`, `clearFieldError`, `check`, `loading`, `success`, `resetSuccess`, `copy`, `toast`, `announce`, `tabs`, `ring`, `pop`, `punch`
 - **Data and layout:** `countUp`, `countAll`, `stagger`, `once`, `flip`, `swap`, `themeSwitch`, `sequence`
+- **Gestures and AI:** `swipeToDelete` (with Undo toast), `sheet` (bottom sheet on `<dialog>`), `stream` (AI answer streaming), `toast(text, { action })`
 - **Celebration:** `burst`, `confetti`, `flyTo`
 - **Games:** `trauma`, `hitFlash`, `hitstop`, `jitter`, `damageNumber`, `health`, `tint`, `wave`, `lines`, `flash`, `zoom`, `slowmo`, `stamp`, `afterimage`, `beam`, `squashJump`
-- **Motion mode and strings:** `reduced()`, `systemReduced()`, `setMotion("system" | "reduce" | "full")`, `setStrings({ done: "Done", … })` for non-Russian UIs
+- **Motion mode, strings, coordinates:** `center(el)`, `reduced()`, `systemReduced()`, `setMotion("system" | "reduce" | "full")`, `setStrings({ done: "Done", … })` for non-Russian UIs
 
 ## Installation
 
@@ -138,7 +140,7 @@ Claude picks the skill up automatically when you ask about UI, UX, landing pages
 
 ## Checks
 
-[`.github/workflows/check.yml`](.github/workflows/check.yml) runs on Linux, Windows and macOS with Python 3.9 and 3.13: every script's `--help`, palettes regenerated and compared, contrast of all palettes in both themes, the example system with `--strict`, the motion override block, and [`tests/check_repo.py`](tests/check_repo.py), which checks that numbers and paths in the docs match the files. Run the same locally:
+[`.github/workflows/check.yml`](.github/workflows/check.yml) runs on Linux, Windows and macOS with Python 3.9 and 3.13: every script's `--help`, palettes regenerated and compared, contrast of all palettes in both themes, the example system with `--strict`, the motion override block, and [`tests/check_repo.py`](tests/check_repo.py), which checks that numbers and paths in the docs match the files. Trigger evals for both skill descriptions live in [`evals/`](evals) (format of the `skill-creator` skill; running them needs Claude Code on macOS/Linux). Run the same local checks:
 
 ```bash
 python3 tests/check_repo.py

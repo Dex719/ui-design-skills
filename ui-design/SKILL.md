@@ -85,7 +85,7 @@ description: Полный справочник и процесс проекти�
 
 ## Инструменты скилла
 
-- `scripts/style_tiles.py` — варианты стиля рядом из твоих `system.json` (проверяет причины, пропорции, шаблонные тона и непохожесть вариантов), `--export` пишет `design-system.css` + `DESIGN.md`, `--embed-fonts` встраивает шрифты для офлайна. Схема — `references/23`, пример — `assets/styles/system.example.json`.
+- `scripts/style_tiles.py` — варианты стиля рядом из твоих `system.json` (проверяет причины, пропорции, шаблонные тона и непохожесть вариантов), `--export` пишет `design-system.css`, `DESIGN.md`, `tokens.json` (W3C DTCG 2025.10) и `tailwind.css` (Tailwind v4 `@theme`, имена shadcn/ui), размеры шрифта — в rem, `--embed-fonts` встраивает шрифты для офлайна. Схема — `references/23`, пример — `assets/styles/system.example.json`.
 - `scripts/icon.py` + `assets/icons/` — 127 иконок Lucide (ISC) inline-SVG и спрайтом; вместо эмодзи.
 - `scripts/make_palette.py` — палитра (светлая + тёмная) из тона и хромы акцента, нейтрали Radix, контраст подгоняется автоматически.
 - `scripts/build_palettes.py` — пересобирает 17 палитр и таблицу в `references/20` из `assets/palettes/palettes.json` (`--check` для CI).

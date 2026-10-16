@@ -9,7 +9,7 @@
   python3 style_tiles.py a.json b.json c.json -o tiles.html        # 2–3 варианта рядом
   python3 style_tiles.py a.json b.json --embed-fonts ./fonts -o t.html   # шрифты внутрь (офлайн)
   python3 style_tiles.py --check a.json                            # только проверка
-  python3 style_tiles.py --export a.json -d ./design               # design-system.css + DESIGN.md
+  python3 style_tiles.py --export a.json -d ./design               # design-system.css, DESIGN.md, tokens.json, tailwind.css
 
 Схема system.json — references/23, раздел 8; пример — assets/styles/system.example.json.
 """
@@ -18,6 +18,7 @@ import argparse, base64, json, os, sys, html
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from make_palette import build, neutral_for_hue, NEUTRALS, ORDER  # noqa: E402
+from check_contrast import hex_to_rgb  # noqa: E402
 
 ROOT = os.path.join(HERE, "..")
 ICONS = json.load(open(os.path.join(ROOT, "assets", "icons", "icons.json"), encoding="utf-8"))["icons"]
@@ -196,6 +197,11 @@ def used_weights(specs):
     return w
 
 
+def rem(px):
+    """px → rem при базе браузера 16 px: размеры шрифта в rem уважают системную настройку размера текста."""
+    return f"{round(px / 16, 4):g}rem"
+
+
 def tokens(r, theme):
     c = r["_colors"][theme]; t = r["_type"]; sz = sizes(t); sp = r["space"]; sh = r["shape"]; d = r["_depth"]
     lines = [f"--{k}: {c[k]};" for k in ORDER]
@@ -205,7 +211,7 @@ def tokens(r, theme):
         f'--font-body: "{t["body"]}", system-ui, -apple-system, "Segoe UI", sans-serif;',
         f'--font-mono: "{mono}", ui-monospace, Menlo, monospace;',
         f'--display-weight: {t["display_weight"]}; --body-weight: {t["body_weight"]};',
-        *[f"--fs-{k}: {v}px;" for k, v in sz.items()],
+        *[f"--fs-{k}: {rem(v)};" for k, v in sz.items()],
         f'--lh-body: {t["line"]}; --lh-heading: {t["heading_line"]};',
         *[f"--space-{i + 1}: {v}px;" for i, v in enumerate(sp["scale"])],
         f'--control-h: {sp["control"]}px;',
@@ -430,7 +436,7 @@ def export(r, outdir):
 
 | Токен | Значение |
 |---|---|
-""" + "\n".join(f"| `--fs-{k}` | {v} px |" for k, v in sz.items()) + "\n" + \
+""" + "\n".join(f"| `--fs-{k}` | {rem(v)} ({v} px) |" for k, v in sz.items()) + "\n" + \
         "\n".join(f"| `--space-{i + 1}` | {v} px |" for i, v in enumerate(sp["scale"])) + f"""
 | `--control-h` | {sp['control']} px |
 | `--r-sm / --r-md / --r-lg` | {' / '.join(map(str, sh['radius']))} px |
@@ -444,8 +450,100 @@ def export(r, outdir):
 - Акцент — не больше 10% площади экрана: главная кнопка, ссылки, выбранное состояние, фирменная деталь.
 - Числа — `font-variant-numeric: tabular-nums`.
 """
-    open(os.path.join(outdir, "DESIGN.md"), "w", encoding="utf-8").write(md)
-    return [os.path.join(outdir, "design-system.css"), os.path.join(outdir, "DESIGN.md")]
+    md += """
+## Другие форматы
+
+- `tokens.json` — те же токены в формате W3C DTCG 2025.10 (Style Dictionary, Tokens Studio, Figma-плагины).
+- `tailwind.css` — для Tailwind v4: подключи после `@import "tailwindcss";` — классы `bg-surface`, `text-text-2`, `text-h2`, `rounded-md`, `shadow-surface`, `font-heading` берут значения из токенов; цветовые имена shadcn/ui (`bg-background`, `bg-primary`, `text-muted-foreground`…) указывают на те же токены.
+"""
+    with open(os.path.join(outdir, "DESIGN.md"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(md)
+    with open(os.path.join(outdir, "tokens.json"), "w", encoding="utf-8", newline="\n") as f:
+        json.dump(dtcg(r), f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    with open(os.path.join(outdir, "tailwind.css"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(tailwind(r, theme_css))
+    return [os.path.join(outdir, n) for n in ("design-system.css", "DESIGN.md", "tokens.json", "tailwind.css")]
+
+
+def dtcg(r):
+    """Токены системы в формате W3C Design Tokens (Format Module 2025.10): цвет и размеры — объекты."""
+    t, sz, sp, sh = r["_type"], sizes(r["_type"]), r["space"], r["shape"]
+
+    def color(h):
+        return {"$type": "color", "$value": {"colorSpace": "srgb", "components": [round(v, 4) for v in hex_to_rgb(h)], "hex": h}}
+
+    def dim(v, unit="px"):
+        return {"$type": "dimension", "$value": {"value": v, "unit": unit}}
+
+    def family(name, fallback):
+        return {"$type": "fontFamily", "$value": [name] + fallback}
+
+    mono = t.get("mono") or "ui-monospace"
+    return {
+        "$description": f"Дизайн-система «{r['name']}». {r.get('brief', '')}".strip(),
+        "color": {
+            theme: {"$description": f"Тема: {'светлая' if theme == 'light' else 'тёмная'}" + (" (по умолчанию)" if (theme == "dark") == r["_dark_first"] else ""),
+                    **{k: color(r["_colors"][theme][k]) for k in ORDER}}
+            for theme in ("light", "dark")
+        },
+        "font": {
+            "family": {"display": family(t["display"], ["system-ui", "sans-serif"]),
+                       "body": family(t["body"], ["system-ui", "-apple-system", "Segoe UI", "sans-serif"]),
+                       "mono": family(mono, ["ui-monospace", "Menlo", "monospace"])},
+            "weight": {"display": {"$type": "fontWeight", "$value": t["display_weight"]},
+                       "body": {"$type": "fontWeight", "$value": t["body_weight"]}},
+            "size": {k: dim(round(v / 16, 4), "rem") for k, v in sz.items()},
+            "lineHeight": {"body": {"$type": "number", "$value": t["line"]},
+                           "heading": {"$type": "number", "$value": t["heading_line"]}},
+        },
+        "space": {str(i + 1): dim(v) for i, v in enumerate(sp["scale"])},
+        "size": {"control": dim(sp["control"])},
+        "radius": {"sm": dim(sh["radius"][0]), "md": dim(sh["radius"][1]), "lg": dim(sh["radius"][2]),
+                   "button": dim(999 if sh["button"] == "pill" else sh["radius"][1])},
+        "border": {"width": dim(sh["border"])},
+        "duration": {"base": {"$type": "duration", "$value": {"value": int(r["_motion"]["dur"].rstrip("ms")), "unit": "ms"}}},
+    }
+
+
+SHADCN = {  # цветовые имена shadcn/ui → токены системы (accent и border совпадают с нашими именами)
+    "background": "bg", "foreground": "text", "card": "surface", "card-foreground": "text",
+    "popover": "surface", "popover-foreground": "text", "primary": "accent", "primary-foreground": "on-accent",
+    "secondary": "surface-2", "secondary-foreground": "text", "muted": "surface-2", "muted-foreground": "text-2",
+    "accent-foreground": "accent-text", "destructive": "danger", "input": "border-strong", "ring": "focus",
+}
+
+
+def tailwind(r, theme_css):
+    """Tailwind v4: значения живут в CSS-переменных системы (обе темы), @theme inline связывает их с утилитами.
+    Новых переменных с теми же именами не создаём — иначе циклы (--font-mono: var(--font-mono)) и перезапись токенов."""
+    colors = "\n".join(f"  --color-{k}: var(--{k});" for k in ORDER)
+    shad = "\n".join(f"  --color-{k}: var(--{v});" for k, v in SHADCN.items())
+    sizes_ = "\n".join(f"  --text-{k}: var(--fs-{k});" for k in sizes(r["_type"]))
+    return f"""/* Дизайн-система «{r['name']}» для Tailwind v4. Сгенерировано style_tiles.py.
+   Подключение: @import "tailwindcss"; @import "./tailwind.css";
+   Темы переключаются сами (prefers-color-scheme) или атрибутом data-theme на <html>.
+   Наши --font-mono и другие токены объявлены вне слоёв и поэтому сильнее значений темы Tailwind. */
+
+{theme_css}
+@theme inline {{
+  /* токены системы: bg-surface, text-text-2, bg-accent, text-on-accent, border-border-strong … */
+{colors}
+  /* имена shadcn/ui. bg-accent здесь — фирменный цвет; где shadcn ждёт мягкий фон наведения, ставь bg-accent-soft */
+{shad}
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-display);
+{sizes_}
+  --text-base--line-height: var(--lh-body);
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-btn: var(--r-btn);
+  --shadow-surface: var(--shadow-card);
+  --shadow-popover: var(--shadow-pop);
+  --spacing: {r['space']['scale'][0]}px;
+}}
+"""
 
 
 def main():

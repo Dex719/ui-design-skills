@@ -1,0 +1,22 @@
+[
+  {"query": "сделай лендинг для нашей кофейни в алматы (Sowa Coffee), один экран + меню + карта. хочу чтобы не выглядело как очередной шаблон с фиолетовым градиентом, цвета подбери сам под тёплое настроение", "should_trigger": true},
+  {"query": "Нужна палитра для приложения пенсионного калькулятора, аудитория 55+, светлая и тёмная тема, контраст AAA. Конкуренты все зелёные. Выдай CSS-переменные", "should_trigger": true},
+  {"query": "посмотри src/pages/Checkout.tsx — форма оплаты выглядит криво на мобилке, кнопка оплаты уезжает под клавиатуру, ошибки показываются красным без текста. сделай нормально", "should_trigger": true},
+  {"query": "We're building an admin panel for a logistics company: orders table with ~2k rows, filters by status and date, bulk actions (assign driver, export). Design the table screen and give me the React + CSS", "should_trigger": true},
+  {"query": "в моей браузерной игре (canvas + DOM HUD) удар по врагу ощущается ватным. добавь хитстоп, цифры урона, тряску камеры, но чтобы можно было выключить в настройках", "should_trigger": true},
+  {"query": "сделай 3 варианта стиля для дашборда финтеха (kz рынок, суммы в тенге), покажи рядом и потом экспортни выбранный в токены для tailwind", "should_trigger": true},
+  {"query": "can you review this screen for accessibility issues? it's our login page: https://staging.example.kz/login — keyboard users say they get lost, and the password field rejects paste", "should_trigger": true},
+  {"query": "нужен экран чата с ИИ-ассистентом для банковского приложения: поле ввода, потоковый ответ, кнопка стоп, источники. как правильно сделать чтобы скринридер не читал каждое слово", "should_trigger": true},
+  {"query": "добавь анимации на страницу тарифов: появление блоков, переключатель месяц/год, чтобы цены красиво пересчитывались. но без всякого параллакса", "should_trigger": true},
+  {"query": "Our design system has 14 different greys and 9 font sizes nobody can explain. Help me rebuild the type scale, spacing and color tokens from scratch, with a reason for each value", "should_trigger": true},
+  {"query": "нарисуй логотип для стартапа доставки еды, что-то с ложкой и молнией, в svg", "should_trigger": false},
+  {"query": "сделай баннер для инстаграма 1080x1350 про скидку 30% на курсы английского, яркий", "should_trigger": false},
+  {"query": "сделай презентацию на 10 слайдов для инвесторов про наш SaaS, pptx", "should_trigger": false},
+  {"query": "в Next.js после деплоя на vercel стили tailwind не применяются в проде, локально всё ок. в чём может быть дело? вот tailwind.config.js и postcss.config.js", "should_trigger": false},
+  {"query": "напиши SQL-запрос для дашборда: выручка по месяцам за 2025 год по каждому филиалу из таблицы orders(branch_id, amount, created_at)", "should_trigger": false},
+  {"query": "построй в matplotlib график продаж по неделям из sales.csv и сохрани в png для отчёта", "should_trigger": false},
+  {"query": "у меня в Unity персонаж проваливается сквозь пол после прыжка, rigidbody interpolate включен. что не так?", "should_trigger": false},
+  {"query": "перепиши тексты на главной странице сайта юридической фирмы, чтобы звучали солиднее. вот текущие: ...", "should_trigger": false},
+  {"query": "write a REST API in FastAPI for a todo app with JWT auth and postgres", "should_trigger": false},
+  {"query": "переведи интерфейс приложения с русского на казахский: вот json с ключами locales/ru.json, нужен locales/kk.json", "should_trigger": false}
+]
