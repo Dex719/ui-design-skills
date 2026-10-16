@@ -93,7 +93,7 @@ python3 ui-design/scripts/check_contrast.py ui-design/assets/palettes/forest.css
 
 # Style tiles: render 2–3 design-system variants side by side, then export the chosen one
 python3 ui-design/scripts/style_tiles.py a.json b.json c.json -o tiles.html
-python3 ui-design/scripts/style_tiles.py --export a.json -d ./design   # design-system.css + DESIGN.md
+python3 ui-design/scripts/style_tiles.py --export a.json -d ./design   # design-system.css, DESIGN.md, tokens.json (DTCG), tailwind.css (v4)
 
 # Icons instead of emoji
 python3 ui-design/scripts/icon.py --list
