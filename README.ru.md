@@ -112,13 +112,13 @@ python3 ui-design/scripts/build_palettes.py
 
 ### Библиотека эффектов (`window.fx`)
 
-Подключите `effects.css` и `effects.js` и вызывайте `fx.*`. Каждый эффект проверяет «уменьшить движение» и в этом режиме сохраняет смысл (цвет, текст, `aria-live`), но убирает движение. Живая витрина — [`assets/effects/demo.html`](ui-design/assets/effects/demo.html).
+Подключите `effects.css` и `effects.js` и вызывайте `fx.*` — или `import fx, { toast } from "./effects.mjs"`. Типы TypeScript: `effects.d.ts` (глобально) и `effects.d.mts` (ESM). Правило API версии 2: сначала цель, затем объект опций (`fx.zoom(el, { scale: 1.1, ms: 300 })`); каждый эффект возвращает Promise, который выполняется по окончании; короткие позиционные формы версии 1 тоже работают. `fx.flash` пропускает вызовы сверх 3 в секунду (WCAG 2.3.1). Каждый эффект проверяет «уменьшить движение» и в этом режиме сохраняет смысл (цвет, текст, `aria-live`), но убирает движение. Живая витрина — [`assets/effects/demo.html`](ui-design/assets/effects/demo.html).
 
 - **Формы и UI:** `shake`, `fieldError`, `clearFieldError`, `check`, `loading`, `success`, `resetSuccess`, `copy`, `toast`, `announce`, `tabs`, `ring`, `pop`, `punch`
 - **Данные и раскладка:** `countUp`, `countAll`, `stagger`, `once`, `flip`, `swap`, `themeSwitch`, `sequence`
 - **Награды:** `burst`, `confetti`, `flyTo`
 - **Игры:** `trauma`, `hitFlash`, `hitstop`, `jitter`, `damageNumber`, `health`, `tint`, `wave`, `lines`, `flash`, `zoom`, `slowmo`, `stamp`, `afterimage`, `beam`, `squashJump`
-- **Режим движения и строки:** `reduced()`, `systemReduced()`, `setMotion("system" | "reduce" | "full")`, `setStrings({ done: "Done", … })` для интерфейсов не на русском
+- **Режим движения, строки, координаты:** `center(el)`, `reduced()`, `systemReduced()`, `setMotion("system" | "reduce" | "full")`, `setStrings({ done: "Done", … })` для интерфейсов не на русском
 
 ## Установка
 

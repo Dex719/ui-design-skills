@@ -112,13 +112,13 @@ On Windows use `python` or `py -3` instead of `python3`. Every script has `--hel
 
 ### Effects library (`window.fx`)
 
-Include `effects.css` and `effects.js`, then call `fx.*`. Every effect checks reduced-motion and, when it is on, keeps the meaning (color, text, `aria-live`) but drops the movement. Open [`assets/effects/demo.html`](ui-design/assets/effects/demo.html) for a live showcase.
+Include `effects.css` and `effects.js`, then call `fx.*` — or `import fx, { toast } from "./effects.mjs"`. TypeScript types: `effects.d.ts` (global) and `effects.d.mts` (ESM). API v2 convention: target first, then an options object (`fx.zoom(el, { scale: 1.1, ms: 300 })`); every effect returns a Promise that resolves when it ends; the short positional forms of v1 still work. `fx.flash` skips calls beyond 3 per second (WCAG 2.3.1). Every effect checks reduced-motion and, when it is on, keeps the meaning (color, text, `aria-live`) but drops the movement. Open [`assets/effects/demo.html`](ui-design/assets/effects/demo.html) for a live showcase.
 
 - **Forms and UI:** `shake`, `fieldError`, `clearFieldError`, `check`, `loading`, `success`, `resetSuccess`, `copy`, `toast`, `announce`, `tabs`, `ring`, `pop`, `punch`
 - **Data and layout:** `countUp`, `countAll`, `stagger`, `once`, `flip`, `swap`, `themeSwitch`, `sequence`
 - **Celebration:** `burst`, `confetti`, `flyTo`
 - **Games:** `trauma`, `hitFlash`, `hitstop`, `jitter`, `damageNumber`, `health`, `tint`, `wave`, `lines`, `flash`, `zoom`, `slowmo`, `stamp`, `afterimage`, `beam`, `squashJump`
-- **Motion mode and strings:** `reduced()`, `systemReduced()`, `setMotion("system" | "reduce" | "full")`, `setStrings({ done: "Done", … })` for non-Russian UIs
+- **Motion mode, strings, coordinates:** `center(el)`, `reduced()`, `systemReduced()`, `setMotion("system" | "reduce" | "full")`, `setStrings({ done: "Done", … })` for non-Russian UIs
 
 ## Installation
 

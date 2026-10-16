@@ -62,7 +62,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: effects.js parses
-        run: node --check ui-design/assets/effects/effects.js
+      - name: effects.js and effects.mjs parse
+        run: node --check ui-design/assets/effects/effects.js && node --check ui-design/assets/effects/effects.mjs
+      - name: effects.d.ts type-checks against usage examples
+        run: npx --yes typescript@5.6.3 tsc --noEmit --strict --lib dom,es2020 --target es2020 tests/fx-types.ts
       - name: No line in the repo ends with CRLF
         run: "! git grep -I -l $'\\r' -- . ':!*.png' ':!*.jpg'"
