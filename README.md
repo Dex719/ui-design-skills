@@ -116,6 +116,7 @@ Include `effects.css` and `effects.js`, then call `fx.*` — or `import fx, { to
 
 - **Forms and UI:** `shake`, `fieldError`, `clearFieldError`, `check`, `loading`, `success`, `resetSuccess`, `copy`, `toast`, `announce`, `tabs`, `ring`, `pop`, `punch`
 - **Data and layout:** `countUp`, `countAll`, `stagger`, `once`, `flip`, `swap`, `themeSwitch`, `sequence`
+- **Gestures and AI:** `swipeToDelete` (with Undo toast), `sheet` (bottom sheet on `<dialog>`), `stream` (AI answer streaming), `toast(text, { action })`
 - **Celebration:** `burst`, `confetti`, `flyTo`
 - **Games:** `trauma`, `hitFlash`, `hitstop`, `jitter`, `damageNumber`, `health`, `tint`, `wave`, `lines`, `flash`, `zoom`, `slowmo`, `stamp`, `afterimage`, `beam`, `squashJump`
 - **Motion mode, strings, coordinates:** `center(el)`, `reduced()`, `systemReduced()`, `setMotion("system" | "reduce" | "full")`, `setStrings({ done: "Done", … })` for non-Russian UIs

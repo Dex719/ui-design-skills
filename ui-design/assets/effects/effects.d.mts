@@ -13,4 +13,5 @@ export declare const version: Fx["version"], reduced: Fx["reduced"], systemReduc
   squashJump: Fx["squashJump"], sequence: Fx["sequence"], flip: Fx["flip"], swap: Fx["swap"], countAll: Fx["countAll"],
   themeSwitch: Fx["themeSwitch"], ring: Fx["ring"],
   tint: Fx["tint"], wave: Fx["wave"], lines: Fx["lines"], flash: Fx["flash"], zoom: Fx["zoom"], slowmo: Fx["slowmo"],
-  stamp: Fx["stamp"], afterimage: Fx["afterimage"], beam: Fx["beam"], jitter: Fx["jitter"], flyTo: Fx["flyTo"];
+  stamp: Fx["stamp"], afterimage: Fx["afterimage"], beam: Fx["beam"], jitter: Fx["jitter"], flyTo: Fx["flyTo"],
+  sheet: Fx["sheet"], swipeToDelete: Fx["swipeToDelete"], stream: Fx["stream"];

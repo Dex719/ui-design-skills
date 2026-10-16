@@ -64,6 +64,30 @@ dialog.fx-dialog::backdrop{ background: rgb(0 0 0 / .4); }
 .fx-toast-close:hover{ opacity: 1; }
 .fx-toast-close:focus-visible{ outline: 2px solid currentColor; outline-offset: 2px; opacity: 1; }
 .fx-toast[data-state="enter"], .fx-toast[data-state="exit"]{ opacity: 0; }
+.fx-toast-action{
+  flex: none; min-height: 24px; margin: -4px 0; padding: 4px 6px; border: 0; border-radius: 4px;
+  background: none; color: inherit; font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.fx-toast-action:focus-visible{ outline: 2px solid currentColor; outline-offset: 2px; }
+
+/* Свайп для удаления (fx.swipeToDelete): вертикальная прокрутка остаётся у браузера */
+.fx-swipe{ touch-action: pan-y; }
+.fx-swipe.is-armed{ background: var(--danger-soft, #feebec); }
+
+/* Нижняя шторка (fx.sheet) */
+dialog.fx-sheet{
+  position: fixed; inset: auto 0 0 0; margin: 0 auto; width: min(100%, 640px); max-width: 100%; max-height: 90dvh;
+  border: 0; border-radius: 16px 16px 0 0; padding: 4px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  background: var(--surface, #fff); color: var(--text, #111); box-shadow: 0 -12px 40px -12px rgb(0 0 0 / .3); overflow: auto;
+}
+dialog.fx-sheet::backdrop{ background: rgb(0 0 0 / .4); }
+.fx-sheet-handle{ display: block; width: 100%; min-height: 32px; padding: 12px 0; border: 0; background: none; cursor: grab; touch-action: none; }
+.fx-sheet-handle::before{ content: ""; display: block; width: 40px; height: 4px; margin: 0 auto; border-radius: 2px; background: var(--border-strong, #888); }
+.fx-sheet-handle:focus-visible{ outline: 2px solid var(--focus, currentColor); outline-offset: -2px; border-radius: 8px; }
+.fx-sheet-grip{ touch-action: none; }
+
+/* Каретка потокового ответа (fx.stream): статичная, без бесконечного мигания */
+.fx-caret{ display: inline-block; width: .5em; height: 1em; margin-left: 1px; vertical-align: -.12em; border-radius: 1px; background: currentColor; opacity: .6; }
 
 .fx-scroll-progress{
   position: fixed; inset: 0 0 auto; height: 3px; z-index: 60; background: var(--fx-accent);
@@ -146,6 +170,9 @@ dialog.fx-dialog::backdrop{ background: rgb(0 0 0 / .4); }
   :root:not([data-motion="reduce"]) .fx-toast{ transition: opacity 300ms var(--fx-ease-out), transform 300ms var(--fx-ease-out); }
   :root:not([data-motion="reduce"]) .fx-toast[data-state="enter"],
   :root:not([data-motion="reduce"]) .fx-toast[data-state="exit"]{ transform: translateY(12px); }
+  :root:not([data-motion="reduce"]) dialog.fx-sheet{ transition: transform 200ms var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) dialog.fx-sheet[open]{ animation: fx-sheet-in 260ms var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) dialog.fx-sheet[open]::backdrop{ animation: fx-fade 260ms var(--fx-ease-out); }
 
   :root:not([data-motion="reduce"]) .fx-stagger > *{ animation: fx-rise 300ms var(--fx-ease-out) both; animation-delay: calc(min(var(--i, 0), 7) * 40ms); }
 
@@ -243,6 +270,7 @@ dialog.fx-dialog::backdrop{ background: rgb(0 0 0 / .4); }
   :root:not([data-motion="reduce"])::view-transition-new(root){ animation: fx-circle 550ms var(--fx-ease-out); }
 }
 
+@keyframes fx-sheet-in{ from{ transform: translateY(100%); } }
 @keyframes fx-enter{ from{ opacity: 0; transform: translateY(16px); } }
 @keyframes fx-fade{ from{ opacity: 0; } }
 @keyframes fx-scale-x{ from{ scale: 0 1; } }
@@ -326,6 +354,9 @@ dialog.fx-dialog::backdrop{ background: rgb(0 0 0 / .4); }
   :root[data-motion="full"] .fx-toast{ transition: opacity 300ms var(--fx-ease-out), transform 300ms var(--fx-ease-out); }
   :root[data-motion="full"] .fx-toast[data-state="enter"],
   :root[data-motion="full"] .fx-toast[data-state="exit"]{ transform: translateY(12px); }
+  :root[data-motion="full"] dialog.fx-sheet{ transition: transform 200ms var(--fx-ease-out); }
+  :root[data-motion="full"] dialog.fx-sheet[open]{ animation: fx-sheet-in 260ms var(--fx-ease-out); }
+  :root[data-motion="full"] dialog.fx-sheet[open]::backdrop{ animation: fx-fade 260ms var(--fx-ease-out); }
 
   :root[data-motion="full"] .fx-stagger > *{ animation: fx-rise 300ms var(--fx-ease-out) both; animation-delay: calc(min(var(--i, 0), 7) * 40ms); }
 

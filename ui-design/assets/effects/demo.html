@@ -274,6 +274,12 @@ dialog.fx-dialog p{ margin: 0 0 20px; color: var(--text-2); }
   :root[data-motion="full"] .dummy.is-dead{ transition: opacity .6s ease-out; }
   :root[data-motion="full"] .ult.is-ready .ult-bar{ animation: ult-glow 1s ease-in-out 3; }
 /* <<< motion-full override */
+.swipe-list{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.swipe-row{ display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 6px 6px 12px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface); user-select: none; cursor: grab; }
+.btn-sm{ min-height: 32px; padding: 0 10px; font-size: 14px; }
+.btn-ghost{ background: transparent; color: var(--danger); border-color: transparent; }
+.btn-ghost:hover{ background: var(--danger-soft); }
+.stream-out{ min-height: 4.5em; margin: 0 0 12px; font-size: 15px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -466,6 +472,48 @@ dialog.fx-dialog p{ margin: 0 0 20px; color: var(--text-2); }
       </article>
     </div>
   </section>
+
+  <section class="section" aria-labelledby="s-gest">
+    <h2 class="fx-enter" id="s-gest">Жесты и ИИ</h2>
+    <div class="grid">
+      <article class="card fx-enter">
+        <h3>Свайп для удаления + «Отменить»</h3>
+        <p class="when">Строка уезжает влево, сворачивается, внизу — тост с «Отменить». Удаление совершается только после окна отмены. Кнопка «Удалить» — обязательная альтернатива жесту.</p>
+        <div class="chips"><span class="chip">порог 40%</span><span class="chip">200 + 180 мс</span><span class="chip">Undo 6 с</span></div>
+        <ul class="swipe-list" id="swipeList">
+          <li class="swipe-row"><span>Kaspi Gold · 12 500 ₸</span><button class="btn btn-ghost btn-sm" type="button">Удалить</button></li>
+          <li class="swipe-row"><span>Halyk · 4 300 ₸</span><button class="btn btn-ghost btn-sm" type="button">Удалить</button></li>
+          <li class="swipe-row"><span>Freedom · 89 000 ₸</span><button class="btn btn-ghost btn-sm" type="button">Удалить</button></li>
+        </ul>
+      </article>
+      <article class="card fx-enter">
+        <h3>Нижняя шторка</h3>
+        <p class="when">Открывается снизу, закрывается свайпом вниз за ручку, по фону, Esc или кнопкой-ручкой. Фокус внутри, остальная страница недоступна.</p>
+        <div class="chips"><span class="chip">260 мс</span><span class="chip">порог 30% / 0.6 px/мс</span><span class="chip">dialog</span></div>
+        <div class="demo row"><button class="btn btn-secondary fx-btn" type="button" id="sheetBtn">Открыть шторку</button></div>
+      </article>
+      <article class="card fx-enter">
+        <h3>Потоковый ответ ИИ</h3>
+        <p class="when">Текст дописывается со статичной кареткой; «Стоп» на месте «Спросить». Скринридер получает итог, а не каждый кусок.</p>
+        <div class="chips"><span class="chip">aria-busy</span><span class="chip">60 симв/с</span><span class="chip">AbortSignal</span></div>
+        <div class="demo"><p class="stream-out" id="streamOut" aria-live="off"></p>
+          <button class="btn btn-secondary fx-btn" type="button" id="streamBtn">Спросить</button></div>
+      </article>
+      <article class="card fx-enter">
+        <h3>Тост с действием</h3>
+        <p class="when">Действие в тосте — дополнение, а не единственный путь. С действием тост живёт дольше (8 с) и не исчезает под курсором и фокусом.</p>
+        <div class="chips"><span class="chip">8 с</span><span class="chip">пауза на фокусе</span></div>
+        <div class="demo row"><button class="btn btn-secondary fx-btn" type="button" id="toastActBtn">Архивировать чат</button></div>
+      </article>
+    </div>
+  </section>
+
+  <dialog class="fx-sheet" id="sheet" aria-labelledby="sheetTitle">
+    <button class="fx-sheet-handle" type="button"></button>
+    <h3 id="sheetTitle" class="fx-sheet-grip" style="margin:4px 0 12px">Фильтры</h3>
+    <p style="margin:0 0 16px;color:var(--text-2)">Потяните за ручку вниз, нажмите на фон или Esc.</p>
+    <div class="row" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary" type="button" id="sheetApply">Применить</button></div>
+  </dialog>
 
   <section class="section" aria-labelledby="s-attn">
     <h2 class="fx-enter" id="s-attn">Внимание и праздник</h2>
@@ -1176,6 +1224,30 @@ dialog.fx-dialog p{ margin: 0 0 20px; color: var(--text-2); }
   }
   $("chestBtn").addEventListener("click", function () { openChest(false); });
   $("chestSkip").addEventListener("click", function () { openChest(true); });
+
+  /* ---- жесты и ИИ ---- */
+  Array.prototype.forEach.call(document.querySelectorAll("#swipeList .swipe-row"), function (row) {
+    fx.swipeToDelete(row, {
+      button: row.querySelector("button"), label: "Платёж удалён",
+      onCommit: function () { row.remove(); }
+    });
+  });
+  var sh = fx.sheet($("sheet"));
+  $("sheetBtn").addEventListener("click", function () { sh.open(); });
+  $("sheetApply").addEventListener("click", function () { sh.close(); fx.toast("Фильтры применены"); });
+  var ctrl = null;
+  $("streamBtn").addEventListener("click", function () {
+    var b = this;
+    if (ctrl) { ctrl.abort(); return; }
+    ctrl = new AbortController();
+    $("streamOut").textContent = "";
+    b.textContent = "Стоп"; b.setAttribute("aria-label", "Остановить ответ");
+    fx.stream($("streamOut"), "Комиссия за перевод между своими картами — 0 ₸. На карты других банков — 0,95%, минимум 200 ₸. Лимит без комиссии — 1 000 000 ₸ в месяц.", { cps: 60, signal: ctrl.signal })
+      .then(function () { ctrl = null; b.textContent = "Спросить"; b.removeAttribute("aria-label"); });
+  });
+  $("toastActBtn").addEventListener("click", function () {
+    fx.toast("Чат перенесён в архив", { action: { label: "Отменить", onClick: function () { fx.toast("Чат возвращён"); } } });
+  });
 })();
 </script>
 </body>

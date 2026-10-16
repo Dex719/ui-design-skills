@@ -22,14 +22,31 @@ interface FxDamageOptions {
 interface FxStampOptions { text: string; color?: string; shadow?: string; ms?: number; announce?: boolean }
 interface FxToastOptions {
   duration?: number; className?: string;
+  /** Кнопка действия в тосте («Отменить»). Тост с действием не исчезает, пока на нём фокус или курсор. */
+  action?: { label: string; onClick: () => void };
+  /** Вызывается при закрытии тоста (по таймеру, крестиком или действием). */
+  onClose?: () => void;
 }
 interface FxToastElement extends HTMLDivElement { close(): void }
 interface FxTrauma { add(amount: number): void; setIntensity(v: number): void }
 interface FxCountUpOptions { from?: number; format?: (v: number) => string; duration?: number; punch?: boolean }
 interface FxStrings {
   locale: string; done: string; copied: string; copiedLong: string; copyFailed: string; close: string;
-  newNotifications: string; undo: string; deleted: string; sheetClose: string;
+  newNotifications: string; undo: string; undone: string; deleted: string; sheetClose: string;
+  streamDone: string; streamStopped: string;
 }
+interface FxSheetOptions { onClose?: () => void; threshold?: number }
+interface FxSheet { open(): void; close(): FxDone; destroy(): void }
+interface FxSwipeOptions {
+  /** Вызывается, когда удаление подтверждено (после окна Undo). */
+  onCommit: () => void;
+  /** Вызывается, если пользователь нажал «Отменить». */
+  onUndo?: () => void;
+  label?: string; undoMs?: number; threshold?: number;
+  /** Обычная кнопка «Удалить» в строке — альтернатива свайпу (WCAG 2.5.7). */
+  button?: HTMLElement;
+}
+interface FxStreamOptions { cps?: number; signal?: AbortSignal; caret?: boolean }
 
 interface Fx {
   readonly version: string;
@@ -58,6 +75,8 @@ interface Fx {
   /* оверлеи и навигация */
   toast(message: string, opts?: FxToastOptions): FxToastElement;
   tabs(container: HTMLElement & { onTabChange?: (tab: HTMLElement) => void }): () => void;
+  sheet(dialog: HTMLDialogElement, opts?: FxSheetOptions): FxSheet;
+  swipeToDelete(row: HTMLElement, opts: FxSwipeOptions): () => void;
 
   /* данные */
   countUp(el: HTMLElement, to: number, opts?: FxCountUpOptions): FxDone;
@@ -70,6 +89,7 @@ interface Fx {
   themeSwitch(apply: () => void, event?: { clientX: number; clientY: number }): FxDone;
   ring(bell: Element, opts?: { badge?: HTMLElement | null; count?: number }): FxDone;
   ring(bell: Element, badge?: HTMLElement | null, count?: number): FxDone;
+  stream(el: HTMLElement, source: string | AsyncIterable<string> | ReadableStream<string>, opts?: FxStreamOptions): FxDone;
 
   /* праздник */
   burst(el: Element, opts?: FxBurstOptions): FxDone;

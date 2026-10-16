@@ -65,7 +65,7 @@ def main():
         body = re.sub(r"```.*?```", "", text[m.end():], flags=re.S)
         heads = [h for lvl, h in re.findall(r"^(#{2,3}) (.+)$", body, re.M) if lvl == "##" or deep]
         if toc != [h.strip() for h in heads]:
-            errors.append(f"{os.path.relpath(doc, ROOT)}: оглавление устарело — сверь с заголовками")
+            errors.append(f"{os.path.relpath(doc, ROOT)}: оглавление устарело — запусти python3 tools/build_toc.py")
 
     for readme in ("README.md", "README.ru.md"):
         listed = set(re.findall(r"`(\w+)",re.search(r"window\.fx.*?\n## ", read(os.path.join(ROOT, readme)), re.S).group(0)))

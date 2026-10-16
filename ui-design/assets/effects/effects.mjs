@@ -11,5 +11,6 @@ export const {
   trauma, hitFlash, hitstop, damageNumber, health,
   squashJump, sequence, flip, swap, countAll, themeSwitch, ring,
   tint, wave, lines, flash, zoom, slowmo, stamp,
-  afterimage, beam, jitter, flyTo
+  afterimage, beam, jitter, flyTo,
+  sheet, swipeToDelete, stream
 } = fx;

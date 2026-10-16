@@ -27,6 +27,11 @@ async function check(): Promise<void> {
   const destroy = fx.tabs(el); destroy();
   fx.toast("Сохранено").close();
   const p: { x: number; y: number } = fx.center(el);
-  void p; void dlg;
+  // новые эффекты
+  const s = fx.sheet(dlg, { threshold: 0.3 }); s.open(); await s.close(); s.destroy();
+  const off = fx.swipeToDelete(el, { onCommit: () => {}, onUndo: () => {}, button: el }); off();
+  await fx.stream(el, "Ответ", { cps: 80 });
+  fx.toast("Удалено", { action: { label: "Отменить", onClick: () => {} }, onClose: () => {} });
+  void p;
 }
 void check;

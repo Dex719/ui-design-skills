@@ -30,7 +30,8 @@
     locale: document.documentElement.lang || "ru-RU",
     done: "Готово", copied: "Скопировано", copiedLong: "Скопировано в буфер обмена",
     copyFailed: "Выделите и скопируйте", close: "Закрыть", newNotifications: "Новых уведомлений",
-    undo: "Отменить", deleted: "Удалено", sheetClose: "Закрыть панель"
+    undo: "Отменить", undone: "Восстановлено", deleted: "Удалено", sheetClose: "Закрыть панель",
+    streamDone: "Ответ готов", streamStopped: "Ответ остановлен"
   };
   function setStrings(s) { for (var k in s) if (Object.prototype.hasOwnProperty.call(s, k)) strings[k] = s[k]; }
 
@@ -257,19 +258,29 @@
     x.className = "fx-toast-close";
     x.setAttribute("aria-label", strings.close);
     x.textContent = "\u00d7";
-    t.appendChild(text); t.appendChild(x);
+    t.appendChild(text);
+    if (opts.action) {
+      var act = document.createElement("button");
+      act.type = "button";
+      act.className = "fx-toast-action";
+      act.textContent = opts.action.label;
+      act.addEventListener("click", function () { if (opts.action.onClick) opts.action.onClick(); close(); });
+      t.appendChild(act);
+    }
+    t.appendChild(x);
     t.setAttribute("data-state", "enter");
     toastHost.appendChild(t);
     while (toastHost.children.length > 3) toastHost.removeChild(toastHost.firstChild);
     requestAnimationFrame(function () { requestAnimationFrame(function () { t.removeAttribute("data-state"); }); });
-    /* ≥ 5 с по умолчанию; пауза, пока на тосте курсор или фокус (WCAG 2.2.1); всегда можно закрыть вручную. */
-    var timer, remaining = opts.duration || 5000, started = Date.now(), paused = 0, closed = false;
-    var close = function () {
+    /* ≥ 5 с по умолчанию (с действием — 8 с); пауза, пока на тосте курсор или фокус (WCAG 2.2.1); всегда можно закрыть вручную. */
+    var timer, remaining = opts.duration || (opts.action ? 8000 : 5000), started = Date.now(), paused = 0, closed = false;
+    function close() {
       if (closed) return;
       closed = true; clearTimeout(timer);
+      if (opts.onClose) opts.onClose();
       t.setAttribute("data-state", "exit");
       setTimeout(function () { t.remove(); }, reduced() ? 0 : 300);
-    };
+    }
     var pause = function () { if (paused++ === 0) { clearTimeout(timer); remaining -= Date.now() - started; } };
     var resume = function () {
       if (--paused > 0) return;
@@ -904,6 +915,217 @@
 
 
 
+  /* ---------- Жесты и ИИ ---------- */
+
+  /**
+   * Нижняя шторка на <dialog class="fx-sheet">: открытие снизу, закрытие свайпом вниз за ручку или шапку,
+   * по клику на фон и по Esc. Внутри можно разместить <button class="fx-sheet-handle"> — ручку и кнопку закрытия.
+   *   var s = fx.sheet(dialog, { onClose, threshold: .3 }); s.open(); s.close(); s.destroy();
+   * Свайп — не единственный способ: ручка — кнопка, Esc и фон закрывают (WCAG 2.5.7).
+   */
+  function sheet(dialog, opts) {
+    opts = opts || {};
+    var threshold = opts.threshold || 0.3, closing = false;
+    var handle = dialog.querySelector(".fx-sheet-handle");
+    if (handle && !handle.getAttribute("aria-label")) handle.setAttribute("aria-label", strings.sheetClose);
+    var drag = null;
+    function open() {
+      closing = false;
+      dialog.style.transform = "";
+      if (!dialog.open) dialog.showModal();
+    }
+    function close() {
+      if (!dialog.open || closing) return resolved();
+      closing = true;
+      var finish = function () { dialog.close(); dialog.style.transform = ""; dialog.style.transition = ""; closing = false; if (opts.onClose) opts.onClose(); };
+      if (reduced() || !dialog.animate) { finish(); return resolved(); }
+      var from = dialog.style.transform || "translateY(0)";
+      return finished(dialog.animate([{ transform: from }, { transform: "translateY(100%)" }], { duration: 220, easing: "cubic-bezier(.3,0,1,1)" })).then(finish);
+    }
+    function onCancel(e) { e.preventDefault(); close(); }
+    function onClick(e) { if (e.target === dialog) close(); else if (handle && handle.contains(e.target) && !drag) close(); }
+    function onDown(e) {
+      var grip = e.target.closest(".fx-sheet-handle, .fx-sheet-grip");
+      if (!grip || !dialog.contains(grip)) return;
+      drag = { y: e.clientY, t: e.timeStamp, dy: 0, moved: false, id: e.pointerId };
+      try { dialog.setPointerCapture(e.pointerId); } catch (err) {}
+      dialog.style.transition = "none";
+    }
+    function onMove(e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      drag.dy = Math.max(0, e.clientY - drag.y);
+      if (drag.dy > 4) drag.moved = true;
+      dialog.style.transform = "translateY(" + drag.dy + "px)";
+    }
+    function onUp(e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      var d = drag, h = dialog.getBoundingClientRect().height || 1, v = d.dy / Math.max(1, e.timeStamp - d.t);
+      dialog.style.transition = "";
+      if (d.moved && (d.dy > h * threshold || v > 0.6)) close();
+      else dialog.style.transform = "";
+      if (d.moved) { e.preventDefault(); setTimeout(function () { drag = null; }, 0); } else drag = null;
+    }
+    dialog.addEventListener("cancel", onCancel);
+    dialog.addEventListener("click", onClick);
+    dialog.addEventListener("pointerdown", onDown);
+    dialog.addEventListener("pointermove", onMove);
+    dialog.addEventListener("pointerup", onUp);
+    dialog.addEventListener("pointercancel", onUp);
+    return {
+      open: open, close: close,
+      destroy: function () {
+        dialog.removeEventListener("cancel", onCancel);
+        dialog.removeEventListener("click", onClick);
+        dialog.removeEventListener("pointerdown", onDown);
+        dialog.removeEventListener("pointermove", onMove);
+        dialog.removeEventListener("pointerup", onUp);
+        dialog.removeEventListener("pointercancel", onUp);
+      }
+    };
+  }
+
+  /**
+   * Свайп влево для удаления с окном «Отменить» (тост с действием). Удаление совершается только после
+   * окна Undo — тогда вызывается onCommit; «Отменить» возвращает строку и вызывает onUndo.
+   *   fx.swipeToDelete(row, { onCommit, onUndo, label: "Платёж удалён", undoMs: 6000, threshold: .4, button })
+   * opts.button — обычная кнопка «Удалить» в строке: свайп не может быть единственным способом (WCAG 2.5.7).
+   * Возвращает destroy().
+   */
+  function swipeToDelete(row, opts) {
+    opts = opts || {};
+    var threshold = opts.threshold || 0.4, drag = null;
+    row.classList.add("fx-swipe");
+    function remove() {
+      var h = row.getBoundingClientRect().height;
+      var slide = reduced() || !row.animate ? resolved()
+        : finished(row.animate([{ transform: row.style.transform || "translateX(0)", opacity: 1 }, { transform: "translateX(-100%)", opacity: 0 }], { duration: 200, easing: "cubic-bezier(.3,0,1,1)" }));
+      return slide.then(function () {
+        row.style.transform = "";
+        if (!reduced() && row.animate) {
+          row.style.overflow = "hidden";
+          return finished(row.animate([{ height: h + "px" }, { height: "0px", paddingTop: "0px", paddingBottom: "0px", marginTop: "0px", marginBottom: "0px" }], { duration: 180, easing: "ease-in" }));
+        }
+      }).then(function () {
+        row.hidden = true; row.style.overflow = "";
+        var committed = false;
+        var t = toast(opts.label || strings.deleted, {
+          duration: opts.undoMs || 6000,
+          action: { label: strings.undo, onClick: function () { committed = true; restore(); } },
+          onClose: function () { if (!committed) { committed = true; if (opts.onCommit) opts.onCommit(); } }
+        });
+        return t;
+      });
+    }
+    function restore() {
+      row.hidden = false;
+      if (opts.onUndo) opts.onUndo();
+      if (!reduced() && row.animate) row.animate([{ opacity: 0, transform: "translateX(-24px)" }, { opacity: 1, transform: "none" }], { duration: 220, easing: "cubic-bezier(.2,0,0,1)" });
+      announce(strings.undone);
+    }
+    function onDown(e) {
+      if (e.button !== 0 || e.target.closest("button, a, input, select, textarea, label")) return;
+      drag = { x: e.clientX, y: e.clientY, dx: 0, id: e.pointerId, axis: null };
+    }
+    function onMove(e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (!drag.axis && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+        drag.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+        if (drag.axis === "x") { try { row.setPointerCapture(e.pointerId); } catch (err) {} } else { drag = null; return; }
+      }
+      if (drag.axis !== "x") return;
+      drag.dx = Math.min(0, dx);
+      row.style.transform = "translateX(" + drag.dx + "px)";
+      row.classList.toggle("is-armed", -drag.dx > row.offsetWidth * threshold);
+    }
+    function onUp(e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      var go = -drag.dx > row.offsetWidth * threshold;
+      drag = null; row.classList.remove("is-armed");
+      if (go) remove();
+      else if (row.style.transform) {
+        if (!reduced() && row.animate) row.animate([{ transform: row.style.transform }, { transform: "translateX(0)" }], { duration: 180, easing: "cubic-bezier(.2,0,0,1)" });
+        row.style.transform = "";
+      }
+    }
+    function onButton() { remove(); }
+    row.addEventListener("pointerdown", onDown);
+    row.addEventListener("pointermove", onMove);
+    row.addEventListener("pointerup", onUp);
+    row.addEventListener("pointercancel", onUp);
+    if (opts.button) opts.button.addEventListener("click", onButton);
+    return function destroy() {
+      row.removeEventListener("pointerdown", onDown);
+      row.removeEventListener("pointermove", onMove);
+      row.removeEventListener("pointerup", onUp);
+      row.removeEventListener("pointercancel", onUp);
+      if (opts.button) opts.button.removeEventListener("click", onButton);
+      row.classList.remove("fx-swipe", "is-armed");
+    };
+  }
+
+  /**
+   * Потоковый вывод ответа ИИ: текст дописывается в el, в конце — статичная каретка.
+   * source — строка (печатается со скоростью cps символов в секунду) или AsyncIterable<string> (настоящий поток).
+   * Пока идёт поток, у el aria-busy="true" — скринридер не читает каждый кусок; в конце — «Ответ готов».
+   * opts.signal (AbortSignal) останавливает поток, уже выведенный текст остаётся.
+   *   await fx.stream(answerEl, response.body.pipeThrough(new TextDecoderStream()), { signal })
+   */
+  function stream(el, source, opts) {
+    opts = opts || {};
+    var caret = null, stopped = false;
+    if (opts.caret !== false) {
+      caret = document.createElement("span"); caret.className = "fx-caret"; caret.setAttribute("aria-hidden", "true");
+      el.appendChild(caret);
+    }
+    el.setAttribute("aria-busy", "true");
+    var write = function (chunk) {
+      var node = document.createTextNode(chunk);
+      if (caret && caret.parentNode === el) el.insertBefore(node, caret); else el.appendChild(node);
+    };
+    if (opts.signal) {
+      if (opts.signal.aborted) stopped = true;
+      opts.signal.addEventListener("abort", function () { stopped = true; });
+    }
+    var run;
+    if (typeof source === "string") {
+      if (reduced() || opts.cps === 0) { write(source); run = resolved(); }
+      else {
+        var cps = opts.cps || 60, i = 0, t0 = performance.now();
+        run = new Promise(function (res) {
+          (function tick(now) {
+            if (stopped) return res();
+            var n = Math.min(source.length, Math.floor((now - t0) / 1000 * cps));
+            if (n > i) { write(source.slice(i, n)); i = n; }
+            if (i < source.length) requestAnimationFrame(tick); else res();
+          })(t0);
+        });
+      }
+    } else {
+      /* ReadableStream без async-итератора (старый Safari) читаем через reader. */
+      var reader = !source[Symbol.asyncIterator] && source.getReader ? source.getReader() : null;
+      var it = reader ? { next: function () { return reader.read(); }, return: function () { return reader.cancel(); } }
+        : source[Symbol.asyncIterator] ? source[Symbol.asyncIterator]() : source;
+      run = (function next() {
+        if (stopped) return resolved();
+        return Promise.resolve(it.next()).then(function (r) {
+          if (r.done || stopped) { if (stopped && it.return) try { it.return(); } catch (e) {} return; }
+          write(String(r.value));
+          return next();
+        });
+      })();
+    }
+    return run.then(function () {
+      if (caret) caret.remove();
+      el.removeAttribute("aria-busy");
+      announce(stopped ? strings.streamStopped : strings.streamDone);
+    }, function (err) {
+      if (caret) caret.remove();
+      el.removeAttribute("aria-busy");
+      throw err;
+    });
+  }
+
   window.fx = {
     version: "2.0.0",
     reduced: reduced, systemReduced: systemReduced, setMotion: setMotion, setStrings: setStrings, center: center,
@@ -913,6 +1135,7 @@
     trauma: trauma, hitFlash: hitFlash, hitstop: hitstop, damageNumber: damageNumber, health: health,
     squashJump: squashJump, sequence: sequence, flip: flip, swap: swap, countAll: countAll, themeSwitch: themeSwitch, ring: ring,
     tint: tint, wave: wave, lines: lines, flash: flash, zoom: zoom, slowmo: slowmo, stamp: stamp,
-    afterimage: afterimage, beam: beam, jitter: jitter, flyTo: flyTo
+    afterimage: afterimage, beam: beam, jitter: jitter, flyTo: flyTo,
+    sheet: sheet, swipeToDelete: swipeToDelete, stream: stream
   };
 })();

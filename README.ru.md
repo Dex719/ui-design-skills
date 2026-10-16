@@ -116,6 +116,7 @@ python3 ui-design/scripts/build_palettes.py
 
 - **Формы и UI:** `shake`, `fieldError`, `clearFieldError`, `check`, `loading`, `success`, `resetSuccess`, `copy`, `toast`, `announce`, `tabs`, `ring`, `pop`, `punch`
 - **Данные и раскладка:** `countUp`, `countAll`, `stagger`, `once`, `flip`, `swap`, `themeSwitch`, `sequence`
+- **Жесты и ИИ:** `swipeToDelete` (с тостом «Отменить»), `sheet` (нижняя шторка на `<dialog>`), `stream` (потоковый ответ ИИ), `toast(text, { action })`
 - **Награды:** `burst`, `confetti`, `flyTo`
 - **Игры:** `trauma`, `hitFlash`, `hitstop`, `jitter`, `damageNumber`, `health`, `tint`, `wave`, `lines`, `flash`, `zoom`, `slowmo`, `stamp`, `afterimage`, `beam`, `squashJump`
 - **Режим движения, строки, координаты:** `center(el)`, `reduced()`, `systemReduced()`, `setMotion("system" | "reduce" | "full")`, `setStrings({ done: "Done", … })` для интерфейсов не на русском
