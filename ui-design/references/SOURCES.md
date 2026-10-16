@@ -245,3 +245,10 @@
 - https://developer.mozilla.org/en-US/docs/Web/CSS/@media/forced-colors
 - https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-contrast
 - https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/inert
+
+## Таблицы данных (раздел 27)
+- https://www.w3.org/WAI/ARIA/apg/patterns/table/examples/sortable-table/
+- https://www.w3.org/WAI/ARIA/apg/patterns/grid/
+- https://www.nngroup.com/articles/data-tables/
+- https://www.nngroup.com/articles/infinite-scrolling-tips/
+- https://carbondesignsystem.com/components/data-table/usage/

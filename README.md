@@ -8,7 +8,7 @@ The skill content itself is written in **Russian**; Claude reads it and answers 
 
 | Skill | What it is | Size |
 |---|---|---|
-| [`ui-design/`](ui-design) | Full version: process, 27 rules, 26 reference chapters, Python tools, effects library, palettes, icons | ~730 KB, 180 files |
+| [`ui-design/`](ui-design) | Full version: process, 27 rules, 27 reference chapters, Python tools, effects library, palettes, icons | ~730 KB, 180 files |
 | [`ui-design-slim/`](ui-design-slim) | Compact single-file cheat sheet with the key rules and numbers, no tools | 1 file, ~19 KB |
 
 Install one of them, not both: their trigger descriptions overlap.
@@ -51,7 +51,7 @@ Notable house rules: no emoji anywhere (real SVG icons instead), no hover *motio
 ui-design/
 ├── SKILL.md          entry point: process, 27 golden rules, key numbers, output format
 ├── MAP.md            mind map, task routes ("landing page: read 23 → 03 → 11 → …"), topic index
-├── references/       26 chapters, read on demand
+├── references/       27 chapters, read on demand
 ├── scripts/          Python CLI tools
 └── assets/
     ├── effects/      effects.css + effects.js (window.fx) + demo.html
@@ -77,6 +77,7 @@ ui-design/
 | 11 | Landing pages and web style | 23 | Design system from scratch |
 | 12 | Accessibility (WCAG 2.2, ARIA, EAA) | 24 | AI interfaces: chat, streaming, sources, agents |
 | 26 | Modern CSS and accessibility modes | 25 | Forms: autofill, passkeys, OTP, KZ formats, ₸, dates, files |
+| 27 | Data tables | | |
 
 ### Tools
 
