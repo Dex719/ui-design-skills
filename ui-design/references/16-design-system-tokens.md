@@ -9,9 +9,9 @@
 ```json
 {
   "color": {
-    "blue": { "500": { "$type": "color",
-                       "$value": { "colorSpace": "oklch", "components": [0.546, 0.215, 262.9], "hex": "#2563eb" } } },
-    "bg":   { "accent": { "$type": "color", "$value": "{color.blue.500}" } }
+    "accent": { "500": { "$type": "color",
+                         "$value": { "colorSpace": "srgb", "components": [0.608, 0.329, 0.047], "hex": "#9b540c" } } },
+    "bg":     { "accent": { "$type": "color", "$value": "{color.accent.500}" } }
   }
 }
 ```
@@ -42,7 +42,7 @@
 
 **Пространство:** 4, 8, 12, 16, 24, 32, 48, 64, 96 px.
 
-**Формы:** радиусы 4 / 8 / 12 / 9999; тени sm / md / lg; толщина рамок 1 / 2.
+**Формы:** 3–4 радиуса, выведенных из высоты контролов (`references/23`, раздел 3), и 9999 для таблеток; тени sm / md / lg; толщина рамок 1 / 2.
 
 **Движение:** длительности short / medium / long; 2–3 кривые (см. `08-motion-interaction.md`).
 

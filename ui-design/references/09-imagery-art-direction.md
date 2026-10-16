@@ -47,7 +47,7 @@
 
 - **Цветовой оверлей в бренде:**
   ```css
-  .tint{ background: linear-gradient(oklch(0.35 0.12 255 / .55), oklch(0.35 0.12 255 / .55)), url(p.jpg) center/cover; }
+  .tint{ background: linear-gradient(oklch(0.35 0.12 var(--hue) / .55), oklch(0.35 0.12 var(--hue) / .55)), url(p.jpg) center/cover; }  /* --hue — тон акцента системы */
   ```
 - **Дуотон** — лучший способ унифицировать разнородные фото: `filter: grayscale(1) contrast(1.1)` + слой цвета с `mix-blend-mode: multiply` (тени) или `screen` (света); либо SVG `feColorMatrix`.
 - **Режимы наложения.** `mix-blend-mode` смешивает элемент со всем, что позади; оборачивай группу в `isolation: isolate`, чтобы не задеть фон страницы. `background-blend-mode` — смешивание слоёв фона внутри одного элемента. После блендинга перепроверяй контраст текста.
