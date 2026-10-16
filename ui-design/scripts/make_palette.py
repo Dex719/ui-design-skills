@@ -175,18 +175,47 @@ def parser():
     return p
 
 
-def main():
-    a = parser().parse_args()
+def validate(p, a):
+    """Значения вне диапазона дают тихий мусор (--chroma -1 → красный, --max-l 0.05 → чёрный), поэтому — ошибка."""
+    a.hue %= 360
+    if not 0 <= a.chroma <= 0.37:
+        p.error(f"--chroma {a.chroma}: нужно 0…0.37 (0.06 мягко, 0.12 уверенно, 0.18 ярко; выше sRGB не вмещает)")
+    if not 0.2 <= a.max_l <= 0.95:
+        p.error(f"--max-l {a.max_l}: нужно 0.2…0.95 (0.42 глубокий акцент, 0.62 обычный)")
+
+
+def habit_warning(hue, chroma):
+    """То же правило, что в style_tiles.py: перегруженные тона — только с причиной."""
+    if 260 <= hue <= 295:
+        return "индиго-фиолетовый — самый шаблонный тон; оставь, только если причина в бренде"
+    if 180 <= hue <= 250 and chroma >= 0.09:
+        return "бирюза и синий — перегруженные семьи; убедись, что причина не «надёжно и спокойно» по привычке"
+    return None
+
+
+def main(argv=None):
+    p = parser()
+    a = p.parse_args(argv)
+    validate(p, a)
     neutral = neutral_for_hue(a.hue) if a.neutral == "auto" else a.neutral
     t = build(a.hue, a.chroma, neutral, a.max_l, a.bright)
-    if a.json:
-        print(json.dumps({"name": a.name, "neutral": neutral, "hue": a.hue, "chroma": a.chroma, "bright": a.bright, "dark_first": a.dark_first, **t}, ensure_ascii=False))
-        return 0
     rep, fails = report(t)
-    print(css(t, a.name, a.dark_first))
-    print(f"/* нейтрали: {neutral} (Radix) */\n{rep}")
+    warn = habit_warning(a.hue, a.chroma)
+    if warn:
+        print(f"предупреждение: {warn}", file=sys.stderr)
+    if fails:
+        print(f"ошибка: {fails} пар не прошли контраст — попробуй другую --max-l или --bright", file=sys.stderr)
+    if a.json:
+        print(json.dumps({"name": a.name, "neutral": neutral, "hue": a.hue, "chroma": a.chroma, "bright": a.bright,
+                          "dark_first": a.dark_first, "contrast_fails": fails, **t}, ensure_ascii=False))
+    else:
+        print(css(t, a.name, a.dark_first))
+        print(f"/* нейтрали: {neutral} (Radix) */\n{rep}")
     return 1 if fails else 0
 
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):   # консоли Windows с cp1251/cp866 падают на «≈», «—», «₸»
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     sys.exit(main())

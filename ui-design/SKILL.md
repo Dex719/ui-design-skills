@@ -88,6 +88,7 @@ description: Полный справочник и процесс проекти�
 - `scripts/style_tiles.py` — варианты стиля рядом из твоих `system.json` (проверяет причины, пропорции, шаблонные тона и непохожесть вариантов), `--export` пишет `design-system.css` + `DESIGN.md`, `--embed-fonts` встраивает шрифты для офлайна. Схема — `references/23`, пример — `assets/styles/system.example.json`.
 - `scripts/icon.py` + `assets/icons/` — 118 иконок Lucide (ISC) inline-SVG и спрайтом; вместо эмодзи.
 - `scripts/make_palette.py` — палитра (светлая + тёмная) из тона и хромы акцента, нейтрали Radix, контраст подгоняется автоматически.
+- `scripts/build_palettes.py` — пересобирает 17 палитр и таблицу в `references/20` из `assets/palettes/palettes.json` (`--check` для CI).
 - `scripts/build_motion_override.py` — добавляет в CSS режим «анимации включены вручную» (`<html data-motion="full">`), даже если в системе стоит «уменьшить движение».
 - `scripts/check_contrast.py` — проверка контраста пары цветов или всех токенов в CSS/HTML-файле.
 - `assets/palettes/*.css` — 17 примеров палитр для калибровки (не шаблоны): как тон, хрома, нейтрали, яркий акцент и тёмная тема по умолчанию меняют звучание. `make_palette.py --bright` (яркий акцент с тёмным текстом), `--dark-first` (тёмная тема по умолчанию).

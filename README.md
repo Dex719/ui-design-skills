@@ -99,7 +99,12 @@ python3 ui-design/scripts/icon.py trash-2 --label "Delete"
 
 # Add a manual "full motion" override block to a CSS file
 python3 ui-design/scripts/build_motion_override.py effects.css
+
+# Rebuild the 17 example palettes and their table from assets/palettes/palettes.json
+python3 ui-design/scripts/build_palettes.py
 ```
+
+On Windows use `python` or `py -3` instead of `python3`. Every script has `--help`; exit code 1 means a check failed, 2 means bad input.
 
 `system.json` schema is described in `references/23`, section 8; see [`assets/styles/system.example.json`](ui-design/assets/styles/system.example.json).
 
@@ -107,11 +112,11 @@ python3 ui-design/scripts/build_motion_override.py effects.css
 
 Include `effects.css` and `effects.js`, then call `fx.*`. Every effect checks reduced-motion and, when it is on, keeps the meaning (color, text, `aria-live`) but drops the movement. Open [`assets/effects/demo.html`](ui-design/assets/effects/demo.html) for a live showcase.
 
-- **Forms and UI:** `shake`, `fieldError`, `check`, `loading`, `success`, `copy`, `toast`, `announce`, `tabs`, `ring`, `pop`, `punch`
-- **Data and layout:** `countUp`, `countAll`, `stagger`, `flip`, `swap`, `themeSwitch`, `sequence`
+- **Forms and UI:** `shake`, `fieldError`, `clearFieldError`, `check`, `loading`, `success`, `resetSuccess`, `copy`, `toast`, `announce`, `tabs`, `ring`, `pop`, `punch`
+- **Data and layout:** `countUp`, `countAll`, `stagger`, `once`, `flip`, `swap`, `themeSwitch`, `sequence`
 - **Celebration:** `burst`, `confetti`, `flyTo`
 - **Games:** `trauma`, `hitFlash`, `hitstop`, `jitter`, `damageNumber`, `health`, `tint`, `wave`, `lines`, `flash`, `zoom`, `slowmo`, `stamp`, `afterimage`, `beam`, `squashJump`
-- **Motion mode:** `reduced()`, `systemReduced()`, `setMotion("system" | "reduce" | "full")`
+- **Motion mode and strings:** `reduced()`, `systemReduced()`, `setMotion("system" | "reduce" | "full")`, `setStrings({ done: "Done", … })` for non-Russian UIs
 
 ## Installation
 
@@ -130,8 +135,19 @@ On Windows the personal folder is `%USERPROFILE%\.claude\skills\`.
 
 Claude picks the skill up automatically when you ask about UI, UX, landing pages, app screens, game UI, design systems or accessibility. You can also call it by name: `/ui-design` or `/ui-design-slim`.
 
+## Checks
+
+[`.github/workflows/check.yml`](.github/workflows/check.yml) runs on Linux, Windows and macOS with Python 3.9 and 3.13: every script's `--help`, palettes regenerated and compared, contrast of all palettes in both themes, the example system with `--strict`, the motion override block, and [`tests/check_repo.py`](tests/check_repo.py), which checks that numbers and paths in the docs match the files. Run the same locally:
+
+```bash
+python3 tests/check_repo.py
+```
+
 ## Licenses
 
+Third-party material is listed in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md):
+
 - Lucide icons — ISC, see [`ui-design/assets/icons/LICENSE-lucide.txt`](ui-design/assets/icons/LICENSE-lucide.txt).
+- Radix Colors neutral and status scales in `make_palette.py` and the palettes — MIT.
 - Fonts are not bundled; they load from Google Fonts or from your own `@fontsource` install.
 - The rest of the repository has no license file yet.

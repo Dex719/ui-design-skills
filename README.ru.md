@@ -99,7 +99,12 @@ python3 ui-design/scripts/icon.py trash-2 --label "Удалить"
 
 # Добавить в CSS ручной режим «полное движение»
 python3 ui-design/scripts/build_motion_override.py effects.css
+
+# Пересобрать 17 примеров палитр и их таблицу из assets/palettes/palettes.json
+python3 ui-design/scripts/build_palettes.py
 ```
+
+В Windows вместо `python3` — `python` или `py -3`. У каждого скрипта есть `--help`; код выхода 1 — проверка не прошла, 2 — неверный ввод.
 
 Схема `system.json` описана в `references/23`, раздел 8; пример — [`assets/styles/system.example.json`](ui-design/assets/styles/system.example.json).
 
@@ -107,11 +112,11 @@ python3 ui-design/scripts/build_motion_override.py effects.css
 
 Подключите `effects.css` и `effects.js` и вызывайте `fx.*`. Каждый эффект проверяет «уменьшить движение» и в этом режиме сохраняет смысл (цвет, текст, `aria-live`), но убирает движение. Живая витрина — [`assets/effects/demo.html`](ui-design/assets/effects/demo.html).
 
-- **Формы и UI:** `shake`, `fieldError`, `check`, `loading`, `success`, `copy`, `toast`, `announce`, `tabs`, `ring`, `pop`, `punch`
-- **Данные и раскладка:** `countUp`, `countAll`, `stagger`, `flip`, `swap`, `themeSwitch`, `sequence`
+- **Формы и UI:** `shake`, `fieldError`, `clearFieldError`, `check`, `loading`, `success`, `resetSuccess`, `copy`, `toast`, `announce`, `tabs`, `ring`, `pop`, `punch`
+- **Данные и раскладка:** `countUp`, `countAll`, `stagger`, `once`, `flip`, `swap`, `themeSwitch`, `sequence`
 - **Награды:** `burst`, `confetti`, `flyTo`
 - **Игры:** `trauma`, `hitFlash`, `hitstop`, `jitter`, `damageNumber`, `health`, `tint`, `wave`, `lines`, `flash`, `zoom`, `slowmo`, `stamp`, `afterimage`, `beam`, `squashJump`
-- **Режим движения:** `reduced()`, `systemReduced()`, `setMotion("system" | "reduce" | "full")`
+- **Режим движения и строки:** `reduced()`, `systemReduced()`, `setMotion("system" | "reduce" | "full")`, `setStrings({ done: "Done", … })` для интерфейсов не на русском
 
 ## Установка
 
@@ -130,8 +135,19 @@ cp -r ui-design .claude/skills/
 
 Claude подхватывает скилл сам, когда вы спрашиваете про UI, UX, лендинги, экраны приложений, игровой UI, дизайн-системы или доступность. Можно вызвать и по имени: `/ui-design` или `/ui-design-slim`.
 
+## Проверки
+
+[`.github/workflows/check.yml`](.github/workflows/check.yml) запускается на Linux, Windows и macOS с Python 3.9 и 3.13: `--help` у каждого скрипта, пересборка и сравнение палитр, контраст всех палитр в обеих темах, пример системы с `--strict`, блок ручного режима движения и [`tests/check_repo.py`](tests/check_repo.py) — сверка чисел и путей в документации с файлами. Локально:
+
+```bash
+python3 tests/check_repo.py
+```
+
 ## Лицензии
 
+Сторонние материалы перечислены в [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md):
+
 - Иконки Lucide — ISC, см. [`ui-design/assets/icons/LICENSE-lucide.txt`](ui-design/assets/icons/LICENSE-lucide.txt).
+- Нейтрали и статусные цвета Radix Colors в `make_palette.py` и палитрах — MIT.
 - Шрифты в репозиторий не входят: грузятся с Google Fonts или из вашего `@fontsource`.
 - Для остального содержимого файла лицензии пока нет.

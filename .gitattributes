@@ -1,0 +1,6 @@
+# LF everywhere: CRLF in a shebang ("python3\r") breaks ./script.py on Linux and macOS.
+* text=auto eol=lf
+*.svg text eol=lf
+*.png binary
+*.jpg binary
+*.woff2 binary

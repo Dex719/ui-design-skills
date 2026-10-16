@@ -57,8 +57,31 @@ SAMPLE = {"brand": "Продукт", "nav": ["Обзор", "Платежи"], "e
           "icons": ["house", "wallet", "chart-column", "bell", "settings", "shield-check"]}
 
 
+class SpecError(Exception):
+    pass
+
+
 def load(path):
-    s = json.load(open(path, encoding="utf-8"))
+    try:
+        with open(path, encoding="utf-8-sig") as f:   # utf-8-sig: Блокнот и PowerShell пишут JSON с BOM
+            s = json.load(f)
+    except OSError as e:
+        raise SpecError(f"{path}: не могу открыть ({e.strerror})")
+    except json.JSONDecodeError as e:
+        raise SpecError(f"{path}: неверный JSON — строка {e.lineno}, столбец {e.colno}: {e.msg}")
+    missing = [k for k in ("color", "type", "space", "shape") if k not in s]
+    if missing:
+        raise SpecError(f"{path}: нет разделов {', '.join(missing)} (схема — references/23, раздел 8)")
+    for sect, keys in (("color", ["hue"]), ("type", ["body", "base", "ratio"]), ("space", ["scale", "control"]), ("shape", ["radius"])):
+        lost = [k for k in keys if k not in s[sect]]
+        if lost:
+            raise SpecError(f"{path}: в {sect} нет {', '.join(lost)}")
+    depth = s.get("depth", {}).get("style", "soft")
+    if depth not in DEPTH:
+        raise SpecError(f"{path}: depth.style «{depth}» — нужно одно из {', '.join(DEPTH)}")
+    motion = s.get("motion", {}).get("level", "productive")
+    if motion not in MOTION:
+        raise SpecError(f"{path}: motion.level «{motion}» — нужно одно из {', '.join(MOTION)}")
     s.setdefault("name", os.path.splitext(os.path.basename(path))[0])
     s["_key"] = os.path.splitext(os.path.basename(path))[0]
     return resolve(s)
@@ -432,18 +455,28 @@ def main():
     p.add_argument("--export", metavar="SYSTEM_JSON")
     p.add_argument("-d", "--dir", default="design")
     p.add_argument("--check", action="store_true", help="только проверить")
+    p.add_argument("--strict", action="store_true", help="код выхода 1, если есть предупреждения (для CI)")
     p.add_argument("--embed-fonts", metavar="DIR", help="встроить шрифты из DIR/node_modules/@fontsource (офлайн-файл)")
     a = p.parse_args()
     paths = [a.export] if a.export else a.systems
     if not paths:
         print("Укажи файлы system.json (схема — references/23, раздел 8)", file=sys.stderr); return 1
-    specs = [load(x) for x in paths]
+    try:
+        specs = [load(x) for x in paths]
+    except SpecError as e:
+        print(f"ошибка: {e}", file=sys.stderr); return 2
+    warnings = 0
     for r in specs:
-        for w in check(r): print(f"[{r['_key']}] предупреждение: {w}", file=sys.stderr)
+        for w in check(r):
+            warnings += 1
+            print(f"[{r['_key']}] предупреждение: {w}", file=sys.stderr)
     for i in range(len(specs)):
         for j in range(i + 1, len(specs)):
             n = distinct(specs[i], specs[j])
-            if n < 3: print(f"[{specs[i]['_key']} ↔ {specs[j]['_key']}] палитры различаются только по {n} из 5 признаков — это почти один вариант", file=sys.stderr)
+            if n < 3:
+                warnings += 1
+                print(f"[{specs[i]['_key']} ↔ {specs[j]['_key']}] палитры различаются только по {n} из 5 признаков — это почти один вариант", file=sys.stderr)
+    if a.strict and warnings: return 1
     if a.check: return 0
     if a.export:
         for f in export(specs[0], a.dir): print("ok", f)
@@ -454,4 +487,7 @@ def main():
 
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):   # консоли Windows с cp1251/cp866 падают на «≈», «—», «₸»
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     sys.exit(main())
