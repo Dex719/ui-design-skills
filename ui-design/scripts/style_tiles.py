@@ -150,6 +150,8 @@ def check(s):
         w.append("индиго-фиолетовый — самый шаблонный тон; оставь, только если причина в бренде (color.brand: true)")
     elif 180 <= h <= 250 and c.get("chroma", 0.12) >= 0.09 and not c.get("brand"):
         w.append("бирюза и синий — перегруженные семьи; убедись, что причина в why не «надёжно и спокойно» по привычке")
+    if (h >= 325 or h < 10) and c.get("chroma", 0.12) <= 0.13 and not c.get("bright") and c.get("accent_l", 0.62) <= 0.5 and not c.get("brand"):
+        w.append("тёмная приглушённая слива или ягода — частый выбор «по привычке»; убедись, что тон и приглушённость следуют из брифа")
     if c.get("neutral") in (None, "auto"): w.append("нейтраль выбрана автоматически — реши температуру сам (slate, sand, sage, olive, mauve, gray)")
     return w
 

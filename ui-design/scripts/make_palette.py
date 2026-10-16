@@ -217,12 +217,14 @@ def validate(p, a):
         p.error(f"--tint {a.tint}: нужно 0…1")
 
 
-def habit_warning(hue, chroma):
+def habit_warning(hue, chroma, bright=False, max_l=0.62):
     """То же правило, что в style_tiles.py: перегруженные тона — только с причиной."""
     if 260 <= hue <= 295:
         return "индиго-фиолетовый — самый шаблонный тон; оставь, только если причина в бренде"
     if 180 <= hue <= 250 and chroma >= 0.09:
         return "бирюза и синий — перегруженные семьи; убедись, что причина не «надёжно и спокойно» по привычке"
+    if (hue >= 325 or hue < 10) and chroma <= 0.13 and not bright and max_l <= 0.5:
+        return "тёмная приглушённая слива или ягода — частый выбор «по привычке»; убедись, что тон и приглушённость следуют из брифа"
     return None
 
 
@@ -233,7 +235,7 @@ def main(argv=None):
     neutral = neutral_for_hue(a.hue) if a.neutral == "auto" else a.neutral
     t = build(a.hue, a.chroma, neutral, a.max_l, a.bright, a.bg, a.tint)
     rep, fails = report(t)
-    warn = habit_warning(a.hue, a.chroma)
+    warn = habit_warning(a.hue, a.chroma, a.bright, a.max_l)
     if warn:
         print(f"предупреждение: {warn}", file=sys.stderr)
     if fails:
