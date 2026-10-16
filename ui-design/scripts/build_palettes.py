@@ -28,7 +28,7 @@ BEGIN, END = "<!-- palettes:begin (генерирует scripts/build_palettes.p
 def render(entry):
     a = parser().parse_args(shlex.split(entry["args"]) + ["--name", entry["id"]])
     neutral = neutral_for_hue(a.hue) if a.neutral == "auto" else a.neutral
-    t = build(a.hue, a.chroma, neutral, a.max_l, a.bright)
+    t = build(a.hue, a.chroma, neutral, a.max_l, a.bright, a.bg, a.tint)
     rep, fails = report(t)
     if fails:
         raise SystemExit(f"{entry['id']}: {fails} пар не проходят контраст")

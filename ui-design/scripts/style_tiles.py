@@ -17,7 +17,7 @@ import argparse, base64, json, os, sys, html
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from make_palette import build, neutral_for_hue, NEUTRALS, ORDER  # noqa: E402
+from make_palette import build, neutral_for_hue, NEUTRALS, ORDER, BG_KINDS  # noqa: E402
 from check_contrast import hex_to_rgb  # noqa: E402
 
 ROOT = os.path.join(HERE, "..")
@@ -79,6 +79,10 @@ def load(path):
         lost = [k for k in keys if k not in s[sect]]
         if lost:
             raise SpecError(f"{path}: в {sect} нет {', '.join(lost)}")
+    if s["color"].get("bg", "tinted") not in BG_KINDS:
+        raise SpecError(f"{path}: color.bg «{s['color'].get('bg')}» — нужно одно из {', '.join(BG_KINDS)}")
+    if not 0 <= s["color"].get("tint", 0) <= 1:
+        raise SpecError(f"{path}: color.tint — от 0 до 1")
     field = s["shape"].get("field", "outline")
     if field not in FIELDS:
         raise SpecError(f"{path}: shape.field «{field}» — нужно одно из {', '.join(FIELDS)}")
@@ -98,7 +102,8 @@ def resolve(s):
     neutral = c.get("neutral", "auto")
     neutral = neutral_for_hue(c["hue"]) if neutral in (None, "auto") else neutral
     s["_neutral"] = neutral
-    s["_colors"] = build(c["hue"], c.get("chroma", 0.12), neutral, c.get("accent_l", 0.62), c.get("bright", False))
+    s["_colors"] = build(c["hue"], c.get("chroma", 0.12), neutral, c.get("accent_l", 0.62), c.get("bright", False),
+                         c.get("bg", "tinted"), c.get("tint", 0.0))
     s["_dark_first"] = c.get("dark_first", False)
     t.setdefault("display", t["body"]); t.setdefault("display_weight", 700); t.setdefault("body_weight", 400)
     t.setdefault("line", 1.5); t.setdefault("heading_line", 1.15); t.setdefault("display_max", 56)
@@ -150,13 +155,14 @@ def check(s):
 
 
 def distinct(a, b):
-    """Сколько из 5 признаков палитры различаются (references/23, «Как не повторяться»)."""
+    """Сколько из 6 признаков палитры различаются (references/23, «Как не повторяться»)."""
     fam = lambda h: int(((h + 15) % 360) // 30)
     ca, cb = a["color"], b["color"]
     band = lambda x: 0 if x < 0.09 else 1 if x < 0.14 else 2
     return sum([fam(ca["hue"]) != fam(cb["hue"]), band(ca.get("chroma", .12)) != band(cb.get("chroma", .12)),
                 a["_neutral"] != b["_neutral"], a["_dark_first"] != b["_dark_first"],
-                bool(ca.get("bright")) != bool(cb.get("bright"))])
+                bool(ca.get("bright")) != bool(cb.get("bright")),
+                (ca.get("bg", "tinted"), ca.get("tint", 0) > 0) != (cb.get("bg", "tinted"), cb.get("tint", 0) > 0)])
 
 
 def fonts(r):
@@ -346,7 +352,7 @@ def decisions(r):
         ("Размеры", f'<b>база {sz["base"]}, ×{t["ratio"]}</b>: {sz["sm"]} · {sz["base"]} · {sz["lg"]} · {sz["h3"]} · {sz["h2"]} · {sz["h1"]} · {sz["display"]}', None),
         ("Отступы", f'<b>{" · ".join(map(str, sp["scale"]))}</b>, контрол {sp["control"]}', sp.get("why")),
         ("Форма", f'<b>радиусы {" / ".join(map(str, sh["radius"]))}</b>, кнопка {sh["button"]}, поле {sh.get("field", "outline")}, рамка {sh["border"]}', sh.get("why")),
-        ("Цвет", f'<b>H {c["hue"]}, C {c.get("chroma", .12)}</b>, нейтрали {r["_neutral"]}, {theme}{", яркий акцент" if c.get("bright") else ""}', c.get("why")),
+        ("Цвет", f'<b>H {c["hue"]}, C {c.get("chroma", .12)}</b>, нейтрали {r["_neutral"]}, фон {c.get("bg", "tinted")}{f", оттенок {c.get('tint')}" if c.get("tint") else ""}, {theme}{", яркий акцент" if c.get("bright") else ""}', c.get("why")),
         ("Глубина", f'<b>{esc(r.get("depth", {}).get("style", "soft"))}</b>', r.get("depth", {}).get("why")),
         ("Движение", f'<b>{esc(r["_motion"]["label"])}</b>', r.get("motion", {}).get("why")),
     ]
@@ -584,7 +590,7 @@ def main():
             n = distinct(specs[i], specs[j])
             if n < 3:
                 warnings += 1
-                print(f"[{specs[i]['_key']} ↔ {specs[j]['_key']}] палитры различаются только по {n} из 5 признаков — это почти один вариант", file=sys.stderr)
+                print(f"[{specs[i]['_key']} ↔ {specs[j]['_key']}] палитры различаются только по {n} из 6 признаков — это почти один вариант", file=sys.stderr)
     if len(specs) > 1 and len({s["space"]["control"] for s in specs}) == 1:
         warnings += 1
         print(f"варианты не различаются по высоте контролов ({specs[0]['space']['control']} px у всех) — размер поля тоже часть характера", file=sys.stderr)
