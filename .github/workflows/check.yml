@@ -51,6 +51,7 @@ jobs:
         run: |
           python -I $S/icon.py --list > /dev/null
           python -I $S/icon.py trash-2 --label 'Delete "all"' | grep -q 'aria-label="Delete &quot;all&quot;"'
+          test "$(python -I $S/icon.py --sprite --only bell,user | grep -c '<symbol')" = 2
 
       - name: Docs agree with files
         run: python -I tests/check_repo.py

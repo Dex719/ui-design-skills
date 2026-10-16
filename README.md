@@ -98,6 +98,7 @@ python3 ui-design/scripts/style_tiles.py --export a.json -d ./design   # design-
 # Icons instead of emoji
 python3 ui-design/scripts/icon.py --list
 python3 ui-design/scripts/icon.py trash-2 --label "Delete"
+python3 ui-design/scripts/icon.py --sprite --only bell,user,x   # sprite with just these icons
 
 # Add a manual "full motion" override block to a CSS file
 python3 ui-design/scripts/build_motion_override.py effects.css

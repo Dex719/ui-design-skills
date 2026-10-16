@@ -98,6 +98,7 @@ python3 ui-design/scripts/style_tiles.py --export a.json -d ./design   # design-
 # Иконки вместо эмодзи
 python3 ui-design/scripts/icon.py --list
 python3 ui-design/scripts/icon.py trash-2 --label "Удалить"
+python3 ui-design/scripts/icon.py --sprite --only bell,user,x   # спрайт только из этих иконок
 
 # Добавить в CSS ручной режим «полное движение»
 python3 ui-design/scripts/build_motion_override.py effects.css
