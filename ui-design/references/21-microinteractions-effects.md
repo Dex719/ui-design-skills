@@ -2,7 +2,7 @@
 
 Источники: NN/g (animation duration, microinteractions, errors, skeleton screens), Дэн Саффер «Microinteractions», Material 3 motion (токены material-web, MDC ripple), Apple HIG Motion, Emil Kowalski (animations.dev), Josh W. Comeau, web.dev и Chrome for Developers (View Transitions, scroll-driven, height: auto), MDN (@starting-style, transition-behavior, linear(), WAAPI), GOV.UK Design System (error summary), WCAG 2.2.2 / 2.3.1 / 2.3.3, A List Apart (вестибулярные триггеры). Значения с пометкой ≈ — практика без первоисточника.
 
-**Готовый код:** `assets/effects/effects.css` + `assets/effects/effects.js` (API `window.fx.*`), живые примеры — `assets/effects/demo.html`. Подключай библиотеку, а не пиши эффекты заново.
+**Готовый код:** `assets/effects/effects.css` + `assets/effects/effects.js` (API `window.fx.*`), живые примеры — `assets/effects/demo.html`. Подключай библиотеку, а не пиши эффекты заново. В одностраничный файл копируй только используемые функции (с вспомогательными `reduced`, `finished`, `wait`, `announce`, если они нужны) и их CSS-классы, а не весь `effects.js` и `effects.css`.
 
 **Правила API (версия 2):** первый аргумент — цель (элемент, слой, контейнер), второй — объект опций: `fx.zoom(el, { scale: 1.1, ms: 300 })`, `fx.hitstop([el], { ms: 70 })`, `fx.wave(layer, { x, y, size })`. Короткие позиционные формы из таблиц ниже (`fx.zoom(el, 1.1, 300)`) тоже работают. Эффект возвращает Promise, который выполняется, когда эффект закончился, — цепочки пишутся через `await`. Координаты: у эффектов со слоем — внутри слоя, у `burst`, `confetti`, `flyTo` — окна; `fx.center(el)` даёт центр элемента. ESM: `import fx, { toast } from "./effects.mjs"`; типы — `effects.d.ts` / `effects.d.mts`.
 
