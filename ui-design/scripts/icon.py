@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+"""Выдаёт готовый inline-SVG иконки из assets/icons (Lucide, лицензия ISC).
+
+  python3 icon.py check                       # <svg ...> с stroke=currentColor, 24px, aria-hidden
+  python3 icon.py bell --size 20 --stroke 1.75
+  python3 icon.py trash-2 --label "Удалить"   # иконка со смыслом без текста рядом: role=img + aria-label
+  python3 icon.py --list                      # все иконки по группам
+  python3 icon.py --sprite                    # весь спрайт <symbol id="i-…"> для вставки в начало <body>
+
+Правила: иконки вместо эмодзи всегда; один набор на продукт; размеры 16/20/24/32;
+толщина линии одна на весь продукт (обычно 2 при 24px, 1.75 при 20px).
+"""
+import argparse, json, os, sys
+HERE = os.path.dirname(os.path.abspath(__file__))
+DATA = os.path.join(HERE, "..", "assets", "icons", "icons.json")
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("name", nargs="?")
+    p.add_argument("--size", type=int, default=24)
+    p.add_argument("--stroke", type=float, default=2)
+    p.add_argument("--label")
+    p.add_argument("--cls", default="icon")
+    p.add_argument("--list", action="store_true")
+    p.add_argument("--sprite", action="store_true")
+    a = p.parse_args()
+    d = json.load(open(DATA, encoding="utf-8"))
+    if a.list:
+        for g, names in d["groups"].items():
+            print(f"{g}: " + ", ".join(names))
+        return 0
+    if a.sprite:
+        print(open(os.path.join(HERE, "..", "assets", "icons", "sprite.svg"), encoding="utf-8").read())
+        return 0
+    if not a.name or a.name not in d["icons"]:
+        print("Нет такой иконки. Список: python3 icon.py --list", file=sys.stderr)
+        return 1
+    aria = f'role="img" aria-label="{a.label}"' if a.label else 'aria-hidden="true"'
+    print(f'<svg class="{a.cls}" width="{a.size}" height="{a.size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+          f'stroke-width="{a.stroke}" stroke-linecap="round" stroke-linejoin="round" {aria}>{d["icons"][a.name]}</svg>')
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())

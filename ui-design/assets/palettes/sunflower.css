@@ -1,0 +1,91 @@
+/* Палитра «sunflower». Сгенерировано make_palette.py, контраст WCAG проверен. */
+:root{
+  --bg: #f9f9f8;
+  --surface: #ffffff;
+  --surface-2: #f1f0ef;
+  --border: #dad9d6;
+  --border-strong: #8d8d86;
+  --text: #21201c;
+  --text-2: #63635e;
+  --accent: #f0c630;
+  --accent-hover: #e3b916;
+  --on-accent: #21201c;
+  --accent-text: #826902;
+  --accent-soft: #f8f0d6;
+  --focus: #826902;
+  --success: #127a50;
+  --success-soft: #e6f6eb;
+  --warning: #a25f05;
+  --warning-soft: #fff7c2;
+  --danger: #ca282e;
+  --danger-soft: #feebec;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg: #111110;
+    --surface: #191918;
+    --surface-2: #222221;
+    --border: #3b3a37;
+    --border-strong: #686661;
+    --text: #eeeeec;
+    --text-2: #b5b3ad;
+    --accent: #d7b441;
+    --accent-hover: #e4c150;
+    --on-accent: #111110;
+    --accent-text: #dbbb52;
+    --accent-soft: #392c01;
+    --focus: #dbbb52;
+    --success: #3dd68c;
+    --success-soft: #132d21;
+    --warning: #ffca16;
+    --warning-soft: #302008;
+    --danger: #ff9592;
+    --danger-soft: #3b1219;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg: #111110;
+  --surface: #191918;
+  --surface-2: #222221;
+  --border: #3b3a37;
+  --border-strong: #686661;
+  --text: #eeeeec;
+  --text-2: #b5b3ad;
+  --accent: #d7b441;
+  --accent-hover: #e4c150;
+  --on-accent: #111110;
+  --accent-text: #dbbb52;
+  --accent-soft: #392c01;
+  --focus: #dbbb52;
+  --success: #3dd68c;
+  --success-soft: #132d21;
+  --warning: #ffca16;
+  --warning-soft: #302008;
+  --danger: #ff9592;
+  --danger-soft: #3b1219;
+  color-scheme: dark;
+}
+body{ background: var(--bg); color: var(--text); }
+
+/* нейтрали: sand (Radix) */
+/* light          text on bg            15.48:1 OK */
+/* light        text-2 on surface        6.04:1 OK */
+/* light     on-accent on accent         9.96:1 OK */
+/* light     on-accent on accent-hover   8.71:1 OK */
+/* light   accent-text on bg             5.02:1 OK */
+/* light   accent-text on accent-soft    4.64:1 OK */
+/* light border-strong on surface        3.34:1 OK */
+/* light       success on success-soft   4.78:1 OK */
+/* light       warning on warning-soft   4.63:1 OK */
+/* light        danger on danger-soft    4.75:1 OK */
+/* dark           text on bg            16.26:1 OK */
+/* dark         text-2 on surface        8.39:1 OK */
+/* dark      on-accent on accent         9.44:1 OK */
+/* dark      on-accent on accent-hover  10.83:1 OK */
+/* dark    accent-text on bg            10.11:1 OK */
+/* dark    accent-text on accent-soft    7.33:1 OK */
+/* dark  border-strong on surface        3.07:1 OK */
+/* dark        success on success-soft   7.86:1 OK */
+/* dark        warning on warning-soft  10.26:1 OK */
+/* dark         danger on danger-soft    7.75:1 OK */

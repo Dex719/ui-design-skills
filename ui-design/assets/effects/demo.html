@@ -1,0 +1,2332 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Эффекты ui-design</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap">
+<style>
+body{ margin: 0; }
+/* Палитра «bank-petrol». Сгенерировано make_palette.py, контраст WCAG проверен. */
+:root{
+  --bg: #f9f9fb;
+  --surface: #ffffff;
+  --surface-2: #f0f0f3;
+  --border: #d9d9e0;
+  --border-strong: #8b8d98;
+  --text: #1c2024;
+  --text-2: #60646c;
+  --accent: #067f95;
+  --accent-hover: #016f83;
+  --on-accent: #ffffff;
+  --accent-text: #08758a;
+  --accent-soft: #d8f6fe;
+  --focus: #08758a;
+  --success: #127a50;
+  --success-soft: #e6f6eb;
+  --warning: #a25f05;
+  --warning-soft: #fff7c2;
+  --danger: #ca282e;
+  --danger-soft: #feebec;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg: #111113;
+    --surface: #18191b;
+    --surface-2: #212225;
+    --border: #363a3f;
+    --border-strong: #60676f;
+    --text: #edeef0;
+    --text-2: #b0b4ba;
+    --accent: #6ac7dd;
+    --accent-hover: #77d4ea;
+    --on-accent: #111113;
+    --accent-text: #77cde1;
+    --accent-soft: #0e333c;
+    --focus: #77cde1;
+    --success: #3dd68c;
+    --success-soft: #132d21;
+    --warning: #ffca16;
+    --warning-soft: #302008;
+    --danger: #ff9592;
+    --danger-soft: #3b1219;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg: #111113;
+  --surface: #18191b;
+  --surface-2: #212225;
+  --border: #363a3f;
+  --border-strong: #60676f;
+  --text: #edeef0;
+  --text-2: #b0b4ba;
+  --accent: #6ac7dd;
+  --accent-hover: #77d4ea;
+  --on-accent: #111113;
+  --accent-text: #77cde1;
+  --accent-soft: #0e333c;
+  --focus: #77cde1;
+  --success: #3dd68c;
+  --success-soft: #132d21;
+  --warning: #ffca16;
+  --warning-soft: #302008;
+  --danger: #ff9592;
+  --danger-soft: #3b1219;
+  color-scheme: dark;
+}
+body{ background: var(--bg); color: var(--text); }
+
+/* нейтрали: slate (Radix) */
+/* light          text on bg            15.58:1 OK */
+/* light        text-2 on surface        5.94:1 OK */
+/* light     on-accent on accent         4.69:1 OK */
+/* light     on-accent on accent-hover   5.83:1 OK */
+/* light   accent-text on bg             5.09:1 OK */
+/* light   accent-text on accent-soft    4.73:1 OK */
+/* light border-strong on surface        3.30:1 OK */
+/* light       success on success-soft   4.78:1 OK */
+/* light       warning on warning-soft   4.63:1 OK */
+/* light        danger on danger-soft    4.75:1 OK */
+/* dark           text on bg            16.25:1 OK */
+/* dark         text-2 on surface        8.45:1 OK */
+/* dark      on-accent on accent         9.72:1 OK */
+/* dark      on-accent on accent-hover  11.13:1 OK */
+/* dark    accent-text on bg            10.42:1 OK */
+/* dark    accent-text on accent-soft    7.45:1 OK */
+/* dark  border-strong on surface        3.07:1 OK */
+/* dark        success on success-soft   7.86:1 OK */
+/* dark        warning on warning-soft  10.26:1 OK */
+/* dark         danger on danger-soft    7.75:1 OK */
+/* ui-design · библиотека эффектов (CSS)
+   Подключение: этот файл + effects.js. Цвета берутся из токенов палитры
+   (--accent, --danger, --success, --surface-2…), есть запасные значения.
+   Все движения работают только если пользователь не просил уменьшить движение
+   (prefers-reduced-motion) и на сайте не включён ручной режим <html data-motion="reduce">.
+   <html data-motion="full"> включает анимации вручную, даже если в системе стоит «уменьшить движение»
+   (блок в конце файла генерирует scripts/build_motion_override.py — после правок движения перезапусти его). */
+
+:root{
+  --fx-ease-out: cubic-bezier(.2,0,0,1);        /* M3 standard: вход и реакции */
+  --fx-ease-in: cubic-bezier(.3,0,1,1);         /* M3 standard-accelerate: уход */
+  --fx-ease-emph: cubic-bezier(.05,.7,.1,1);    /* M3 emphasized-decelerate: панели, шторки */
+  --fx-ease-back: cubic-bezier(.34,1.56,.64,1); /* лёгкий перелёт: «поп», награды */
+  --fx-fast: 120ms; --fx-base: 200ms; --fx-slow: 300ms;
+  --fx-accent: var(--accent, #067f95);
+  --fx-danger: var(--danger, #ce2c31);
+  --fx-success: var(--success, #218358);
+  --fx-skeleton: var(--surface-2, #eef0f3);
+  --fx-shimmer: rgb(255 255 255 / .55);
+}
+
+/* ---------- Статичные состояния (работают и при уменьшенном движении) ---------- */
+
+.fx-field-error{
+  border-color: var(--fx-danger) !important;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--fx-danger) 22%, transparent);
+}
+.fx-check circle, .fx-check path{ stroke-dasharray: 1; stroke-dashoffset: 1; }
+.fx-check.is-on circle, .fx-check.is-on path{ stroke-dashoffset: 0; }
+
+.fx-btn-loading{ position: relative; color: transparent !important; pointer-events: none; }
+.fx-btn-loading::after{
+  content: ""; position: absolute; inset: 0; margin: auto; width: 1.1em; height: 1.1em;
+  border-radius: 50%; border: 2px solid var(--fx-spinner, #fff); border-right-color: transparent;
+}
+
+.fx-skeleton{ background: var(--fx-skeleton); border-radius: 6px; position: relative; overflow: hidden; }
+
+.fx-collapse{ display: grid; grid-template-rows: 0fr; }
+.fx-collapse.is-open{ grid-template-rows: 1fr; }
+.fx-collapse > *{ overflow: hidden; min-height: 0; }
+
+.fx-tabs{ position: relative; }
+.fx-tabs-ind{
+  position: absolute; left: 0; bottom: 0; height: 2px; width: 1px; border-radius: 2px;
+  background: var(--fx-accent); transform-origin: left;
+  transform: translateX(var(--x, 0px)) scaleX(var(--w, 0));
+}
+
+dialog.fx-dialog::backdrop{ background: rgb(0 0 0 / .4); }
+
+.fx-toasts{
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.fx-toast{ pointer-events: auto; }
+.fx-toast[data-state="enter"], .fx-toast[data-state="exit"]{ opacity: 0; }
+
+.fx-scroll-progress{
+  position: fixed; inset: 0 0 auto; height: 3px; z-index: 60; background: var(--fx-accent);
+  transform-origin: left; transform: scaleX(0); pointer-events: none;
+}
+
+.fx-glint{ overflow: hidden; isolation: isolate; }
+.fx-glint::after{
+  content: ""; position: absolute; inset: 0; pointer-events: none; transform: translateX(-120%);
+  background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / .55) 50%, transparent 65%);
+}
+
+/* Игровые элементы */
+.fx-hp{ position: relative; height: 12px; border-radius: 6px; overflow: hidden; background: rgb(0 0 0 / .35); }
+.fx-hp-ghost, .fx-hp-fill{ position: absolute; inset: 0; transform-origin: left; }
+.fx-hp-ghost{ background: #f2d29b; transform: scaleX(var(--ghost, 1)); }
+.fx-hp-fill{ background: var(--fx-hp, #3dd68c); transform: scaleX(var(--hp, 1)); }
+.fx-dmg{
+  position: absolute; left: 0; top: 0; pointer-events: none; font-weight: 800; white-space: nowrap;
+  color: #fff; font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 0 #000, 1px 0 0 #000, -1px 0 0 #000, 0 -1px 0 #000, 0 2px 6px rgb(0 0 0 / .5);
+}
+.fx-dmg.is-crit{ color: #ffc56b; font-size: 1.45em; }
+.fx-dmg.is-heal{ color: #7be3a8; }
+.fx-vignette{
+  position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgb(210 40 40 / .5));
+}
+.fx-vignette.is-low{ opacity: .7; }
+.fx-rarity{ --r: #9aa0a6; box-shadow: 0 0 0 2px var(--r); }
+.fx-rarity[data-rarity="uncommon"]{ --r: #5fbf72; }
+.fx-rarity[data-rarity="rare"]{ --r: #5b9be6; }
+.fx-rarity[data-rarity="epic"]{ --r: #b07ae6; }
+.fx-rarity[data-rarity="legendary"]{ --r: #f0a24b; }
+
+/* Псевдоэлементу-кольцу нужен позиционированный родитель; :where() не перебивает position: absolute */
+:where(.fx-pulse, .fx-ping, .fx-lift, .fx-glint){ position: relative; }
+
+/* ---------- Движение: только при no-preference и без ручного «reduce» ---------- */
+@media (prefers-reduced-motion: no-preference){
+  :root:not([data-motion="reduce"]) .fx-press{ transition: transform var(--fx-fast) var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .fx-press:active{ transform: scale(.97); }
+
+  /* ТОЛЬКО ПО ЗАПРОСУ: подъём карточки при наведении. По умолчанию не используется. */
+  @media (hover: hover){
+    :root:not([data-motion="reduce"]) .fx-lift{ transition: transform var(--fx-base) var(--fx-ease-out); }
+    :root:not([data-motion="reduce"]) .fx-lift::after{
+      content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+      box-shadow: 0 14px 32px -14px rgb(0 0 0 / .28); transition: opacity var(--fx-base) var(--fx-ease-out);
+    }
+    :root:not([data-motion="reduce"]) .fx-lift:hover{ transform: translateY(-3px); }
+    :root:not([data-motion="reduce"]) .fx-lift:hover::after{ opacity: 1; }
+  }
+
+  :root:not([data-motion="reduce"]) .fx-field-error{ transition: border-color 150ms, box-shadow 150ms; }
+
+  :root:not([data-motion="reduce"]) .fx-check.is-on circle{ stroke-dashoffset: 1; animation: fx-draw 350ms var(--fx-ease-out) forwards; }
+  :root:not([data-motion="reduce"]) .fx-check.is-on path{ stroke-dashoffset: 1; animation: fx-draw 250ms var(--fx-ease-out) 300ms forwards; }
+
+  :root:not([data-motion="reduce"]) .fx-btn-success{ transition: background-color 200ms var(--fx-ease-out), border-color 200ms var(--fx-ease-out), color 200ms var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .fx-btn-success .fx-btn-check{ stroke-dashoffset: 1; animation: fx-draw 280ms var(--fx-ease-out) 80ms forwards, fx-pop 380ms var(--fx-ease-back) 80ms; }
+  :root:not([data-motion="reduce"]) .fx-btn-loading::after{ animation: fx-spin .8s linear infinite; }
+
+  :root:not([data-motion="reduce"]) .fx-skeleton::after{
+    content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, var(--fx-shimmer), transparent);
+    animation: fx-shimmer 1.4s linear infinite;
+  }
+
+  :root:not([data-motion="reduce"]) .fx-collapse{ transition: grid-template-rows 250ms var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .fx-tabs-ind{ transition: transform 250ms var(--fx-ease-out); }
+
+  :root:not([data-motion="reduce"]) dialog.fx-dialog{
+    opacity: 0; scale: .96;
+    transition: opacity .2s var(--fx-ease-out), scale .2s var(--fx-ease-out), overlay .2s allow-discrete, display .2s allow-discrete;
+  }
+  :root:not([data-motion="reduce"]) dialog.fx-dialog[open]{ opacity: 1; scale: 1; }
+  @starting-style{ :root:not([data-motion="reduce"]) dialog.fx-dialog[open]{ opacity: 0; scale: .96; } }
+
+  :root:not([data-motion="reduce"]) .fx-toast{ transition: opacity 300ms var(--fx-ease-out), transform 300ms var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .fx-toast[data-state="enter"],
+  :root:not([data-motion="reduce"]) .fx-toast[data-state="exit"]{ transform: translateY(12px); }
+
+  :root:not([data-motion="reduce"]) .fx-stagger > *{ animation: fx-rise 300ms var(--fx-ease-out) both; animation-delay: calc(min(var(--i, 0), 7) * 40ms); }
+
+  @supports (animation-timeline: view()){
+    :root:not([data-motion="reduce"]) .fx-reveal{ animation: fx-rise-far linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+  }
+
+  :root:not([data-motion="reduce"]) .fx-pulse.is-pulsing::after{
+    content: ""; position: absolute; inset: 0; border-radius: inherit; background: inherit;
+    animation: fx-ring 600ms var(--fx-ease-out) 3;
+  }
+
+  :root:not([data-motion="reduce"]) .fx-glint.is-glinting::after{ animation: fx-sweep 700ms ease-in-out 2; }
+
+  :root:not([data-motion="reduce"]) .fx-pop{ animation: fx-pop 350ms var(--fx-ease-back); }
+
+  :root:not([data-motion="reduce"]) :where(.fx-focus):focus-visible{ animation: fx-focus-in 150ms var(--fx-ease-out); }
+
+  /* игровые */
+  :root:not([data-motion="reduce"]) .fx-hp-ghost{ transition: transform 400ms var(--fx-ease-out) 450ms; }
+  :root:not([data-motion="reduce"]) .fx-dmg{ animation: fx-dmg 900ms var(--fx-ease-out) forwards; }
+  :root:not([data-motion="reduce"]) .fx-vignette{ transition: opacity .3s var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .fx-vignette.is-low{ animation: fx-beat 1s ease-in-out infinite; }
+  :root:not([data-motion="reduce"]) .fx-rarity.is-revealed{ animation: fx-glow 1.8s ease-in-out infinite; }
+  :root:not([data-motion="reduce"]) .fx-timer.is-warning{ animation: fx-tick 1s var(--fx-ease-out) infinite; }
+  :root:not([data-motion="reduce"]) .fx-ping.is-pinging::after{
+    content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid currentColor;
+    animation: fx-ring 700ms var(--fx-ease-out) 3;
+  }
+}
+
+/* Базовые значения для режима без анимации */
+.fx-dmg{ transform: translate(-50%, -100%); }
+.fx-timer.is-warning{ color: var(--fx-danger); }
+
+@keyframes fx-draw{ to{ stroke-dashoffset: 0; } }
+@keyframes fx-spin{ to{ transform: rotate(1turn); } }
+@keyframes fx-shimmer{ to{ transform: translateX(100%); } }
+@keyframes fx-rise{ from{ opacity: 0; transform: translateY(8px); } }
+@keyframes fx-rise-far{ from{ opacity: 0; transform: translateY(24px); } }
+@keyframes fx-ring{ from{ transform: scale(1); opacity: .55; } to{ transform: scale(2.2); opacity: 0; } }
+@keyframes fx-sweep{ to{ transform: translateX(120%); } }
+@keyframes fx-pop{ 0%{ transform: scale(1); } 40%{ transform: scale(1.25); } 100%{ transform: scale(1); } }
+@keyframes fx-focus-in{ from{ outline-offset: 6px; } }
+@keyframes fx-dmg{
+  0%{ transform: translate(-50%, -100%) scale(1.35); opacity: 1; }
+  18%{ transform: translate(-50%, calc(-100% - 6px)) scale(1); opacity: 1; }
+  100%{ transform: translate(calc(-50% + var(--dx, 0px)), calc(-100% - 56px)) scale(1); opacity: 0; }
+}
+@keyframes fx-beat{ 50%{ opacity: 1; } }
+@keyframes fx-glow{ 50%{ box-shadow: 0 0 0 2px var(--r), 0 0 22px 2px color-mix(in oklch, var(--r) 60%, transparent); } }
+@keyframes fx-tick{ 0%{ transform: scale(1.12); } 35%, 100%{ transform: scale(1); } }
+
+/* =====================================================================
+   Слой движения по умолчанию: вход страницы, hover/press, данные, тема
+   ===================================================================== */
+
+/* Ссылки: подчёркнуты всегда, при наведении меняется только толщина/цвет — без анимации */
+.fx-link{ text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.fx-link:hover, .fx-link:focus-visible{ text-decoration-thickness: 2px; }
+
+/* Строки таблиц и списков: подсветка при наведении */
+.fx-row > *{ transition: background-color 150ms var(--fx-ease-out); }
+
+@media (prefers-reduced-motion: no-preference){
+  /* Хореография входа: CSS-only, fill: backwards — до старта элемент в начальной точке, после конца анимация
+     полностью отпускает свойства (hover и другие transform продолжают работать).
+     Порядок — --i (ставит fx.sequence()), шаг 60 мс, суммарная задержка ограничена. */
+  :root:not([data-motion="reduce"]) .fx-enter{
+    animation: fx-enter 600ms var(--fx-ease-emph) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+  }
+  :root:not([data-motion="reduce"]) .fx-enter-fade{
+    animation: fx-fade 500ms var(--fx-ease-out) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+  }
+
+  /* Кнопки: при наведении — только смена цвета (без движения); сжатие — на нажатие */
+  :root:not([data-motion="reduce"]) .fx-btn{ transition: transform 120ms var(--fx-ease-out), background-color 150ms var(--fx-ease-out), color 150ms var(--fx-ease-out), border-color 150ms var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .fx-btn:active{ transform: scale(.97); transition-duration: 60ms; }
+
+  /* ТОЛЬКО ПО ЗАПРОСУ: движение при наведении (.fx-lift, .fx-nudge). По умолчанию не используется. */
+  @media (hover: hover){
+    :root:not([data-motion="reduce"]) .fx-nudge svg{ transition: transform 200ms var(--fx-ease-out); }
+    :root:not([data-motion="reduce"]) .fx-nudge:hover svg{ transform: translateX(3px); }
+  }
+
+  /* Графики: полосы растут, точки появляются (свойства scale/opacity, не трогают transform/translate) */
+  :root:not([data-motion="reduce"]) .fx-draw-x{ transform-origin: left; animation: fx-scale-x 700ms var(--fx-ease-emph) backwards; animation-delay: calc(200ms + min(var(--i, 0), 15) * 35ms); }
+  :root:not([data-motion="reduce"]) .fx-draw-y{ transform-origin: bottom; animation: fx-scale-y 700ms var(--fx-ease-emph) backwards; animation-delay: calc(200ms + min(var(--i, 0), 15) * 35ms); }
+  :root:not([data-motion="reduce"]) .fx-dot-in{ animation: fx-dot-in 400ms var(--fx-ease-back) backwards; animation-delay: calc(450ms + min(var(--i, 0), 15) * 35ms); }
+
+  /* Круговое раскрытие при смене темы (fx.themeSwitch) */
+  :root:not([data-motion="reduce"])::view-transition-old(root){ animation: none; }
+  :root:not([data-motion="reduce"])::view-transition-new(root){ animation: fx-circle 550ms var(--fx-ease-out); }
+}
+
+@keyframes fx-enter{ from{ opacity: 0; transform: translateY(16px); } }
+@keyframes fx-fade{ from{ opacity: 0; } }
+@keyframes fx-scale-x{ from{ scale: 0 1; } }
+@keyframes fx-scale-y{ from{ scale: 1 0; } }
+@keyframes fx-dot-in{ from{ opacity: 0; scale: .4; } }
+@keyframes fx-circle{ from{ clip-path: circle(0 at var(--fx-x, 50%) var(--fx-y, 0)); } to{ clip-path: circle(150% at var(--fx-x, 50%) var(--fx-y, 0)); } }
+
+/* Колокольчик уведомлений: покачивание от верхней точки + «поп» бейджа */
+.fx-bell svg{ transform-origin: 50% 2px; }
+@media (prefers-reduced-motion: no-preference){
+  :root:not([data-motion="reduce"]) .fx-bell.is-ringing svg{ animation: fx-bell 800ms var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .fx-bell.is-ringing .fx-bell-badge{ animation: fx-badge-pop 450ms var(--fx-ease-back); }
+}
+@keyframes fx-bell{
+  0%{ transform: rotate(0); } 12%{ transform: rotate(16deg); } 26%{ transform: rotate(-14deg); }
+  40%{ transform: rotate(10deg); } 54%{ transform: rotate(-7deg); } 68%{ transform: rotate(4deg); }
+  82%{ transform: rotate(-2deg); } 100%{ transform: rotate(0); }
+}
+@keyframes fx-badge-pop{ 0%{ transform: scale(.6); } 55%{ transform: scale(1.3); } 100%{ transform: scale(1); } }
+
+/* ---------- Кнопка → успех: зелёная заливка + галочка вместо текста (fx.success) ---------- */
+.fx-btn-success{ background: var(--fx-success) !important; border-color: var(--fx-success) !important; color: var(--on-success, var(--surface, #fff)) !important; }
+.fx-btn-check{ width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.fx-sr{ position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Игровые слои эффектов (fx.tint, wave, lines, stamp, beam, afterimage, flyTo) ---------- */
+.fx-tint{ position: absolute; inset: 0; border-radius: inherit; mix-blend-mode: color; pointer-events: none; opacity: 0; }
+.fx-wave{ position: absolute; border-radius: 50%; border-style: solid; pointer-events: none; }
+.fx-lines{ position: absolute; pointer-events: none; overflow: visible; }
+.fx-stamp{ position: absolute; left: 50%; top: 38%; translate: -50% -50%; pointer-events: none; white-space: nowrap;
+  font-weight: 900; font-size: clamp(28px, 6vw, 52px); letter-spacing: .04em; font-style: italic;
+  color: #ffd27a; text-shadow: 0 3px 0 #6b3a00, 0 0 18px rgb(255 170 60 / .55); }
+.fx-ghost{ position: absolute; pointer-events: none; opacity: .4; }
+.fx-beam{ position: absolute; bottom: 0; top: 0; pointer-events: none; transform-origin: bottom; }
+.fx-coin{ position: fixed; z-index: 75; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 35% 35%, #fff2b0, #e2a72e); box-shadow: 0 0 6px rgb(255 210 90 / .6); }
+.fx-dmg.is-poison{ color: #b6f07a; } .fx-dmg.is-burn{ color: #ffaa5e; } .fx-dmg.is-shield{ color: #8fd0ff; }
+.fx-dmg.is-miss{ color: #c4cbd6; font-style: italic; font-weight: 700; } .fx-dmg.is-block{ color: #e8ebf0; font-weight: 800; }
+.fx-dmg.is-xp{ color: #ffd27a; }
+
+/* >>> motion-full override (сгенерировано build_motion_override.py) */
+:root[data-motion="full"] .fx-press{ transition: transform var(--fx-fast) var(--fx-ease-out); }
+  :root[data-motion="full"] .fx-press:active{ transform: scale(.97); }
+
+  /* ТОЛЬКО ПО ЗАПРОСУ: подъём карточки при наведении. По умолчанию не используется. */
+  @media (hover: hover){
+    :root[data-motion="full"] .fx-lift{ transition: transform var(--fx-base) var(--fx-ease-out); }
+    :root[data-motion="full"] .fx-lift::after{
+      content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+      box-shadow: 0 14px 32px -14px rgb(0 0 0 / .28); transition: opacity var(--fx-base) var(--fx-ease-out);
+    }
+    :root[data-motion="full"] .fx-lift:hover{ transform: translateY(-3px); }
+    :root[data-motion="full"] .fx-lift:hover::after{ opacity: 1; }
+  }
+
+  :root[data-motion="full"] .fx-field-error{ transition: border-color 150ms, box-shadow 150ms; }
+
+  :root[data-motion="full"] .fx-check.is-on circle{ stroke-dashoffset: 1; animation: fx-draw 350ms var(--fx-ease-out) forwards; }
+  :root[data-motion="full"] .fx-check.is-on path{ stroke-dashoffset: 1; animation: fx-draw 250ms var(--fx-ease-out) 300ms forwards; }
+
+  :root[data-motion="full"] .fx-btn-success{ transition: background-color 200ms var(--fx-ease-out), border-color 200ms var(--fx-ease-out), color 200ms var(--fx-ease-out); }
+  :root[data-motion="full"] .fx-btn-success .fx-btn-check{ stroke-dashoffset: 1; animation: fx-draw 280ms var(--fx-ease-out) 80ms forwards, fx-pop 380ms var(--fx-ease-back) 80ms; }
+  :root[data-motion="full"] .fx-btn-loading::after{ animation: fx-spin .8s linear infinite; }
+
+  :root[data-motion="full"] .fx-skeleton::after{
+    content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, var(--fx-shimmer), transparent);
+    animation: fx-shimmer 1.4s linear infinite;
+  }
+
+  :root[data-motion="full"] .fx-collapse{ transition: grid-template-rows 250ms var(--fx-ease-out); }
+  :root[data-motion="full"] .fx-tabs-ind{ transition: transform 250ms var(--fx-ease-out); }
+
+  :root[data-motion="full"] dialog.fx-dialog{
+    opacity: 0; scale: .96;
+    transition: opacity .2s var(--fx-ease-out), scale .2s var(--fx-ease-out), overlay .2s allow-discrete, display .2s allow-discrete;
+  }
+  :root[data-motion="full"] dialog.fx-dialog[open]{ opacity: 1; scale: 1; }
+  @starting-style{ :root[data-motion="full"] dialog.fx-dialog[open]{ opacity: 0; scale: .96; } }
+
+  :root[data-motion="full"] .fx-toast{ transition: opacity 300ms var(--fx-ease-out), transform 300ms var(--fx-ease-out); }
+  :root[data-motion="full"] .fx-toast[data-state="enter"],
+  :root[data-motion="full"] .fx-toast[data-state="exit"]{ transform: translateY(12px); }
+
+  :root[data-motion="full"] .fx-stagger > *{ animation: fx-rise 300ms var(--fx-ease-out) both; animation-delay: calc(min(var(--i, 0), 7) * 40ms); }
+
+  @supports (animation-timeline: view()){
+    :root[data-motion="full"] .fx-reveal{ animation: fx-rise-far linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+  }
+
+  :root[data-motion="full"] .fx-pulse.is-pulsing::after{
+    content: ""; position: absolute; inset: 0; border-radius: inherit; background: inherit;
+    animation: fx-ring 600ms var(--fx-ease-out) 3;
+  }
+
+  :root[data-motion="full"] .fx-glint.is-glinting::after{ animation: fx-sweep 700ms ease-in-out 2; }
+
+  :root[data-motion="full"] .fx-pop{ animation: fx-pop 350ms var(--fx-ease-back); }
+
+  :root[data-motion="full"] :where(.fx-focus):focus-visible{ animation: fx-focus-in 150ms var(--fx-ease-out); }
+
+  /* игровые */
+  :root[data-motion="full"] .fx-hp-ghost{ transition: transform 400ms var(--fx-ease-out) 450ms; }
+  :root[data-motion="full"] .fx-dmg{ animation: fx-dmg 900ms var(--fx-ease-out) forwards; }
+  :root[data-motion="full"] .fx-vignette{ transition: opacity .3s var(--fx-ease-out); }
+  :root[data-motion="full"] .fx-vignette.is-low{ animation: fx-beat 1s ease-in-out infinite; }
+  :root[data-motion="full"] .fx-rarity.is-revealed{ animation: fx-glow 1.8s ease-in-out infinite; }
+  :root[data-motion="full"] .fx-timer.is-warning{ animation: fx-tick 1s var(--fx-ease-out) infinite; }
+  :root[data-motion="full"] .fx-ping.is-pinging::after{
+    content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid currentColor;
+    animation: fx-ring 700ms var(--fx-ease-out) 3;
+  }
+
+
+  /* Хореография входа: CSS-only, fill: backwards — до старта элемент в начальной точке, после конца анимация
+     полностью отпускает свойства (hover и другие transform продолжают работать).
+     Порядок — --i (ставит fx.sequence()), шаг 60 мс, суммарная задержка ограничена. */
+  :root[data-motion="full"] .fx-enter{
+    animation: fx-enter 600ms var(--fx-ease-emph) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+  }
+  :root[data-motion="full"] .fx-enter-fade{
+    animation: fx-fade 500ms var(--fx-ease-out) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+  }
+
+  /* Кнопки: при наведении — только смена цвета (без движения); сжатие — на нажатие */
+  :root[data-motion="full"] .fx-btn{ transition: transform 120ms var(--fx-ease-out), background-color 150ms var(--fx-ease-out), color 150ms var(--fx-ease-out), border-color 150ms var(--fx-ease-out); }
+  :root[data-motion="full"] .fx-btn:active{ transform: scale(.97); transition-duration: 60ms; }
+
+  /* ТОЛЬКО ПО ЗАПРОСУ: движение при наведении (.fx-lift, .fx-nudge). По умолчанию не используется. */
+  @media (hover: hover){
+    :root[data-motion="full"] .fx-nudge svg{ transition: transform 200ms var(--fx-ease-out); }
+    :root[data-motion="full"] .fx-nudge:hover svg{ transform: translateX(3px); }
+  }
+
+  /* Графики: полосы растут, точки появляются (свойства scale/opacity, не трогают transform/translate) */
+  :root[data-motion="full"] .fx-draw-x{ transform-origin: left; animation: fx-scale-x 700ms var(--fx-ease-emph) backwards; animation-delay: calc(200ms + min(var(--i, 0), 15) * 35ms); }
+  :root[data-motion="full"] .fx-draw-y{ transform-origin: bottom; animation: fx-scale-y 700ms var(--fx-ease-emph) backwards; animation-delay: calc(200ms + min(var(--i, 0), 15) * 35ms); }
+  :root[data-motion="full"] .fx-dot-in{ animation: fx-dot-in 400ms var(--fx-ease-back) backwards; animation-delay: calc(450ms + min(var(--i, 0), 15) * 35ms); }
+
+  /* Круговое раскрытие при смене темы (fx.themeSwitch) */
+  :root[data-motion="full"]::view-transition-old(root){ animation: none; }
+  :root[data-motion="full"]::view-transition-new(root){ animation: fx-circle 550ms var(--fx-ease-out); }
+
+
+  :root[data-motion="full"] .fx-bell.is-ringing svg{ animation: fx-bell 800ms var(--fx-ease-out); }
+  :root[data-motion="full"] .fx-bell.is-ringing .fx-bell-badge{ animation: fx-badge-pop 450ms var(--fx-ease-back); }
+/* <<< motion-full override */
+/* Layout: витрина эффектов — сетка карточек «что / когда / параметры / живой пример», внизу игровая арена */
+:root{
+  --font: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px;
+  --fx-shimmer: rgb(255 255 255 / .6);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --fx-shimmer: rgb(255 255 255 / .07); } }
+:root[data-theme="dark"]{ --fx-shimmer: rgb(255 255 255 / .07); }
+
+*{ box-sizing: border-box; }
+[hidden]{ display: none !important; }
+body{
+  font-family: var(--font); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 96px;
+}
+:focus-visible{ outline: 2px solid var(--focus); outline-offset: 2px; }
+.wrap{ max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 48px; }
+
+.head{ display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px; }
+.head-text{ display: flex; flex-direction: column; gap: 10px; max-width: 64ch; min-width: 0; }
+.eyebrow{ font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); }
+h1{ margin: 0; font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem); line-height: 1.08; letter-spacing: -.02em; text-wrap: balance; }
+.lede{ margin: 0; color: var(--text-2); font-size: 17px; }
+
+.motion-toggle{ display: inline-flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--border); cursor: pointer; font-size: 15px; }
+.motion-toggle input{ appearance: none; width: 40px; height: 24px; border-radius: 999px; background: var(--border-strong); position: relative; margin: 0; cursor: pointer; flex: none; }
+.motion-toggle input::after{ content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .2s var(--fx-ease-out); }
+.motion-toggle input:checked{ background: var(--accent); }
+.motion-toggle input:checked::after{ transform: translateX(16px); }
+
+.section{ display: flex; flex-direction: column; gap: 16px; }
+.section > h2{ margin: 0; font-size: 22px; letter-spacing: -.01em; }
+.section > p{ margin: 0; color: var(--text-2); max-width: 70ch; }
+.grid{ display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 16px; align-items: start; }
+
+.card{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.card h3{ margin: 0; font-size: 17px; }
+.card .when{ margin: 0; font-size: 14px; color: var(--text-2); }
+.chips{ display: flex; flex-wrap: wrap; gap: 6px; }
+.chip{ font-family: var(--mono); font-size: 12px; color: var(--accent-text); background: var(--accent-soft); padding: 2px 8px; border-radius: 6px; }
+.demo{ background: var(--bg); border-radius: var(--r-md); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.row{ display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.btn{ font: 600 15px/1 var(--font); border-radius: var(--r-sm); padding: 0 16px; min-height: 44px; border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-primary{ background: var(--accent); color: var(--on-accent); }
+.btn-primary:hover{ background: var(--accent-hover); }
+.btn-secondary{ background: var(--surface); color: var(--text); border-color: var(--border-strong); }
+.btn-secondary:hover{ background: var(--surface-2); }
+.btn:disabled{ cursor: default; }
+.btn-icon{ width: 44px; padding: 0; }
+
+.field{ display: flex; flex-direction: column; gap: 6px; }
+.field label{ font-size: 14px; font-weight: 500; }
+.field input{ font: 16px var(--font); color: var(--text); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r-sm); padding: 10px 12px; min-height: 44px; width: 100%; }
+.field .hint{ font-size: 13px; color: var(--text-2); margin: 0; }
+.field .err{ font-size: 14px; color: var(--danger); display: flex; gap: 6px; align-items: flex-start; margin: 0; }
+.field .err::before{ content: "!"; flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--danger); color: var(--surface); font-size: 12px; font-weight: 700; display: grid; place-items: center; margin-top: 1px; }
+.success{ display: flex; align-items: center; gap: 10px; color: var(--success); font-weight: 600; }
+.fx-check{ width: 28px; height: 28px; }
+.fx-check circle, .fx-check path{ fill: none; stroke: var(--success); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+.summary{ border: 2px solid var(--danger); border-radius: var(--r-sm); padding: 12px 14px; background: var(--danger-soft); }
+.summary h4{ margin: 0 0 6px; font-size: 15px; color: var(--danger); }
+.summary ul{ margin: 0; padding-left: 18px; }
+.summary a{ color: var(--danger); }
+
+.heart svg{ width: 22px; height: 22px; }
+.heart[aria-pressed="true"] svg path{ fill: var(--danger); stroke: var(--danger); }
+.heart svg path{ fill: none; stroke: currentColor; stroke-width: 2; }
+
+dialog.fx-dialog{ border: 0; border-radius: var(--r-lg); padding: 24px; max-width: min(420px, calc(100vw - 32px)); background: var(--surface); color: var(--text); box-shadow: 0 24px 64px -16px rgb(0 0 0 / .35); }
+dialog.fx-dialog h4{ margin: 0 0 8px; font-size: 18px; }
+dialog.fx-dialog p{ margin: 0 0 20px; color: var(--text-2); }
+.fx-toast{ background: var(--text); color: var(--bg); padding: 12px 16px; border-radius: var(--r-md); font-size: 15px; box-shadow: 0 12px 32px -12px rgb(0 0 0 / .4); max-width: min(420px, 100%); }
+
+.acc-head{ width: 100%; display: flex; justify-content: space-between; align-items: center; background: none; border: 0; font: 600 15px var(--font); color: var(--text); padding: 10px 0; cursor: pointer; text-align: left; }
+.acc-head svg{ width: 18px; height: 18px; transition: transform 250ms var(--fx-ease-out); }
+.acc-head[aria-expanded="true"] svg{ transform: rotate(180deg); }
+.acc-body p{ margin: 0 0 10px; color: var(--text-2); font-size: 14px; }
+.tablist{ display: flex; gap: 4px; border-bottom: 1px solid var(--border); }
+.tablist [role=tab]{ background: none; border: 0; font: 500 15px var(--font); color: var(--text-2); padding: 10px 12px; cursor: pointer; }
+.tablist [role=tab][aria-selected="true"]{ color: var(--text); }
+.tabpanel{ font-size: 14px; color: var(--text-2); min-height: 42px; }
+
+.sk-line{ height: 12px; }
+.sk-row{ display: flex; gap: 12px; align-items: center; }
+.sk-avatar{ width: 40px; height: 40px; border-radius: 50%; flex: none; }
+.sk-col{ display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.person{ display: flex; gap: 12px; align-items: center; }
+.person .ava{ width: 40px; height: 40px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-text); display: grid; place-items: center; font-weight: 700; flex: none; }
+.person small{ display: block; color: var(--text-2); font-size: 13px; }
+.progress{ height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.progress i{ display: block; height: 100%; background: var(--accent); transform-origin: left; transform: scaleX(var(--p, 0)); transition: transform 300ms var(--fx-ease-out); }
+.kpi{ font: 600 32px/1.1 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.02em; display: inline-block; }
+
+.list{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.list li{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 10px 12px; font-size: 14px; }
+.mini-cards{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mini{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 12px; font-size: 13px; color: var(--text-2); }
+.mini b{ display: block; color: var(--text); font-size: 15px; }
+
+.bell{ position: relative; overflow: visible; }
+.bell svg{ width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; }
+.badge{ position: absolute; top: 4px; right: 4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--danger); color: #fff; font: 700 11px/18px var(--font); text-align: center; }
+.premium{ display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: linear-gradient(135deg, #3a2a10, #6b4f1d); color: #f6e3b4; font-weight: 600; font-size: 14px; }
+
+.reveal-grid{ display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 12px; }
+.reveal-grid div{ background: var(--accent-soft); color: var(--accent-text); border-radius: var(--r-md); padding: 20px; font-weight: 600; }
+
+/* ---------- Игровая арена: намеренно одна тёмная тема ---------- */
+.arena-wrap{ background: #101318; color: #e8ebf0; border-radius: var(--r-lg); padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.arena-wrap h3{ margin: 0; color: #fff; }
+.arena-wrap .when{ color: #a9b1be; margin: 0; font-size: 14px; }
+.arena-wrap .chip{ color: #f3c98a; background: #2a2114; }
+.arena{ position: relative; height: 260px; border-radius: var(--r-md); overflow: hidden; background: radial-gradient(ellipse at 50% 80%, #24303a, #12161c 70%); }
+.scene{ position: absolute; inset: 0; }
+.hud{ position: absolute; left: 12px; right: 12px; top: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; z-index: 3; }
+.hud-left{ display: flex; flex-direction: column; gap: 6px; width: min(220px, 55%); }
+.hud-label{ font-size: 12px; color: #c4cbd6; display: flex; justify-content: space-between; }
+.hud-right{ display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.coins{ display: inline-flex; align-items: center; gap: 6px; font: 700 18px var(--mono); color: #f6d36b; }
+.coins i{ width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff2b0, #e2a72e); display: inline-block; }
+.combo{ font: 800 20px var(--mono); color: #fff; min-height: 26px; }
+.combo small{ font-size: 12px; color: #c4cbd6; font-weight: 600; }
+.timer{ font: 700 16px var(--mono); color: #e8ebf0; display: inline-block; }
+.timer.is-warning{ color: #ff8a80; }
+.dummy{ position: absolute; left: 50%; bottom: 38px; width: 74px; height: 92px; margin-left: -37px; border-radius: 36px 36px 14px 14px; background: linear-gradient(180deg, #e5a15b, #b86d2e); box-shadow: inset 0 -8px 0 rgb(0 0 0 / .18); }
+.dummy::before, .dummy::after{ content: ""; position: absolute; top: 30px; width: 9px; height: 12px; border-radius: 5px; background: #2b1a0c; }
+.dummy::before{ left: 22px; } .dummy::after{ right: 22px; }
+.shadow{ position: absolute; left: 50%; bottom: 30px; width: 80px; height: 12px; margin-left: -40px; border-radius: 50%; background: rgb(0 0 0 / .35); }
+.hero{ position: absolute; left: 16%; bottom: 38px; width: 36px; height: 44px; border-radius: 10px 10px 6px 6px; background: linear-gradient(180deg, #7fb2ff, #3d6fd1); }
+.ping-target{ position: absolute; right: 14%; bottom: 60px; width: 16px; height: 16px; border-radius: 50%; background: #7be3a8; color: #7be3a8; }
+@media (prefers-reduced-motion: no-preference){
+  :root:not([data-motion="reduce"]) .dummy{ animation: bob 2.4s ease-in-out infinite; }
+}
+@keyframes bob{ 50%{ transform: translateY(-3px); } }
+.arena-controls{ display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.arena-controls .btn-secondary{ background: #1d232c; color: #e8ebf0; border-color: #3a4452; }
+.arena-controls .btn-secondary:hover{ background: #262e39; }
+.arena-controls .btn-primary{ background: #e7ab51; color: #101318; }
+.arena-controls .btn-primary:hover{ background: #f0b862; }
+.slider{ display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: #c4cbd6; }
+.slider input{ accent-color: #e7ab51; }
+.loot{ display: flex; gap: 12px; flex-wrap: wrap; }
+.slot{ min-width: 72px; height: 72px; border-radius: 12px; background: #1d232c; display: grid; place-items: center; font-size: 12px; color: #a9b1be; text-align: center; padding: 4px 10px; }
+.slot.fx-rarity{ color: #fff; }
+.slot b{ display: grid; place-items: center; height: 26px; margin-bottom: 2px; }
+.slot b svg, .premium svg{ display: block; flex: none; }
+.premium svg{ fill: currentColor; }
+.arena-wrap :focus-visible{ outline-color: #f0b862; }
+
+@media (max-width: 480px){ .mini-cards{ grid-template-columns: 1fr; } .arena{ height: 240px; } }
+
+.head-actions{ display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bars{ display: flex; flex-direction: column; gap: 10px; }
+.barrow{ display: grid; grid-template-columns: 36px 1fr 72px; align-items: center; gap: 10px; font-size: 13px; color: var(--text-2); }
+.barrow i{ display: block; height: 14px; border-radius: 4px; background: var(--accent); max-width: 100%; }
+.barrow b{ text-align: right; color: var(--text); font-variant-numeric: tabular-nums; font-weight: 600; }
+.list li{ transition: background-color 150ms var(--fx-ease-out); }
+
+.motion-seg{ display: inline-flex; padding: 3px; gap: 2px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+.motion-seg input{ position: absolute; opacity: 0; pointer-events: none; }
+.motion-seg label{ font-size: 14px; font-weight: 500; padding: 0 12px; min-height: 36px; display: inline-flex; align-items: center; border-radius: 7px; cursor: pointer; color: var(--text-2); }
+.motion-seg input:checked + label{ background: var(--accent); color: var(--on-accent); }
+.motion-seg input:focus-visible + label{ outline: 2px solid var(--focus); outline-offset: 2px; }
+.motion-note{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 14px 16px; border-radius: var(--r-md); background: var(--warning-soft); color: var(--text); font-size: 15px; }
+.motion-note b{ color: var(--warning); }
+.motion-note span{ max-width: 70ch; }
+
+/* ---------- Арена v2 ---------- */
+.arena{ height: 300px; }
+.floor{ position: absolute; left: 0; right: 0; bottom: 0; height: 52px; background: linear-gradient(#1b232c, #141a21); border-top: 1px solid #2a3542; }
+.shadow{ left: 58%; bottom: 32px; }
+.hero-shadow{ left: 22%; width: 44px; margin-left: -22px; }
+.hero{ left: 22%; margin-left: -18px; bottom: 40px; z-index: 2; }
+.dummy-wrap{ position: absolute; left: 58%; bottom: 40px; width: 74px; height: 92px; margin-left: -37px; z-index: 2; }
+.dummy{ position: absolute; left: 0; bottom: 0; margin: 0; width: 100%; height: 100%; }
+.dummy.is-frozen{ filter: hue-rotate(170deg) saturate(.6) brightness(1.25); box-shadow: inset 0 0 0 3px rgb(200 235 255 / .8), 0 0 18px rgb(140 210 255 / .55); }
+.dummy.is-poisoned{ filter: hue-rotate(60deg) saturate(1.3); }
+.dummy.is-burning{ filter: saturate(1.4) brightness(1.08) drop-shadow(0 0 8px rgb(255 140 40 / .7)); }
+.dummy.is-stunned{ rotate: -5deg; }
+.dummy.is-telegraph{ filter: drop-shadow(0 0 14px rgb(255 70 60 / .9)) brightness(1.15); }
+.dummy.is-dead{ opacity: 0; }
+.ping-target{ right: 8%; bottom: 70px; }
+.fxlayer{ position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.screen-flash{ position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 5; }
+.stamp-layer{ position: absolute; inset: 0; pointer-events: none; z-index: 6; }
+.shield{ position: absolute; inset: -14px -16px -6px; border-radius: 50%; border: 2px solid rgb(140 210 255 / .9);
+  background: radial-gradient(circle at 35% 30%, rgb(255 255 255 / .35), rgb(120 190 255 / .18) 45%, rgb(120 190 255 / .08) 70%); opacity: 0; scale: .6; pointer-events: none; }
+.shield.is-on{ opacity: 1; scale: 1; }
+.stun{ position: absolute; left: 50%; top: -18px; width: 60px; height: 16px; margin-left: -30px; opacity: 0; }
+.stun.is-on{ opacity: 1; }
+.stun i{ position: absolute; top: 4px; width: 9px; height: 9px; background: #ffe066; clip-path: polygon(50% 0, 62% 38%, 100% 38%, 69% 60%, 80% 100%, 50% 76%, 20% 100%, 31% 60%, 0 38%, 38% 38%); }
+.stun i:nth-child(1){ left: 0; } .stun i:nth-child(2){ left: 25px; } .stun i:nth-child(3){ left: 50px; }
+.danger{ position: absolute; left: 50%; top: -34px; width: 26px; height: 26px; margin-left: -13px; border-radius: 6px; background: #e5484d; color: #fff;
+  font: 900 18px/26px var(--font); text-align: center; opacity: 0; scale: .5; }
+.danger.is-on{ opacity: 1; scale: 1; }
+.aoe{ position: absolute; left: 22%; bottom: 24px; width: 110px; height: 30px; margin-left: -55px; border-radius: 50%;
+  border: 2px solid rgb(255 150 60 / .9); background: radial-gradient(closest-side, rgb(255 140 50 / .45) calc(var(--fill, 0) * 100%), rgb(255 140 50 / .12) calc(var(--fill, 0) * 100% + 1%)); opacity: 0; }
+.aoe.is-on{ opacity: 1; }
+.hp-notches{ position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgb(0 0 0 / .35) calc(10% - 1px) 10%); pointer-events: none; }
+.statuses{ display: flex; gap: 4px; flex-wrap: wrap; min-height: 22px; }
+.st{ position: relative; overflow: hidden; font: 700 11px/1 var(--font); padding: 4px 7px 5px; border-radius: 6px; color: #101318; }
+.st i{ position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgb(0 0 0 / .45); transform-origin: left; }
+.st.poison{ background: #b6f07a; } .st.burn{ background: #ffaa5e; } .st.freeze{ background: #9fd8ff; } .st.stun{ background: #ffe066; } .st.shield{ background: #8fd0ff; }
+.lvl{ display: flex; align-items: center; gap: 6px; font: 700 12px var(--mono); color: #ffd27a; }
+.xp{ width: 80px; height: 6px; border-radius: 3px; background: rgb(255 255 255 / .12); overflow: hidden; }
+.xp i{ display: block; height: 100%; background: #ffd27a; transform-origin: left; transform: scaleX(var(--xp, .2)); }
+.ult{ display: flex; align-items: center; gap: 6px; font: 700 12px var(--mono); color: #c4cbd6; }
+.ult-bar{ width: 80px; height: 6px; border-radius: 3px; background: rgb(255 255 255 / .12); overflow: hidden; }
+.ult-bar i{ display: block; height: 100%; background: #b07ae6; transform-origin: left; transform: scaleX(var(--ult, 0)); }
+.ult.is-ready{ color: #e2c4ff; }
+.ult.is-ready .ult-bar i{ background: #d2a6ff; }
+.ult-btn:not(:disabled){ background: #b07ae6 !important; color: #101318 !important; border-color: #b07ae6 !important; box-shadow: 0 0 0 3px rgb(176 122 230 / .35); }
+.cd-btn{ position: relative; overflow: hidden; }
+.cd{ position: absolute; inset: 0; background: conic-gradient(rgb(0 0 0 / .62) calc(var(--cd, 0) * 360deg), transparent 0); pointer-events: none; }
+.cd-n{ position: absolute; inset: 0; display: grid; place-items: center; font: 800 16px var(--mono); color: #fff; pointer-events: none; }
+.ctrl-groups{ display: grid; gap: 12px; }
+.ctrl{ display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ctrl-t{ width: 82px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #8b95a4; font-weight: 700; }
+.ctrl .btn-secondary{ background: #1d232c; color: #e8ebf0; border-color: #3a4452; }
+.ctrl .btn-secondary:hover{ background: #262e39; }
+.ctrl .btn-primary{ background: #e7ab51; color: #101318; }
+.ctrl .btn-primary:hover{ background: #f0b862; }
+.arena-tip{ margin: 0; font-size: 14px; color: #a9b1be; }
+@media (max-width: 560px){ .ctrl-t{ width: 100%; } .arena{ height: 280px; } }
+
+@media (prefers-reduced-motion: no-preference){
+  :root:not([data-motion="reduce"]) .shield{ transition: opacity .25s var(--fx-ease-out), scale .3s var(--fx-ease-back); }
+  :root:not([data-motion="reduce"]) .danger{ transition: opacity .15s, scale .2s var(--fx-ease-back); }
+  :root:not([data-motion="reduce"]) .stun.is-on{ animation: orbit 1.1s linear infinite; }
+  :root:not([data-motion="reduce"]) .dummy.is-burning{ animation: burn .4s ease-in-out infinite alternate; }
+  :root:not([data-motion="reduce"]) .dummy.is-stunned{ animation: wobble .9s ease-in-out infinite; }
+  :root:not([data-motion="reduce"]) .xp i, :root:not([data-motion="reduce"]) .ult-bar i{ transition: transform .5s var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .st i{ animation: st-drain var(--dur, 3s) linear forwards; }
+  :root:not([data-motion="reduce"]) .st{ animation: st-in .25s var(--fx-ease-back); }
+  :root:not([data-motion="reduce"]) .dummy.is-dead{ transition: opacity .6s ease-out; }
+  :root:not([data-motion="reduce"]) .ult.is-ready .ult-bar{ animation: ult-glow 1s ease-in-out 3; }
+}
+@keyframes orbit{ to{ rotate: 1turn; } }
+@keyframes burn{ to{ filter: saturate(1.6) brightness(1.15) drop-shadow(0 0 12px rgb(255 120 30 / .85)); } }
+@keyframes wobble{ 50%{ rotate: 5deg; } }
+@keyframes st-drain{ to{ transform: scaleX(0); } }
+@keyframes st-in{ from{ scale: .6; opacity: 0; } }
+@keyframes ult-glow{ 50%{ box-shadow: 0 0 10px 2px rgb(210 166 255 / .8); } }
+
+/* >>> motion-full override (сгенерировано build_motion_override.py) */
+:root[data-motion="full"] .dummy{ animation: bob 2.4s ease-in-out infinite; }
+
+
+  :root[data-motion="full"] .shield{ transition: opacity .25s var(--fx-ease-out), scale .3s var(--fx-ease-back); }
+  :root[data-motion="full"] .danger{ transition: opacity .15s, scale .2s var(--fx-ease-back); }
+  :root[data-motion="full"] .stun.is-on{ animation: orbit 1.1s linear infinite; }
+  :root[data-motion="full"] .dummy.is-burning{ animation: burn .4s ease-in-out infinite alternate; }
+  :root[data-motion="full"] .dummy.is-stunned{ animation: wobble .9s ease-in-out infinite; }
+  :root[data-motion="full"] .xp i, :root[data-motion="full"] .ult-bar i{ transition: transform .5s var(--fx-ease-out); }
+  :root[data-motion="full"] .st i{ animation: st-drain var(--dur, 3s) linear forwards; }
+  :root[data-motion="full"] .st{ animation: st-in .25s var(--fx-ease-back); }
+  :root[data-motion="full"] .dummy.is-dead{ transition: opacity .6s ease-out; }
+  :root[data-motion="full"] .ult.is-ready .ult-bar{ animation: ult-glow 1s ease-in-out 3; }
+/* <<< motion-full override */
+</style>
+</head>
+<body>
+<div class="fx-scroll-progress" aria-hidden="true"></div>
+<div class="wrap">
+  <header class="head">
+    <div class="head-text">
+      <span class="eyebrow fx-enter">ui-design · assets/effects</span>
+      <h1 class="fx-enter">Эффекты и микро-анимации</h1>
+      <p class="lede fx-enter">Живые примеры из библиотеки скилла. У каждого эффекта — когда его использовать и с какими параметрами. Переключатель «Анимации» показывает, как эффекты сохраняют смысл без движения.</p>
+    </div>
+    <div class="head-actions fx-enter"><button class="btn btn-secondary fx-btn" type="button" id="themeBtn">Сменить тему</button><div class="motion-seg" role="radiogroup" aria-label="Анимации">
+        <input type="radio" name="motion" id="mSys" value="system" checked><label for="mSys">Как в системе</label>
+        <input type="radio" name="motion" id="mFull" value="full"><label for="mFull">Включены</label>
+        <input type="radio" name="motion" id="mRed" value="reduce"><label for="mRed">Уменьшены</label>
+      </div></div>
+  </header>
+  <div class="motion-note" id="motionNote" role="note" hidden>
+    <span>В системе включено <b>«уменьшение движения»</b>, поэтому эффекты приглушены: остаются цвет, текст и цифры. Так и должно быть по WCAG — но посмотреть анимации можно.</span>
+    <button class="btn btn-primary fx-btn" type="button" id="motionFull">Показать анимации</button>
+  </div>
+
+  <section class="section" aria-labelledby="s-forms">
+    <h2 class="fx-enter" id="s-forms">Формы и ошибки</h2>
+    <div class="grid">
+      <article class="card fx-enter">
+        <h3>Вход: тряска при ошибке, зелёная кнопка при успехе</h3>
+        <p class="when">Ошибка: тряска только когда отклонено всё действие (вход, PIN, код), всегда вместе с красной рамкой, иконкой и текстом. Успех: сама кнопка становится зелёной и рисует галочку — без отдельной надписи рядом.</p>
+        <div class="chips"><span class="chip">тряска 360 мс</span><span class="chip">8 → 6 → 4 → 2 px</span><span class="chip">успех: заливка 200 мс</span><span class="chip">галочка 280 мс</span></div>
+        <form class="demo" id="loginForm" novalidate>
+          <div class="field" data-fx-shake>
+            <label for="pwd">Пароль</label>
+            <input id="pwd" type="password" autocomplete="current-password">
+            <p class="err" id="pwdErr" hidden></p>
+            <p class="hint">Верный пароль для примера: ui-design</p>
+          </div>
+          <div class="row">
+            <button class="btn btn-primary fx-btn" type="submit" id="loginBtn">Войти</button>
+          </div>
+        </form>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Сводка ошибок формы</h3>
+        <p class="when">Отправка формы с несколькими ошибками. Сводка стоит рядом с кнопкой отправки — там, куда смотрит человек; ссылки ведут к полям, у каждого поля своё сообщение. В длинных формах (выше экрана) сводку ставят сверху и переводят на неё фокус.</p>
+        <div class="chips"><span class="chip">у кнопки отправки</span><span class="chip">появление 180 мс</span><span class="chip">без тряски</span></div>
+        <form class="demo" id="regForm" novalidate>
+          <div class="field"><label for="regEmail">Почта</label><input id="regEmail" type="email" autocomplete="email" value="anna@"><p class="err" id="regEmailErr" hidden></p></div>
+          <div class="field"><label for="regPhone">Телефон</label><input id="regPhone" type="tel" autocomplete="tel" value="+7 777 12"><p class="err" id="regPhoneErr" hidden></p></div>
+          <div class="summary" id="regSummary" tabindex="-1" hidden>
+            <h4>Исправьте 2 ошибки</h4>
+            <ul><li><a class="fx-link" href="#regEmail">Укажите почту в формате name@example.com</a></li><li><a class="fx-link" href="#regPhone">В номере телефона 11 цифр</a></li></ul>
+          </div>
+          <div class="row"><button class="btn btn-primary fx-btn" type="submit">Отправить заявку</button></div>
+        </form>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="s-buttons">
+    <h2 class="fx-enter" id="s-buttons">Кнопки и отклик</h2>
+    <div class="grid">
+      <article class="card fx-enter">
+        <h3>Нажатие и загрузка</h3>
+        <p class="when">Нажатие сжимает кнопку на 3%. Загрузка — спиннер внутри, ширина не меняется, повторный клик заблокирован.</p>
+        <div class="chips"><span class="chip">scale .97</span><span class="chip">120 мс</span><span class="chip">спиннер 0.8 с/оборот</span></div>
+        <div class="demo row">
+          <button class="btn btn-primary fx-btn" type="button" id="payBtn">Оплатить 12 500 ₸</button>
+          <button class="btn btn-secondary fx-btn" type="button">Просто нажать</button>
+        </div>
+      </article>
+      <article class="card fx-enter">
+        <h3>Копирование и лайк</h3>
+        <p class="when">Короткая смена подписи и «поп» масштаба. Лайк анимируется только при включении; частицы — 8 штук, полсекунды.</p>
+        <div class="chips"><span class="chip">pop 350 мс</span><span class="chip">1.25 → 1</span><span class="chip">частицы 500 мс</span></div>
+        <div class="demo row">
+          <button class="btn btn-secondary fx-btn" type="button" id="copyBtn"><span id="copyLabel">Скопировать реквизиты</span></button>
+          <button class="btn btn-secondary btn-icon heart fx-btn" type="button" id="likeBtn" aria-pressed="false" aria-label="Нравится"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></button>
+        </div>
+      </article>
+      <article class="card fx-enter">
+        <h3>Модалка и тост</h3>
+        <p class="when">Модалка: прозрачность и масштаб от 0.96, никогда не с нуля. Тост — только для пассивных сообщений, пауза при наведении.</p>
+        <div class="chips"><span class="chip">200 мс</span><span class="chip">scale .96 → 1</span><span class="chip">тост 4 с</span></div>
+        <div class="demo row">
+          <button class="btn btn-secondary fx-btn" type="button" id="openDialog">Открыть модалку</button>
+          <button class="btn btn-secondary fx-btn" type="button" id="toastBtn">Показать тост</button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="s-reveal">
+    <h2 class="fx-enter" id="s-reveal">Раскрытие и навигация</h2>
+    <div class="grid">
+      <article class="card fx-enter">
+        <h3>Аккордеон</h3>
+        <p class="when">Высота анимируется через grid-template-rows 0fr → 1fr — работает во всех браузерах. Шеврон поворачивается за то же время.</p>
+        <div class="chips"><span class="chip">250 мс</span><span class="chip">ease-out</span></div>
+        <div class="demo">
+          <button class="acc-head" type="button" aria-expanded="false" aria-controls="acc1" id="accBtn">Какие комиссии за перевод?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="fx-collapse" id="acc1"><div class="acc-body"><p>Переводы внутри банка — без комиссии. На карты других банков — 0,95%, минимум 200 ₸. Комиссия видна до подтверждения.</p></div></div>
+        </div>
+      </article>
+      <article class="card fx-enter">
+        <h3>Скользящее подчёркивание вкладок</h3>
+        <p class="when">Один индикатор скользит к выбранной вкладке через transform, а не left/width.</p>
+        <div class="chips"><span class="chip">250 мс</span><span class="chip">translateX + scaleX</span></div>
+        <div class="demo">
+          <div class="fx-tabs tablist" role="tablist" id="tabs">
+            <button role="tab" aria-selected="true" type="button">Счета</button>
+            <button role="tab" aria-selected="false" type="button">Карты</button>
+            <button role="tab" aria-selected="false" type="button">Накопления</button>
+            <span class="fx-tabs-ind" aria-hidden="true"></span>
+          </div>
+          <div class="tabpanel" id="tabPanel">2 счёта · 248 500 ₸</div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="s-load">
+    <h2 class="fx-enter" id="s-load">Загрузка и данные</h2>
+    <div class="grid">
+      <article class="card fx-enter">
+        <h3>Скелетон</h3>
+        <p class="when">Повторяет реальную раскладку. Мерцание мягкое; при уменьшенном движении — статичный скелетон.</p>
+        <div class="chips"><span class="chip">shimmer 1.4 с</span><span class="chip">linear</span></div>
+        <div class="demo" id="skDemo">
+          <div class="sk-row" id="skeleton"><div class="fx-skeleton sk-avatar"></div><div class="sk-col"><div class="fx-skeleton sk-line" style="width:60%"></div><div class="fx-skeleton sk-line" style="width:85%"></div></div></div>
+          <div class="person" id="person" hidden><span class="ava">АС</span><div>Айгерим Садыкова<small>Последний перевод: 15 000 ₸</small></div></div>
+          <div class="row"><button class="btn btn-secondary fx-btn" type="button" id="skBtn">Загрузить</button></div>
+        </div>
+      </article>
+      <article class="card fx-enter">
+        <h3>Прогресс и счётчик</h3>
+        <p class="when">Прогресс — scaleX с плавностью 300 мс. Число растёт один раз при показе; длительность растёт логарифмически от разницы. Суммы, которые сверяют, не анимируйте.</p>
+        <div class="chips"><span class="chip">350–1200 мс</span><span class="chip">ease-out cubic</span><span class="chip">tabular-nums</span></div>
+        <div class="demo">
+          <div class="progress" role="progressbar" aria-label="Цель накопления" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="prog"><i></i></div>
+          <div class="row" style="justify-content:space-between"><span class="kpi" id="kpi">0</span><span style="color:var(--text-2);font-size:14px">₸ накоплено</span></div>
+          <div class="row"><button class="btn btn-secondary fx-btn" type="button" id="kpiBtn">Пополнить на 50 000 ₸</button></div>
+        </div>
+      </article>
+      <article class="card fx-enter">
+        <h3>Каскад списка</h3>
+        <p class="when">Каскад — только при первом показе, шаг 40 мс, не больше 8 элементов. Карточки при наведении не двигаются — меняется только цвет фона.</p>
+        <div class="chips"><span class="chip">300 мс</span><span class="chip">шаг 40 мс</span><span class="chip">без hover-движения</span></div>
+        <div class="demo">
+          <ul class="list" id="staggerList"><li>Кофейня «Сауле» · −1 800 ₸</li><li>Зарплата · +420 000 ₸</li><li>Такси · −2 350 ₸</li><li>Кешбэк · +3 120 ₸</li></ul>
+          <div class="mini-cards"><div class="mini"><b>Счета</b>2</div><div class="mini"><b>Карты</b>3</div><div class="mini"><b>Цели</b>1</div></div>
+          <div class="row"><button class="btn btn-secondary fx-btn" type="button" id="staggerBtn">Перезапустить каскад</button></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+
+  <section class="section" aria-labelledby="s-data">
+    <h2 class="fx-enter" id="s-data">Данные в движении</h2>
+    <div class="grid">
+      <article class="card fx-enter">
+        <h3>Сортировка с перестановкой (FLIP)</h3>
+        <p class="when">При сортировке и фильтре строки едут на новые места, а не перескакивают. Новые появляются снизу с каскадом.</p>
+        <div class="chips"><span class="chip">380 мс</span><span class="chip">standard</span><span class="chip">fx.flip</span></div>
+        <div class="demo">
+          <div class="row"><button class="btn btn-secondary fx-btn" type="button" id="sortAmount">По сумме</button><button class="btn btn-secondary fx-btn" type="button" id="sortName">По названию</button><button class="btn btn-secondary fx-btn" type="button" id="filterIn">Только доходы</button></div>
+          <ul class="list" id="flipList">
+            <li data-key="a" data-n="Кофейня «Сауле»" data-v="-1800">Кофейня «Сауле» · −1 800 ₸</li>
+            <li data-key="b" data-n="Зарплата" data-v="420000">Зарплата · +420 000 ₸</li>
+            <li data-key="c" data-n="Такси" data-v="-2350">Такси · −2 350 ₸</li>
+            <li data-key="d" data-n="Кешбэк" data-v="3120">Кешбэк · +3 120 ₸</li>
+            <li data-key="e" data-n="Аптека" data-v="-5400">Аптека · −5 400 ₸</li>
+          </ul>
+        </div>
+      </article>
+      <article class="card fx-enter">
+        <h3>Прорисовка графика и счёт</h3>
+        <p class="when">При первом показе столбцы растут от нуля, точки появляются, числа считаются. Без JS и при уменьшенном движении всё сразу на месте.</p>
+        <div class="chips"><span class="chip">700 мс</span><span class="chip">шаг 35 мс</span><span class="chip">fx.countAll</span></div>
+        <div class="demo">
+          <div class="bars" id="bars">
+            <div class="barrow"><span>Янв</span><i class="fx-draw-x" style="--i:0;width:48%"></i><b data-count="48000">48 000</b></div>
+            <div class="barrow"><span>Фев</span><i class="fx-draw-x" style="--i:1;width:62%"></i><b data-count="62000">62 000</b></div>
+            <div class="barrow"><span>Мар</span><i class="fx-draw-x" style="--i:2;width:55%"></i><b data-count="55000">55 000</b></div>
+            <div class="barrow"><span>Апр</span><i class="fx-draw-x" style="--i:3;width:81%"></i><b data-count="81000">81 000</b></div>
+          </div>
+          <div class="row"><button class="btn btn-secondary fx-btn" type="button" id="replayBars">Показать снова</button></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="s-attn">
+    <h2 class="fx-enter" id="s-attn">Внимание и праздник</h2>
+    <div class="grid">
+      <article class="card fx-enter">
+        <h3>Новое уведомление: колокольчик</h3>
+        <p class="when">Колокольчик качается от верхней точки, бейдж «выпрыгивает» и даёт 3 импульса кольца — и всё стоит. Бесконечная пульсация отвлекает и нарушает WCAG 2.2.2. Число объявляется скринридеру.</p>
+        <div class="chips"><span class="chip">качание 800 мс</span><span class="chip">±16° → 0</span><span class="chip">бейдж 450 мс</span><span class="chip">кольцо 600 мс × 3</span></div>
+        <div class="demo row">
+          <button class="btn btn-secondary btn-icon bell fx-bell" type="button" id="bellBtn" aria-label="Уведомления: 3 новых"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="badge fx-pulse fx-bell-badge" id="badge">3</span></button>
+          <button class="btn btn-secondary fx-btn" type="button" id="notifyBtn">Новое уведомление</button>
+        </div>
+      </article>
+      <article class="card fx-enter">
+        <h3>Блик на премиум-бейдже</h3>
+        <p class="when">Диагональный блик 1–2 раза при показе или по событию. Не по наведению и не бесконечно.</p>
+        <div class="chips"><span class="chip">700 мс × 2</span><span class="chip">ease-in-out</span></div>
+        <div class="demo row">
+          <span class="premium fx-glint" id="premium"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" /></svg> Premium</span>
+          <button class="btn btn-secondary fx-btn" type="button" id="glintBtn">Запустить блик</button>
+        </div>
+      </article>
+      <article class="card fx-enter">
+        <h3>Конфетти</h3>
+        <p class="when">Только для редких праздничных событий: первая цель достигнута, онбординг пройден. Не для рутинных операций и не в серьёзных контекстах.</p>
+        <div class="chips"><span class="chip">≈ 1.6 с</span><span class="chip">90 частиц</span><span class="chip">canvas</span></div>
+        <div class="demo row"><button class="btn btn-primary fx-btn" type="button" id="confettiBtn">Цель достигнута!</button></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="s-game">
+    <h2 class="fx-enter" id="s-game">Игровой отклик</h2>
+    <p>Каждое событие — набор слоёв: вспышка, хитстоп с дрожью, цифра, частицы, волна, тряска, звук (здесь без звука). Сила набора растёт с важностью события: удар → крит → добивание → ульта. Ползунок тряски — как в настройках доступности игр.</p>
+    <div class="arena-wrap">
+      <div class="arena" id="arena">
+        <div class="scene" id="scene">
+          <div class="floor"></div>
+          <div class="aoe" id="aoe" aria-hidden="true"></div>
+          <div class="shadow hero-shadow"></div>
+          <div class="hero" id="hero" aria-hidden="true"></div>
+          <div class="shadow"></div>
+          <div class="dummy-wrap" id="dummyWrap" aria-hidden="true">
+            <div class="danger" id="danger">!</div>
+            <div class="stun" id="stun"><i></i><i></i><i></i></div>
+            <div class="shield" id="shield"></div>
+            <div class="dummy" id="dummy"></div>
+          </div>
+          <div class="ping-target fx-ping" id="ping" aria-hidden="true"></div>
+          <div class="fxlayer" id="fxLayer"></div>
+        </div>
+        <div class="screen-flash" id="screenFlash" aria-hidden="true"></div>
+        <div class="fx-vignette" id="vignette" aria-hidden="true"></div>
+        <div class="hud">
+          <div class="hud-left">
+            <div class="hud-label"><span>Манекен</span><span id="hpText">100 / 100</span></div>
+            <div class="fx-hp" id="hp" role="progressbar" aria-label="Здоровье манекена" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div class="fx-hp-ghost"></div><div class="fx-hp-fill"></div><div class="hp-notches"></div></div>
+            <div class="statuses" id="statuses" aria-live="polite"></div>
+            <div class="combo" id="combo" aria-live="polite"></div>
+          </div>
+          <div class="hud-right">
+            <span class="coins"><i aria-hidden="true"></i><span id="coins">120</span></span>
+            <div class="lvl"><span id="lvlText">Ур. 1</span><div class="xp"><i id="xpFill"></i></div></div>
+            <div class="ult" id="ultBox"><span>Ульта</span><div class="ult-bar"><i id="ultFill"></i></div><b id="ultText">0%</b></div>
+            <span class="timer" id="timer">0:30</span>
+          </div>
+        </div>
+        <div class="stamp-layer" id="stampLayer"></div>
+      </div>
+
+      <div class="ctrl-groups">
+        <div class="ctrl"><span class="ctrl-t">Атака</span>
+          <button class="btn btn-primary fx-btn" type="button" id="hitBtn">Удар</button>
+          <button class="btn btn-primary fx-btn" type="button" id="critBtn">Крит</button>
+          <button class="btn btn-secondary fx-btn" type="button" id="killBtn">Добить</button>
+          <button class="btn btn-secondary fx-btn ult-btn" type="button" id="ultBtn" disabled>Ульта</button>
+          <button class="btn btn-secondary fx-btn cd-btn fx-glint" type="button" id="fireBtn"><span>Огненный шар</span><i class="cd" id="fireCd"></i><b class="cd-n" id="fireCdN"></b></button>
+        </div>
+        <div class="ctrl"><span class="ctrl-t">Враг</span>
+          <button class="btn btn-secondary fx-btn" type="button" id="shieldBtn">Щит</button>
+          <button class="btn btn-secondary fx-btn" type="button" id="blockBtn">Блок</button>
+          <button class="btn btn-secondary fx-btn" type="button" id="missBtn">Промах</button>
+          <button class="btn btn-secondary fx-btn" type="button" id="telegraphBtn">Замах врага</button>
+        </div>
+        <div class="ctrl"><span class="ctrl-t">Статусы</span>
+          <button class="btn btn-secondary fx-btn" type="button" id="poisonBtn">Яд</button>
+          <button class="btn btn-secondary fx-btn" type="button" id="burnBtn">Огонь</button>
+          <button class="btn btn-secondary fx-btn" type="button" id="freezeBtn">Заморозка</button>
+          <button class="btn btn-secondary fx-btn" type="button" id="stunBtn">Оглушение</button>
+        </div>
+        <div class="ctrl"><span class="ctrl-t">Герой</span>
+          <button class="btn btn-secondary fx-btn" type="button" id="healBtn">Лечение</button>
+          <button class="btn btn-secondary fx-btn" type="button" id="dashBtn">Рывок</button>
+          <button class="btn btn-secondary fx-btn" type="button" id="jumpBtn">Прыжок</button>
+          <button class="btn btn-secondary fx-btn" type="button" id="lvlBtn">Новый уровень</button>
+          <button class="btn btn-secondary fx-btn" type="button" id="coinBtn">Собрать монеты</button>
+        </div>
+        <div class="ctrl"><span class="ctrl-t">Интерфейс</span>
+          <button class="btn btn-secondary fx-btn" type="button" id="pingBtn">Метка цели</button>
+          <button class="btn btn-secondary fx-btn" type="button" id="timerBtn">Таймер: 10 с</button>
+          <label class="slider" for="shakeRange">Тряска экрана <input type="range" id="shakeRange" min="0" max="100" value="100"> <span id="shakeVal">100%</span></label>
+        </div>
+      </div>
+      <p class="arena-tip">Подсказка: нажми «Замах врага», а когда круг под героем почти заполнится — «Рывок», чтобы увернуться.</p>
+
+      <div>
+        <h3 style="font-size:16px;margin:0 0 8px">Сундук: раскрытие по редкости</h3>
+        <p class="when" style="margin-bottom:12px">Нарастание → вспышка → предметы по очереди, редкий последним. Редкость — цветом и подписью, свечение мягкое. Есть «Открыть всё сразу».</p>
+        <div class="ctrl" style="margin-bottom:12px">
+          <button class="btn btn-primary fx-btn" type="button" id="chestBtn">Открыть сундук</button>
+          <button class="btn btn-secondary fx-btn" type="button" id="chestSkip">Открыть всё сразу</button>
+        </div>
+        <div class="loot" id="loot" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="s-scroll">
+    <h2 class="fx-enter" id="s-scroll">Скролл</h2>
+    <p>Полоса прогресса чтения вверху страницы и появление блоков при прокрутке — на чистом CSS (animation-timeline). Без поддержки браузера или при уменьшенном движении контент просто виден.</p>
+    <div class="reveal-grid">
+      <div class="fx-reveal">Сдвиг 24 px</div><div class="fx-reveal">Прозрачность 0 → 1</div><div class="fx-reveal">entry 0% → cover 30%</div><div class="fx-reveal">Контент виден по умолчанию</div>
+    </div>
+  </section>
+</div>
+
+<dialog class="fx-dialog" id="dlg" aria-labelledby="dlgTitle">
+  <h4 id="dlgTitle">Удалить шаблон «Аренда»?</h4>
+  <p>Шаблон исчезнет из списка платежей. Историю переводов это не затронет.</p>
+  <form method="dialog" class="row" style="justify-content:flex-end">
+    <button class="btn btn-secondary fx-btn" value="cancel">Оставить</button>
+    <button class="btn btn-primary fx-btn" value="ok" id="dlgOk">Удалить шаблон</button>
+  </form>
+</dialog>
+<script>
+/* ui-design · библиотека эффектов (JS, без зависимостей)
+   Подключение: effects.css + этот файл. API: window.fx.*
+   Каждая функция сама проверяет «уменьшить движение» и в этом режиме
+   оставляет смысл (цвет, текст, aria-live), но убирает движение. */
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var mq = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+
+  /* Режим движения: <html data-motion="full"> — анимации включены вручную (сильнее системной настройки),
+     "reduce" — выключены вручную, без атрибута — как в системе (prefers-reduced-motion). */
+  function reduced() {
+    var m = root.getAttribute("data-motion");
+    if (m === "full") return false;
+    if (m === "reduce") return true;
+    return !!(mq && mq.matches);
+  }
+  function systemReduced() { return !!(mq && mq.matches); }
+  /** mode: "system" | "reduce" | "full" */
+  function setMotion(mode) {
+    if (mode === "reduce" || mode === "full") root.setAttribute("data-motion", mode);
+    else root.removeAttribute("data-motion");
+  }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  /* Гладкий псевдошум из суммы синусов: для тряски лучше, чем random() на каждом кадре. */
+  function noise(seed) {
+    var p1 = seed * 12.9898, p2 = seed * 78.233, p3 = seed * 37.719;
+    return function (t) {
+      return (Math.sin(t * 2.1 + p1) * 0.5 + Math.sin(t * 3.7 + p2) * 0.3 + Math.sin(t * 6.3 + p3) * 0.2);
+    };
+  }
+
+  /* ---------- Формы ---------- */
+
+  /** Тряска поля/контейнера при отклонённом вводе. Всегда вместе с текстом ошибки. */
+  function shake(el, opts) {
+    opts = opts || {};
+    if (!el || reduced() || !el.animate) return null;
+    var a = opts.amp || 8;
+    return el.animate([
+      { transform: "translateX(0)" },
+      { transform: "translateX(" + -a + "px)" },
+      { transform: "translateX(" + a * 0.75 + "px)" },
+      { transform: "translateX(" + -a * 0.5 + "px)" },
+      { transform: "translateX(" + a * 0.25 + "px)" },
+      { transform: "translateX(0)" }
+    ], { duration: opts.duration || 360, easing: "ease-out" });
+  }
+
+  /**
+   * Ошибка поля: красная рамка + текст + aria + тряска.
+   * field — <input>, message — текст, errorEl — элемент для текста (связывается через aria-describedby).
+   */
+  function fieldError(field, message, errorEl) {
+    field.classList.add("fx-field-error");
+    field.setAttribute("aria-invalid", "true");
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.hidden = false;
+      if (!errorEl.id) errorEl.id = "fx-err-" + Math.random().toString(36).slice(2, 8);
+      field.setAttribute("aria-describedby", errorEl.id);
+    }
+    shake(field.closest("[data-fx-shake]") || field);
+  }
+  function clearFieldError(field, errorEl) {
+    field.classList.remove("fx-field-error");
+    field.removeAttribute("aria-invalid");
+    if (errorEl) { errorEl.textContent = ""; errorEl.hidden = true; }
+  }
+
+  /** Галочка успеха: SVG с pathLength="1" у circle и path. */
+  function check(svg) {
+    svg.classList.remove("is-on");
+    void svg.getBoundingClientRect();
+    svg.classList.add("is-on");
+  }
+
+  /* ---------- Кнопки ---------- */
+
+  /** Кнопка в загрузке: ширина сохраняется, повторный клик заблокирован. */
+  function loading(btn, on) {
+    if (on) {
+      btn.style.minWidth = btn.getBoundingClientRect().width + "px";
+      btn.classList.add("fx-btn-loading");
+      btn.setAttribute("aria-busy", "true");
+      btn.disabled = true;
+    } else {
+      btn.classList.remove("fx-btn-loading");
+      btn.removeAttribute("aria-busy");
+      btn.disabled = false;
+      btn.style.minWidth = "";
+    }
+  }
+
+
+  /**
+   * Кнопка → успех: заливка цветом успеха, текст сменяется рисующейся галочкой, ширина не меняется.
+   * Отдельной надписи рядом не нужно; текст для скринридера — opts.label. opts.reset — вернуть исходный вид через N мс.
+   */
+  function success(btn, opts) {
+    opts = opts || {};
+    if (btn.classList.contains("fx-btn-success")) return;
+    btn.setAttribute("data-fx-label", btn.innerHTML);
+    btn.style.minWidth = btn.getBoundingClientRect().width + "px";
+    btn.classList.add("fx-btn-success");
+    btn.innerHTML = '<svg class="fx-btn-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" pathLength="1"/></svg><span class="fx-sr">' + (opts.label || "Готово") + "</span>";
+    announce(opts.label || "Готово");
+    if (opts.reset) setTimeout(function () { resetSuccess(btn); }, opts.reset);
+  }
+  function resetSuccess(btn) {
+    if (!btn.classList.contains("fx-btn-success")) return;
+    btn.classList.remove("fx-btn-success");
+    btn.innerHTML = btn.getAttribute("data-fx-label");
+    btn.removeAttribute("data-fx-label");
+    btn.style.minWidth = "";
+  }
+
+  /** Копирование: смена подписи на «Скопировано» на 1.6 с + объявление. */
+  function copy(btn, text, labelEl) {
+    var label = labelEl || btn;
+    var original = label.textContent;
+    var done = function () {
+      label.textContent = "Скопировано";
+      announce("Скопировано в буфер обмена");
+      pop(btn);
+      setTimeout(function () { label.textContent = original; }, 1600);
+    };
+    try {
+      navigator.clipboard.writeText(text).then(done, function () { label.textContent = "Выделите и скопируйте"; });
+    } catch (e) { label.textContent = "Выделите и скопируйте"; }
+  }
+
+  /** Короткий «поп» масштаба (лайк, чекбокс, значок). */
+  function pop(el) {
+    if (reduced()) return;
+    el.classList.remove("fx-pop");
+    void el.offsetWidth;
+    el.classList.add("fx-pop");
+  }
+
+  /** Удар по счётчику: масштаб s→1 за ms (комбо, награда). */
+  function punch(el, s, ms) {
+    if (reduced() || !el.animate) return;
+    el.animate([{ transform: "scale(" + (s || 1.3) + ")" }, { transform: "scale(1)" }],
+      { duration: ms || 140, easing: "cubic-bezier(.34,1.56,.64,1)" });
+  }
+
+  /* ---------- Оверлеи ---------- */
+
+  var liveRegion;
+  function announce(text) {
+    if (!liveRegion) {
+      liveRegion = document.createElement("div");
+      liveRegion.setAttribute("role", "status");
+      liveRegion.setAttribute("aria-live", "polite");
+      liveRegion.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap";
+      document.body.appendChild(liveRegion);
+    }
+    liveRegion.textContent = "";
+    setTimeout(function () { liveRegion.textContent = text; }, 30);
+  }
+
+  var toastHost;
+  /** Тост для пассивных сообщений. Ошибки и действия в тосты не кладите. */
+  function toast(message, opts) {
+    opts = opts || {};
+    if (!toastHost) {
+      toastHost = document.createElement("div");
+      toastHost.className = "fx-toasts";
+      toastHost.setAttribute("role", "status");
+      toastHost.setAttribute("aria-live", "polite");
+      document.body.appendChild(toastHost);
+    }
+    var t = document.createElement("div");
+    t.className = "fx-toast " + (opts.className || "");
+    t.textContent = message;
+    t.setAttribute("data-state", "enter");
+    toastHost.appendChild(t);
+    while (toastHost.children.length > 3) toastHost.removeChild(toastHost.firstChild);
+    requestAnimationFrame(function () { requestAnimationFrame(function () { t.removeAttribute("data-state"); }); });
+    var timer, remaining = opts.duration || 4000, started = Date.now();
+    var close = function () {
+      t.setAttribute("data-state", "exit");
+      setTimeout(function () { t.remove(); }, reduced() ? 0 : 300);
+    };
+    var run = function () { started = Date.now(); timer = setTimeout(close, remaining); };
+    t.addEventListener("mouseenter", function () { clearTimeout(timer); remaining -= Date.now() - started; });
+    t.addEventListener("mouseleave", run);
+    run();
+    return t;
+  }
+
+  /* ---------- Навигация ---------- */
+
+  /** Скользящее подчёркивание вкладок: контейнер .fx-tabs с кнопками [role=tab] и .fx-tabs-ind. */
+  function tabs(container) {
+    var ind = container.querySelector(".fx-tabs-ind");
+    var tabsEls = container.querySelectorAll("[role=tab]");
+    function move(tab) {
+      var c = container.getBoundingClientRect(), r = tab.getBoundingClientRect();
+      ind.style.setProperty("--x", (r.left - c.left + container.scrollLeft) + "px");
+      ind.style.setProperty("--w", r.width);
+    }
+    tabsEls.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        tabsEls.forEach(function (t) { t.setAttribute("aria-selected", String(t === tab)); });
+        move(tab);
+        if (container.onTabChange) container.onTabChange(tab);
+      });
+    });
+    var sel = container.querySelector("[role=tab][aria-selected=true]") || tabsEls[0];
+    if (sel) move(sel);
+    window.addEventListener("resize", function () {
+      var s = container.querySelector("[role=tab][aria-selected=true]");
+      if (s) move(s);
+    });
+  }
+
+  /* ---------- Числа ---------- */
+
+  /** Плавный рост числа (KPI, монеты). Длительность растёт логарифмически от разницы. */
+  function countUp(el, to, opts) {
+    opts = opts || {};
+    var from = opts.from != null ? opts.from : parseFloat(el.dataset.value || "0") || 0;
+    var fmt = opts.format || function (v) { return Math.round(v).toLocaleString("ru-RU"); };
+    el.dataset.value = to;
+    el.setAttribute("aria-label", fmt(to));
+    if (reduced()) { el.textContent = fmt(to); return; }
+    var diff = Math.abs(to - from) || 1;
+    var dur = opts.duration || clamp(350 + Math.log10(diff + 1) * 220, 350, 1200);
+    var t0 = performance.now();
+    (function step(now) {
+      var p = clamp((now - t0) / dur, 0, 1);
+      var e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(from + (to - from) * e);
+      if (p < 1) requestAnimationFrame(step);
+      else if (opts.punch !== false) punch(el, 1.15, 160);
+    })(t0);
+  }
+
+  /** Список с каскадом: ставит --i детям и перезапускает анимацию. */
+  function stagger(list) {
+    Array.prototype.forEach.call(list.children, function (c, i) { c.style.setProperty("--i", i); });
+    list.classList.remove("fx-stagger");
+    void list.offsetWidth;
+    list.classList.add("fx-stagger");
+  }
+
+  /** Однократный класс-эффект (пульс бейджа, блик, пинг). */
+  function once(el, cls, ms) {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+    setTimeout(function () { el.classList.remove(cls); }, ms || 2000);
+  }
+
+  /* ---------- Частицы (один canvas, пул) ---------- */
+
+  var canvas, ctx, parts = [], running = false, lastT = 0, timeScale = 1;
+  function ensureCanvas() {
+    if (canvas) return;
+    canvas = document.createElement("canvas");
+    canvas.setAttribute("aria-hidden", "true");
+    canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:70";
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext("2d");
+    resize();
+    window.addEventListener("resize", resize);
+  }
+  function resize() {
+    var d = window.devicePixelRatio || 1;
+    canvas.width = innerWidth * d; canvas.height = innerHeight * d;
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+  }
+  function loop(now) {
+    var dt = lastT ? Math.min(50, now - lastT) : 16.7; lastT = now;
+    var sdt = dt * timeScale, k = sdt / 16.7, alive = 0;
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i];
+      if (!p.on) continue;
+      p.age += sdt;
+      var a = p.age / p.life;
+      if (a >= 1) { p.on = false; continue; }
+      alive++;
+      var drag = Math.pow(p.drag, k);
+      p.vx *= drag; p.vy = p.vy * drag + p.g * k;
+      p.x += p.vx * k; p.y += p.vy * k; p.rot += p.vr * k;
+      var f = 1 - a;
+      ctx.globalAlpha = f;
+      ctx.fillStyle = p.color;
+      ctx.save();
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      if (p.shape === "rect") ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+      else if (p.shape === "spark") ctx.fillRect(-p.size, -1, p.size * 2, 2);
+      else { ctx.beginPath(); ctx.arc(0, 0, p.size * (0.4 + 0.6 * f) / 2, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+    if (alive) requestAnimationFrame(loop); else { running = false; lastT = 0; ctx.clearRect(0, 0, innerWidth, innerHeight); }
+  }
+  function spawn(o) {
+    var p = null;
+    for (var i = 0; i < parts.length; i++) if (!parts[i].on) { p = parts[i]; break; }
+    if (!p) { if (parts.length > 600) return; p = {}; parts.push(p); }
+    for (var key in o) p[key] = o[key];
+    p.on = true; p.age = 0;
+  }
+
+  /**
+   * Вспышка частиц в точке (x, y — координаты окна).
+   * opts: count 12, colors [], speed 4, life 500, size 6, gravity 0, spread 360 (градусы), angle -90
+   */
+  function burst(x, y, opts) {
+    opts = opts || {};
+    if (reduced()) return;
+    ensureCanvas();
+    var n = opts.count || 12, colors = opts.colors || ["#fff"];
+    var spread = (opts.spread == null ? 360 : opts.spread) * Math.PI / 180;
+    var base = (opts.angle == null ? -90 : opts.angle) * Math.PI / 180;
+    for (var i = 0; i < n; i++) {
+      var a = base + (Math.random() - 0.5) * spread;
+      var v = (opts.speed || 4) * (0.6 + Math.random() * 0.6);
+      spawn({
+        x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: opts.gravity || 0, drag: opts.drag || 0.92,
+        life: (opts.life || 500) * (0.7 + Math.random() * 0.5), size: (opts.size || 6) * (0.6 + Math.random() * 0.8),
+        color: colors[i % colors.length], shape: opts.shape || "dot", rot: (opts.shape === "spark") ? a : Math.random() * 6, vr: (opts.shape === "spark") ? 0 : (Math.random() - 0.5) * 0.3
+      });
+    }
+    if (!running) { running = true; requestAnimationFrame(loop); }
+  }
+
+  /** Конфетти: только для редких праздничных событий. */
+  function confetti(x, y, colors) {
+    burst(x == null ? innerWidth / 2 : x, y == null ? innerHeight * 0.35 : y, {
+      count: 90, colors: colors || ["#f0a24b", "#5b9be6", "#5fbf72", "#e66f8c", "#f2d16b"],
+      speed: 9, life: 1600, size: 9, gravity: 0.18, drag: 0.97, spread: 120, angle: -90, shape: "rect"
+    });
+  }
+
+  /* ---------- Игровые эффекты ---------- */
+
+  /**
+   * Тряска по модели «травмы» (Eiserloh): shake = trauma², плавный шум, затухание decay/с.
+   * Возвращает { add(amount) }. Трясите сцену, а не HUD.
+   */
+  function trauma(el, opts) {
+    opts = opts || {};
+    var maxOffset = opts.maxOffset || 14, maxAngle = opts.maxAngle || 3, decay = opts.decay || 1.4;
+    var t = 0, last = 0, time = 0, active = false;
+    var nx = noise(1.3), ny = noise(7.1), nr = noise(4.7);
+    var scale = opts.intensity == null ? 1 : opts.intensity;
+    function frame(now) {
+      var dt = last ? (now - last) / 1000 : 0.016;
+      last = now; time += dt * (opts.speed || 22);
+      t = Math.max(0, t - decay * dt);
+      var s = t * t * scale;
+      el.style.transform = s > 0.0005
+        ? "translate(" + (maxOffset * s * nx(time)).toFixed(2) + "px," + (maxOffset * s * ny(time)).toFixed(2) + "px) rotate(" + (maxAngle * s * nr(time)).toFixed(2) + "deg)"
+        : "";
+      if (t > 0) requestAnimationFrame(frame); else { active = false; last = 0; el.style.transform = ""; }
+    }
+    return {
+      add: function (amount) {
+        if (reduced() || scale <= 0) return;
+        t = clamp(t + amount, 0, 1);
+        if (!active) { active = true; requestAnimationFrame(frame); }
+      },
+      setIntensity: function (v) { scale = v; }
+    };
+  }
+
+  /** Белая вспышка попадания на объекте (1 раз, ~90 мс). При уменьшенном движении — контур. */
+  function hitFlash(el) {
+    if (!el.animate) return;
+    if (reduced()) {
+      el.animate([{ outline: "3px solid #fff" }, { outline: "3px solid transparent" }], { duration: 200 });
+      return;
+    }
+    el.animate([{ filter: "brightness(2.6) saturate(0)" }, { filter: "none" }], { duration: 90, easing: "steps(1, end)" });
+  }
+
+  /** Хитстоп: замораживает CSS/WAAPI-анимации элементов на ms (≈ 1 кадр = 16.7 мс). */
+  function hitstop(ms, els) {
+    var anims = [];
+    (els || []).forEach(function (el) { if (el.getAnimations) anims = anims.concat(el.getAnimations({ subtree: true })); });
+    anims.forEach(function (a) { try { a.pause(); } catch (e) {} });
+    return new Promise(function (res) {
+      setTimeout(function () { anims.forEach(function (a) { try { a.play(); } catch (e) {} }); res(); }, ms);
+    });
+  }
+
+  /** Всплывающая цифра урона/лечения внутри position:relative-контейнера. */
+  function damageNumber(container, x, y, value, opts) {
+    opts = opts || {};
+    var d = document.createElement("span");
+    d.className = "fx-dmg" + (opts.crit ? " is-crit" : "") + (opts.heal ? " is-heal" : "") + (opts.kind ? " is-" + opts.kind : "");
+    d.textContent = opts.text != null ? opts.text : (opts.heal ? "+" : "") + value + (opts.crit ? "!" : "");
+    d.style.left = x + "px"; d.style.top = y + "px";
+    d.style.setProperty("--dx", ((Math.random() - 0.5) * 40).toFixed(0) + "px");
+    d.setAttribute("aria-hidden", "true");
+    container.appendChild(d);
+    setTimeout(function () { d.remove(); }, reduced() ? 700 : 900);
+  }
+
+  /** Полоса здоровья с «призраком»: значение падает сразу, призрак догоняет с задержкой. */
+  function health(bar, value) {
+    var v = clamp(value, 0, 1);
+    var fill = bar.querySelector(".fx-hp-fill"), ghost = bar.querySelector(".fx-hp-ghost");
+    var prev = parseFloat(bar.dataset.hp || "1");
+    bar.dataset.hp = v;
+    bar.setAttribute("aria-valuenow", Math.round(v * 100));
+    if (v < prev) {           // урон: основная сразу, призрак позже (transition-delay в CSS)
+      fill.style.setProperty("--hp", v);
+      ghost.style.setProperty("--ghost", v);
+    } else {                  // лечение: призрак сразу, основная догоняет
+      ghost.style.setProperty("--ghost", v);
+      setTimeout(function () { fill.style.setProperty("--hp", v); }, reduced() ? 0 : 250);
+    }
+  }
+
+  /** Сжатие и растяжение для прыжка (Celeste: 0.6×1.4 → 1.4×0.6 → 1). Центр у основания. */
+  function squashJump(el, height) {
+    if (reduced() || !el.animate) return;
+    el.style.transformOrigin = "50% 100%";
+    var h = height || 48;
+    el.animate([
+      { transform: "translateY(0) scale(1.25,.8)" },
+      { transform: "translateY(" + -h + "px) scale(.75,1.3)", offset: 0.3 },
+      { transform: "translateY(" + -h * 1.1 + "px) scale(1,1)", offset: 0.5 },
+      { transform: "translateY(0) scale(1.35,.7)", offset: 0.82 },
+      { transform: "translateY(0) scale(1,1)" }
+    ], { duration: 620, easing: "ease-out" });
+  }
+
+
+  /* ---------- Слой движения по умолчанию ---------- */
+
+  /** Нумерует элементы для каскада: fx.sequence(".fx-enter") ставит --i по порядку в DOM. */
+  function sequence(selector, rootEl) {
+    var els = (rootEl || document).querySelectorAll(selector || ".fx-enter, .fx-enter-fade");
+    Array.prototype.forEach.call(els, function (el, i) { if (!el.style.getPropertyValue("--i")) el.style.setProperty("--i", i); });
+    return els;
+  }
+
+  /**
+   * FLIP-перестановка (сортировка, фильтр): элементы плавно едут на новые места.
+   * container — родитель, mutate — функция, меняющая DOM, key(el) — стабильный ключ (по умолчанию data-key).
+   */
+  function flip(container, mutate, opts) {
+    opts = opts || {};
+    var key = opts.key || function (el) { return el.getAttribute("data-key"); };
+    var before = {};
+    Array.prototype.forEach.call(container.children, function (el) {
+      var k = key(el); if (k != null) before[k] = el.getBoundingClientRect();
+    });
+    mutate();
+    if (reduced()) return;
+    var entering = 0;
+    Array.prototype.forEach.call(container.children, function (el) {
+      if (!el.animate) return;
+      var k = key(el), f = before[k], l = el.getBoundingClientRect();
+      if (!f) {
+        el.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }],
+          { duration: 260, delay: Math.min(entering++, 8) * 30, easing: "cubic-bezier(.2,0,0,1)", fill: "backwards" });
+        return;
+      }
+      var dx = f.left - l.left, dy = f.top - l.top;
+      if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+        el.animate([{ transform: "translate(" + dx + "px," + dy + "px)" }, { transform: "none" }],
+          { duration: opts.duration || 380, easing: "cubic-bezier(.2,0,0,1)" });
+      }
+    });
+  }
+
+  /** Плавная смена текста/содержимого (вкладки, значения): уход 120 мс, вход 200 мс. */
+  function swap(el, content, isHTML) {
+    var set = function () { if (isHTML) el.innerHTML = content; else el.textContent = content; };
+    if (reduced() || !el.animate) { set(); return; }
+    el.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(-4px)" }],
+      { duration: 120, easing: "cubic-bezier(.3,0,1,1)" }).onfinish = function () {
+      set();
+      el.animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }],
+        { duration: 200, easing: "cubic-bezier(.2,0,0,1)" });
+    };
+  }
+
+  /**
+   * Счёт чисел при первом показе: элементы с data-count="1234.5" (и data-decimals, data-prefix, data-suffix).
+   * Текст в разметке — финальное значение, поэтому без JS всё корректно.
+   */
+  function countAll(selector, rootEl) {
+    var els = (rootEl || document).querySelectorAll(selector || "[data-count]");
+    Array.prototype.forEach.call(els, function (el, i) {
+      var to = parseFloat(el.getAttribute("data-count"));
+      if (isNaN(to)) return;
+      var dec = parseInt(el.getAttribute("data-decimals") || "0", 10);
+      var pre = el.getAttribute("data-prefix") || "", suf = el.getAttribute("data-suffix") || "";
+      var nf = new Intl.NumberFormat(document.documentElement.lang || "ru-RU", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+      var fmt = function (v) { return pre + nf.format(v) + suf; };
+      setTimeout(function () { countUp(el, to, { from: 0, format: fmt, punch: false, duration: el.getAttribute("data-duration") ? +el.getAttribute("data-duration") : 900 }); }, 150 + i * 60);
+    });
+  }
+
+  /**
+   * Смена темы с круговым раскрытием от точки клика (View Transitions).
+   * apply — функция, меняющая data-theme; event — событие клика (для центра круга).
+   */
+  function themeSwitch(apply, event) {
+    if (event && event.clientX != null) {
+      root.style.setProperty("--fx-x", event.clientX + "px");
+      root.style.setProperty("--fx-y", event.clientY + "px");
+    }
+    if (!document.startViewTransition || reduced()) { apply(); return; }
+    document.startViewTransition(apply);
+  }
+
+
+  /**
+   * Новое уведомление: колокольчик качается (800 мс), бейдж «выпрыгивает» и даёт кольцо-пульс.
+   * bell — кнопка с классом .fx-bell и <svg>; badge — .fx-bell-badge (необязательно); count — новое число.
+   */
+  function ring(bell, badge, count) {
+    if (badge && count != null) { badge.textContent = count > 99 ? "99+" : count; badge.hidden = !count; }
+    once(bell, "is-ringing", 900);
+    if (badge) once(badge, "is-pulsing", 1900);
+    if (count != null) announce("Новых уведомлений: " + count);
+  }
+
+
+  /* ---------- Игровые слои эффектов ---------- */
+
+  function place(layer, el, x, y, w, h) {
+    el.style.left = (x - w / 2) + "px"; el.style.top = (y - h / 2) + "px";
+    el.style.width = w + "px"; el.style.height = h + "px";
+    layer.appendChild(el); return el;
+  }
+  function done(anim, el) { if (anim) anim.onfinish = function () { el.remove(); }; else setTimeout(function () { el.remove(); }, 400); }
+
+  /** Цветная вспышка объекта (лечение — зелёная, яд — ядовитая, мороз — голубая): оттенок + свечение. */
+  function tint(el, color, ms) {
+    ms = ms || 520;
+    var o = document.createElement("span"); o.className = "fx-tint"; o.style.background = color;
+    el.appendChild(o);
+    if (reduced() || !o.animate) { o.style.opacity = .55; setTimeout(function () { o.remove(); }, ms); return; }
+    done(o.animate([{ opacity: 0 }, { opacity: .9, offset: .25 }, { opacity: 0 }], { duration: ms, easing: "ease-out" }), o);
+    el.animate([{ filter: "drop-shadow(0 0 0 transparent)" }, { filter: "drop-shadow(0 0 16px " + color + ") brightness(1.15)", offset: .3 }, { filter: "drop-shadow(0 0 0 transparent)" }],
+      { duration: ms * 1.2, easing: "ease-out" });
+  }
+
+  /** Кольцо-волна (ударная волна, лечение у ног, щит). Координаты — внутри layer. */
+  function wave(layer, x, y, opts) {
+    opts = opts || {}; if (reduced()) return;
+    var s = opts.size || 140, el = document.createElement("span");
+    el.className = "fx-wave"; el.style.borderColor = opts.color || "#fff"; el.style.borderWidth = (opts.width || 3) + "px";
+    if (opts.squash) el.style.transform = "scaleY(" + opts.squash + ")";
+    place(layer, el, x, y, s, s);
+    done(el.animate([{ scale: ".15", opacity: 1 }, { scale: "1", opacity: 0 }], { duration: opts.ms || 450, easing: "cubic-bezier(.2,0,0,1)" }), el);
+  }
+
+  /** Радиальные линии удара (крит, тяжёлый удар). */
+  function lines(layer, x, y, opts) {
+    opts = opts || {}; if (reduced()) return;
+    var n = opts.count || 14, r1 = opts.inner || 26, r2 = r1 + (opts.len || 70), size = (r2 + 10) * 2;
+    var ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", (-size / 2) + " " + (-size / 2) + " " + size + " " + size);
+    svg.setAttribute("class", "fx-lines");
+    for (var i = 0; i < n; i++) {
+      var a = (i / n) * Math.PI * 2 + Math.random() * 0.25, l = document.createElementNS(ns, "line");
+      var rr = r2 - Math.random() * 20;
+      l.setAttribute("x1", Math.cos(a) * r1); l.setAttribute("y1", Math.sin(a) * r1);
+      l.setAttribute("x2", Math.cos(a) * rr); l.setAttribute("y2", Math.sin(a) * rr);
+      l.setAttribute("stroke", opts.color || "#fff"); l.setAttribute("stroke-width", i % 3 ? 2 : 3.5); l.setAttribute("stroke-linecap", "round");
+      svg.appendChild(l);
+    }
+    place(layer, svg, x, y, size, size);
+    done(svg.animate([{ scale: ".55", opacity: 1 }, { scale: "1.25", opacity: 0 }], { duration: opts.ms || 240, easing: "cubic-bezier(.2,0,0,1)" }), svg);
+  }
+
+  /** Одиночная вспышка экрана (крит, получение урона). Одна вспышка, низкая прозрачность — безопасно (≤ 3 в секунду). */
+  function flash(overlay, color, alpha, ms) {
+    if (reduced() || !overlay.animate) return;
+    overlay.style.background = color;
+    overlay.animate([{ opacity: 0 }, { opacity: alpha == null ? .3 : alpha, offset: .2 }, { opacity: 0 }], { duration: ms || 200, easing: "ease-out" });
+  }
+
+  /** Короткий «наезд» камеры (зум-панч). Использует свойство scale, не мешает тряске через transform. */
+  function zoom(el, s, ms) {
+    if (reduced() || !el.animate) return;
+    el.animate([{ scale: "1" }, { scale: String(s || 1.06), offset: .25 }, { scale: "1" }], { duration: ms || 280, easing: "cubic-bezier(.2,0,0,1)" });
+  }
+
+  /** Замедление времени: частицы и анимации элементов идут со скоростью rate на ms (реального времени). */
+  function slowmo(rate, ms, els) {
+    if (reduced()) return;
+    timeScale = rate;
+    var anims = [];
+    (els || []).forEach(function (el) { if (el.getAnimations) anims = anims.concat(el.getAnimations({ subtree: true })); });
+    anims.forEach(function (a) { a.playbackRate = rate; });
+    setTimeout(function () { timeScale = 1; anims.forEach(function (a) { try { a.playbackRate = 1; } catch (e) {} }); }, ms);
+  }
+
+  /** Надпись-штамп по центру («КРИТ!», «УРОВЕНЬ 2», «ПОБЕДА»). */
+  function stamp(layer, text, opts) {
+    opts = opts || {};
+    var el = document.createElement("div"); el.className = "fx-stamp"; el.textContent = text; el.setAttribute("aria-hidden", "true");
+    if (opts.color) el.style.color = opts.color;
+    if (opts.shadow) el.style.textShadow = opts.shadow;
+    layer.appendChild(el);
+    if (reduced() || !el.animate) { setTimeout(function () { el.remove(); }, 900); return; }
+    done(el.animate([
+      { scale: "2.4", opacity: 0 }, { scale: ".92", opacity: 1, offset: .14 }, { scale: "1", opacity: 1, offset: .22 },
+      { scale: "1", opacity: 1, offset: .75 }, { scale: "1.08", opacity: 0, translate: "-50% -80%" }
+    ], { duration: opts.ms || 1100, easing: "ease-out" }), el);
+  }
+
+  /** Остаточное изображение (рывок, уклонение): полупрозрачная копия гаснет за ms. */
+  function afterimage(el, layer, opts) {
+    opts = opts || {}; if (reduced()) return;
+    var lr = layer.getBoundingClientRect(), r = el.getBoundingClientRect();
+    var g = el.cloneNode(true); g.removeAttribute("id"); g.className = el.className + " fx-ghost";
+    g.style.cssText = el.style.cssText;
+    g.style.position = "absolute"; g.style.left = (r.left - lr.left) + "px"; g.style.top = (r.top - lr.top) + "px";
+    g.style.width = r.width + "px"; g.style.height = r.height + "px"; g.style.bottom = "auto"; g.style.right = "auto";
+    g.style.margin = "0"; g.style.transform = "none"; g.style.animation = "none"; g.style.opacity = "";
+    if (opts.color) g.style.filter = "drop-shadow(0 0 0 " + opts.color + ") opacity(.8)";
+    layer.appendChild(g);
+    done(g.animate([{ opacity: opts.alpha || .45 }, { opacity: 0 }], { duration: opts.ms || 320, easing: "ease-out" }), g);
+  }
+
+  /** Световой столб (уровень, воскрешение). x — центр по горизонтали внутри layer. */
+  function beam(layer, x, opts) {
+    opts = opts || {}; if (reduced()) return;
+    var w = opts.width || 56, el = document.createElement("span"); el.className = "fx-beam";
+    el.style.left = (x - w / 2) + "px"; el.style.width = w + "px";
+    el.style.background = "linear-gradient(to top, " + (opts.color || "rgb(255 220 120 / .85)") + ", transparent 85%)";
+    layer.appendChild(el);
+    done(el.animate([{ scale: "1 0", opacity: 1 }, { scale: "1 1", opacity: 1, offset: .25 }, { scale: ".6 1", opacity: 0 }], { duration: opts.ms || 900, easing: "ease-out" }), el);
+  }
+
+  /** Дрожь объекта во время хитстопа (метод Сакураи): затухающие сдвиги по X. */
+  function jitter(el, ms, amp) {
+    if (reduced() || !el.animate) return;
+    var a = amp || 3, steps = Math.max(2, Math.round((ms || 80) / 16.7)), kf = [];
+    for (var i = 0; i <= steps; i++) kf.push({ translate: (i === steps ? 0 : (i % 2 ? -1 : 1) * a * (1 - i / steps)) + "px 0" });
+    el.animate(kf, { duration: ms || 80, easing: "linear" });
+  }
+
+  /** Монеты летят по дуге к счётчику; onEach вызывается при прилёте каждой (прибавить значение, «пинг»). */
+  function flyTo(fromX, fromY, target, opts) {
+    opts = opts || {};
+    var n = opts.count || 6, tr = target.getBoundingClientRect(), tx = tr.left + tr.width / 2, ty = tr.top + tr.height / 2;
+    for (var i = 0; i < n; i++) (function (i) {
+      if (reduced()) { if (opts.onEach) opts.onEach(i); return; }
+      var c = document.createElement("span"); c.className = "fx-coin"; c.style.left = fromX + "px"; c.style.top = fromY + "px";
+      document.body.appendChild(c);
+      var dx = tx - fromX, dy = ty - fromY, spreadX = (Math.random() - .5) * 90, up = -60 - Math.random() * 50;
+      var a = c.animate([
+        { transform: "translate(0,0) scale(.6)" },
+        { transform: "translate(" + spreadX + "px," + up + "px) scale(1)", offset: .3 },
+        { transform: "translate(" + dx + "px," + dy + "px) scale(.7)" }
+      ], { duration: 620 + i * 40, delay: i * 70, easing: "cubic-bezier(.5,0,.75,0)", fill: "backwards" });
+      a.onfinish = function () { c.remove(); if (opts.onEach) opts.onEach(i); };
+    })(i);
+  }
+
+  window.fx = {
+    reduced: reduced, systemReduced: systemReduced, setMotion: setMotion, shake: shake, fieldError: fieldError, clearFieldError: clearFieldError, check: check,
+    loading: loading, success: success, resetSuccess: resetSuccess, copy: copy, pop: pop, punch: punch, announce: announce, toast: toast, tabs: tabs,
+    countUp: countUp, stagger: stagger, once: once, burst: burst, confetti: confetti,
+    trauma: trauma, hitFlash: hitFlash, hitstop: hitstop, damageNumber: damageNumber, health: health,
+    squashJump: squashJump, sequence: sequence, flip: flip, swap: swap, countAll: countAll, themeSwitch: themeSwitch, ring: ring,
+    tint: tint, wave: wave, lines: lines, flash: flash, zoom: zoom, slowmo: slowmo, stamp: stamp,
+    afterimage: afterimage, beam: beam, jitter: jitter, flyTo: flyTo
+  };
+})();
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var root = document.documentElement;
+
+  /* Режим анимаций: как в системе / включены / уменьшены (WCAG 2.3.3) */
+  var note = $("motionNote");
+  function applyMotion(mode) {
+    fx.setMotion(mode);
+    var r = document.querySelector('input[name="motion"][value="' + mode + '"]'); if (r) r.checked = true;
+    note.hidden = !(fx.systemReduced() && mode === "system");
+    try { localStorage.setItem("fx-motion", mode); } catch (e) {}
+  }
+  document.querySelectorAll('input[name="motion"]').forEach(function (r) {
+    r.addEventListener("change", function () { applyMotion(r.value); fx.announce(r.value === "reduce" ? "Анимации уменьшены" : r.value === "full" ? "Анимации включены" : "Анимации как в системе"); });
+  });
+  $("motionFull").addEventListener("click", function () { applyMotion("full"); fx.toast("Анимации включены"); });
+  var savedMotion = null; try { savedMotion = localStorage.getItem("fx-motion"); } catch (e) {}
+  applyMotion(savedMotion === "full" || savedMotion === "reduce" ? savedMotion : "system");
+
+  /* Логин: ошибка — тряска + текст; успех — кнопка становится зелёной с галочкой */
+  $("loginForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var f = $("pwd"), err = $("pwdErr"), btn = $("loginBtn");
+    if (f.value.trim() === "ui-design") {
+      fx.clearFieldError(f, err);
+      fx.success(btn, { label: "Вход выполнен" });
+    } else {
+      fx.resetSuccess(btn);
+      fx.fieldError(f, f.value ? "Пароль не подходит. Проверьте раскладку и Caps Lock." : "Введите пароль.", err);
+      f.focus();
+    }
+  });
+  $("pwd").addEventListener("input", function () {
+    if (this.getAttribute("aria-invalid")) fx.clearFieldError(this, $("pwdErr"));
+    fx.resetSuccess($("loginBtn"));
+  });
+
+  /* Сводка ошибок формы */
+  var reg = [["regEmail", /^[^@\s]+@[^@\s]+\.[^@\s]+$/, "Укажите почту в формате name@example.com"],
+             ["regPhone", /^\D*(\d\D*){11}$/, "В номере телефона 11 цифр"]];
+  $("regForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var bad = reg.filter(function (r) { return !r[1].test($(r[0]).value); });
+    reg.forEach(function (r) {
+      var f = $(r[0]), err = $(r[0] + "Err");
+      if (bad.indexOf(r) >= 0) { f.classList.add("fx-field-error"); f.setAttribute("aria-invalid", "true"); err.textContent = r[2]; err.hidden = false; f.setAttribute("aria-describedby", err.id); }
+      else fx.clearFieldError(f, err);
+    });
+    var s = $("regSummary");
+    if (bad.length) {
+      s.querySelector("h4").textContent = bad.length === 1 ? "Исправьте 1 ошибку" : "Исправьте " + bad.length + " ошибки";
+      s.querySelector("ul").innerHTML = bad.map(function (r) { return '<li><a href="#' + r[0] + '">' + r[2] + "</a></li>"; }).join("");
+      s.hidden = false;
+      if (!fx.reduced() && s.animate) s.animate([{ opacity: 0, transform: "translateY(-4px)" }, { opacity: 1, transform: "none" }], { duration: 180, easing: "cubic-bezier(.2,0,0,1)" });
+      s.focus();
+    } else { s.hidden = true; fx.toast("Заявка отправлена"); }
+  });
+  $("regSummary").addEventListener("click", function (e) {
+    var a = e.target.closest("a"); if (!a) return;
+    e.preventDefault(); $(a.getAttribute("href").slice(1)).focus();
+  });
+
+  /* Кнопки */
+  $("payBtn").addEventListener("click", function () {
+    var b = this; fx.loading(b, true);
+    setTimeout(function () { fx.loading(b, false); fx.toast("Платёж отправлен"); }, 1800);
+  });
+  $("copyBtn").addEventListener("click", function () { fx.copy(this, "KZ12 3456 7890 1234 5678", $("copyLabel")); });
+  $("likeBtn").addEventListener("click", function () {
+    var on = this.getAttribute("aria-pressed") !== "true";
+    this.setAttribute("aria-pressed", String(on));
+    if (on) {
+      fx.pop(this.querySelector("svg"));
+      var r = this.getBoundingClientRect();
+      fx.burst(r.left + r.width / 2, r.top + r.height / 2, { count: 8, colors: ["#e5484d", "#f59e83"], speed: 3, life: 500, size: 5 });
+    }
+  });
+
+  /* Модалка и тост */
+  $("openDialog").addEventListener("click", function () { $("dlg").showModal(); });
+  $("dlg").addEventListener("close", function () { if (this.returnValue === "ok") fx.toast("Шаблон удалён"); });
+  var toastN = 0;
+  $("toastBtn").addEventListener("click", function () { fx.toast(["Изменения сохранены", "Карта добавлена в кошелёк", "Выписка отправлена на почту"][toastN++ % 3]); });
+
+  /* Аккордеон и вкладки */
+  $("accBtn").addEventListener("click", function () {
+    var open = this.getAttribute("aria-expanded") !== "true";
+    this.setAttribute("aria-expanded", String(open));
+    $("acc1").classList.toggle("is-open", open);
+  });
+  var panels = ["2 счёта · 248 500 ₸", "3 карты · основная •• 4417", "1 цель · «Отпуск» 62%"];
+  var tabsEl = $("tabs");
+  tabsEl.onTabChange = function (tab) { fx.swap($("tabPanel"), panels[Array.prototype.indexOf.call(tabsEl.querySelectorAll("[role=tab]"), tab)]); };
+  fx.tabs(tabsEl);
+
+  /* Скелетон */
+  $("skBtn").addEventListener("click", function () {
+    var sk = $("skeleton"), p = $("person");
+    if (!p.hidden) { p.hidden = true; sk.hidden = false; this.textContent = "Загрузить"; return; }
+    var b = this; b.disabled = true;
+    setTimeout(function () { sk.hidden = true; p.hidden = false; b.disabled = false; b.textContent = "Показать скелетон"; }, 1500);
+  });
+
+  /* Прогресс и счётчик */
+  var saved = 0, goal = 300000;
+  $("kpiBtn").addEventListener("click", function () {
+    var from = saved; saved = Math.min(goal, saved + 50000);
+    fx.countUp($("kpi"), saved, { from: from });
+    var p = saved / goal; $("prog").firstElementChild.style.setProperty("--p", p); $("prog").setAttribute("aria-valuenow", Math.round(p * 100));
+    if (saved >= goal) { this.disabled = true; this.textContent = "Цель достигнута"; }
+  });
+
+  /* Каскад */
+  $("staggerBtn").addEventListener("click", function () { fx.stagger($("staggerList")); });
+  fx.stagger($("staggerList"));
+
+  /* Внимание */
+  var n = 3;
+  $("notifyBtn").addEventListener("click", function () {
+    n++; fx.ring($("bellBtn"), $("badge"), n);
+    $("bellBtn").setAttribute("aria-label", "Уведомления: " + n + " новых");
+  });
+  $("bellBtn").addEventListener("click", function () {
+    n = 0; $("badge").hidden = true; this.setAttribute("aria-label", "Уведомления: новых нет"); fx.toast("Все уведомления прочитаны");
+  });
+  $("glintBtn").addEventListener("click", function () { fx.once($("premium"), "is-glinting", 1500); });
+  fx.once($("premium"), "is-glinting", 1500);
+  $("confettiBtn").addEventListener("click", function () {
+    var r = this.getBoundingClientRect(); fx.confetti(r.left + r.width / 2, r.top);
+    fx.announce("Поздравляем, цель достигнута");
+  });
+
+
+  /* Вход страницы и данные */
+  fx.sequence(".fx-enter");
+  fx.countAll("#bars [data-count]");
+  $("replayBars").addEventListener("click", function () {
+    var bars = document.querySelectorAll("#bars .fx-draw-x");
+    bars.forEach(function (b) { b.style.animation = "none"; void b.offsetWidth; b.style.animation = ""; });
+    fx.countAll("#bars [data-count]");
+  });
+  /* Тема с круговым раскрытием */
+  $("themeBtn").addEventListener("click", function (e) {
+    var dark = root.getAttribute("data-theme") ? root.getAttribute("data-theme") === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    fx.themeSwitch(function () { root.setAttribute("data-theme", dark ? "light" : "dark"); }, e);
+  });
+  /* FLIP-сортировка */
+  var flipList = $("flipList"), allItems = Array.prototype.slice.call(flipList.children), onlyIn = false, sortBy = null;
+  function renderList() {
+    var items = allItems.filter(function (li) { return !onlyIn || +li.dataset.v > 0; });
+    if (sortBy === "v") items.sort(function (a, b) { return +b.dataset.v - +a.dataset.v; });
+    if (sortBy === "n") items.sort(function (a, b) { return a.dataset.n.localeCompare(b.dataset.n, "ru"); });
+    fx.flip(flipList, function () { flipList.innerHTML = ""; items.forEach(function (li) { flipList.appendChild(li); }); });
+  }
+  $("sortAmount").addEventListener("click", function () { sortBy = "v"; renderList(); });
+  $("sortName").addEventListener("click", function () { sortBy = "n"; renderList(); });
+  $("filterIn").addEventListener("click", function () { onlyIn = !onlyIn; this.textContent = onlyIn ? "Все операции" : "Только доходы"; renderList(); });
+
+  /* ---------- Игра ---------- */
+  var arena = $("arena"), scene = $("scene"), layer = $("fxLayer"), dummy = $("dummy"), dwrap = $("dummyWrap"), hero = $("hero");
+  var hp = 100, combo = 0, comboTimer, coins = 120, xp = 0.2, level = 1, ult = 0, shieldOn = false, frozen = false, dashing = false, busy = false;
+  var shaker = fx.trauma(scene, { maxOffset: 16, maxAngle: 3, decay: 1.4 });
+  var R = function (min, max) { return min + Math.floor(Math.random() * (max - min + 1)); };
+
+  function local(el) {   /* центр элемента в координатах слоя эффектов и окна */
+    var a = layer.getBoundingClientRect(), r = el.getBoundingClientRect();
+    return { x: r.left - a.left + r.width / 2, y: r.top - a.top + r.height / 2, top: r.top - a.top, bottom: r.bottom - a.top,
+             left: r.left - a.left, right: r.right - a.left, gx: r.left + r.width / 2, gy: r.top + r.height / 2, w: r.width, h: r.height };
+  }
+  function number(text, kind, opts) {
+    var p = local(dummy); opts = opts || {};
+    fx.damageNumber(layer, p.x + (opts.dx || 0), p.top + 6, 0, { text: text, kind: kind, crit: opts.crit, heal: opts.heal });
+  }
+  function updateHp() {
+    fx.health($("hp"), hp / 100);
+    $("hpText").textContent = hp + " / 100";
+    $("vignette").classList.toggle("is-low", hp > 0 && hp <= 30);
+  }
+  function addUlt(v) {
+    ult = Math.min(100, ult + v);
+    $("ultFill").style.setProperty("--ult", ult / 100);
+    $("ultText").textContent = Math.round(ult) + "%";
+    var ready = ult >= 100;
+    if (ready && $("ultBtn").disabled) { fx.announce("Ульта готова"); fx.punch($("ultBox"), 1.2, 220); }
+    $("ultBox").classList.toggle("is-ready", ready);
+    $("ultBtn").disabled = !ready;
+  }
+  function bumpCombo() {
+    combo++; clearTimeout(comboTimer);
+    $("combo").innerHTML = combo > 1 ? combo + " <small>комбо</small>" : "";
+    if (combo > 1) fx.punch($("combo"), 1.3, 120);
+    comboTimer = setTimeout(function () { combo = 0; $("combo").textContent = ""; }, 1500);
+  }
+  function status(kind, label, ms) {
+    var box = $("statuses"), old = box.querySelector(".st." + kind); if (old) old.remove();
+    var s = document.createElement("span"); s.className = "st " + kind; s.innerHTML = label + "<i></i>";
+    s.style.setProperty("--dur", ms + "ms"); box.appendChild(s);
+    setTimeout(function () { s.remove(); }, ms);
+  }
+  function hitSparks(p, opts) {
+    fx.burst(p.gx - p.w * 0.3, p.gy - 6, { count: opts.count, colors: opts.colors, speed: opts.speed, life: opts.life, size: opts.size, shape: "spark", spread: opts.spread || 120, angle: opts.angle == null ? 180 : opts.angle, drag: .9 });
+  }
+  function absorbedByShield() {
+    if (!shieldOn) return false;
+    shieldOn = false;
+    var sh = $("shield"), p = local(dwrap);
+    sh.classList.remove("is-on");
+    fx.wave(layer, p.x, p.y, { color: "rgb(140 210 255 / .9)", size: 170, width: 3, ms: 420 });
+    fx.burst(p.gx, p.gy, { count: 22, colors: ["#bfe6ff", "#8fd0ff", "#ffffff"], speed: 5.5, life: 520, size: 6, shape: "rect", gravity: .15 });
+    number("Поглощено", "shield");
+    fx.hitstop(70, [dwrap]); fx.jitter(dwrap, 70, 2);
+    shaker.add(.2);
+    var st = $("statuses").querySelector(".st.shield"); if (st) st.remove();
+    return true;
+  }
+
+  /* Удар: вспышка → хитстоп с дрожью → сжатие и отброс → искры → цифра → маленькая волна → тряска */
+  function hit(dmg, crit) {
+    if (busy) return;
+    if (absorbedByShield()) return;
+    if (frozen) { shatter(); dmg = Math.round(dmg * 1.5); }
+    hp = Math.max(0, hp - dmg);
+    var p = local(dummy);
+    fx.hitFlash(dummy);
+    if (crit) {
+      fx.hitstop(130, [dwrap]); fx.jitter(dwrap, 130, 5);
+      fx.zoom(scene, 1.07, 320);
+      fx.lines(layer, p.x - p.w * 0.2, p.y - 6, { color: "#ffd27a", count: 16, len: 80, ms: 260 });
+      fx.wave(layer, p.x, p.y, { color: "rgb(255 170 70 / .95)", size: 220, width: 4, ms: 520 });
+      fx.wave(layer, p.x, p.bottom - 4, { color: "rgb(255 210 120 / .7)", size: 180, width: 3, ms: 600, squash: .25 });
+      hitSparks(p, { count: 26, colors: ["#fff", "#ffd27a", "#ff9a3c"], speed: 8, life: 480, size: 9, spread: 200 });
+      fx.burst(p.gx, p.gy, { count: 14, colors: ["#ffb347", "#ff7a2f"], speed: 3, life: 900, size: 4, gravity: -.04, angle: -90, spread: 120 });
+      fx.flash($("screenFlash"), "rgb(255 190 90)", .28, 220);
+      fx.stamp($("stampLayer"), "КРИТ!");
+      dummy.animate && !fx.reduced() && dummy.animate([{ filter: "drop-shadow(4px 0 0 rgb(255 0 80 / .75)) drop-shadow(-4px 0 0 rgb(0 210 255 / .75))" }, { filter: "none" }], { duration: 160, delay: 130 });
+      setTimeout(function () { fx.slowmo(.3, 320, [dwrap]); }, 130);
+      knock(18, 130);
+      shaker.add(.6);
+      number(String(dmg), null, { crit: true });
+      addUlt(18);
+    } else {
+      fx.hitstop(50, [dwrap]); fx.jitter(dwrap, 50, 3);
+      fx.wave(layer, p.x - p.w * 0.35, p.y - 4, { color: "rgb(255 255 255 / .8)", size: 70, width: 2, ms: 260 });
+      hitSparks(p, { count: 10, colors: ["#fff", "#ffd9a8"], speed: 5, life: 280, size: 6 });
+      knock(8, 50);
+      shaker.add(.25);
+      number(String(dmg));
+      addUlt(8);
+    }
+    bumpCombo();
+    updateHp();
+    if (hp === 0) setTimeout(defeat, crit ? 450 : 250);
+  }
+  function knock(px, delay) {
+    if (fx.reduced() || !dwrap.animate) return;
+    dwrap.animate([{ transform: "translateX(0)" }, { transform: "translateX(" + px + "px) scale(1.08,.92)", offset: .3 }, { transform: "translateX(0)" }],
+      { duration: 320, delay: delay || 0, easing: "cubic-bezier(.2,0,0,1)" });
+  }
+
+  /* Добивание: кадр удара (1 вспышка) → долгий хитстоп → замедление → растворение → победа → возрождение */
+  function defeat() {
+    if (busy) return; busy = true;
+    var p = local(dummy);
+    if (!fx.reduced()) scene.animate([{ filter: "grayscale(1) contrast(3) invert(1)" }, { filter: "none" }], { duration: 50, easing: "steps(1,end)" });
+    fx.hitstop(200, [dwrap]); fx.jitter(dwrap, 200, 6);
+    setTimeout(function () {
+      fx.slowmo(.25, 600, [dwrap]);
+      fx.zoom(scene, 1.1, 700);
+      fx.wave(layer, p.x, p.y, { color: "rgb(255 120 60 / .95)", size: 280, width: 5, ms: 700 });
+      fx.burst(p.gx, p.gy, { count: 60, colors: ["#e5a15b", "#b86d2e", "#ffd27a", "#fff"], speed: 6, life: 1100, size: 7, gravity: -.03, spread: 360 });
+      shaker.add(.7);
+      dummy.classList.add("is-dead");
+      fx.stamp($("stampLayer"), "ПОБЕДА", { color: "#9ff0b8", shadow: "0 3px 0 #0f4d2a, 0 0 18px rgb(120 240 170 / .5)" });
+      fx.flyTo(p.gx, p.gy, $("coins"), { count: 8, onEach: function () { coins += 5; $("coins").textContent = coins; fx.punch($("coins"), 1.2, 140); } });
+      gainXp(.35);
+    }, 200);
+    setTimeout(respawn, 1700);
+  }
+  function respawn() {
+    hp = 100; updateHp();
+    dummy.classList.remove("is-dead", "is-poisoned", "is-burning", "is-frozen", "is-stunned");
+    var land = function () {
+      var p = local(dummy);
+      fx.burst(p.gx, p.gy + p.h / 2, { count: 12, colors: ["#6b7684", "#8b95a4"], speed: 3, life: 450, size: 6, angle: -90, spread: 160, gravity: .05 });
+      fx.wave(layer, p.x, p.bottom, { color: "rgb(200 210 220 / .6)", size: 140, width: 2, ms: 420, squash: .25 });
+      shaker.add(.25); busy = false;
+    };
+    if (fx.reduced() || !dwrap.animate) { land(); return; }
+    var a = dwrap.animate([{ transform: "translateY(-220px)" }, { transform: "translateY(0)", offset: .78 }, { transform: "translateY(0) scale(1.25,.75)", offset: .88 }, { transform: "translateY(0) scale(1)" }],
+      { duration: 620, easing: "cubic-bezier(.5,0,.75,0)" });
+    setTimeout(land, 480);
+  }
+
+  /* Лечение: зелёный оттенок со свечением → кольцо у ног → искры вверх → «+25» → полоса здоровья с зелёным призраком */
+  $("healBtn").addEventListener("click", function () {
+    if (busy) return;
+    var amount = Math.min(25, 100 - hp);
+    var p = local(dummy);
+    fx.tint(dummy, "#3dd68c", 650);
+    fx.wave(layer, p.x, p.bottom - 2, { color: "rgb(90 230 150 / .9)", size: 150, width: 3, ms: 600, squash: .3 });
+    fx.wave(layer, p.x, p.y, { color: "rgb(90 230 150 / .6)", size: 120, width: 2, ms: 520 });
+    fx.burst(p.gx, p.gy + 20, { count: 18, colors: ["#7be3a8", "#c8f7da", "#3dd68c"], speed: 2.6, life: 1000, size: 6, gravity: -.06, angle: -90, spread: 70 });
+    if (!fx.reduced() && dummy.animate) dummy.animate([{ scale: "1" }, { scale: "1.07", offset: .3 }, { scale: "1" }], { duration: 420, easing: "cubic-bezier(.34,1.56,.64,1)" });
+    if (amount) {
+      var ghost = $("hp").querySelector(".fx-hp-ghost"); ghost.style.background = "#7be3a8";
+      hp += amount; updateHp();
+      setTimeout(function () { ghost.style.background = ""; }, 900);
+      number("+" + amount, null, { heal: true });
+    } else number("Макс.", "shield");
+  });
+
+  /* Щит: пузырь появляется с отскоком; следующий удар поглощён и щит разбивается */
+  $("shieldBtn").addEventListener("click", function () {
+    if (busy || shieldOn) return;
+    shieldOn = true; $("shield").classList.add("is-on");
+    var p = local(dwrap);
+    fx.wave(layer, p.x, p.y, { color: "rgb(140 210 255 / .8)", size: 150, width: 2, ms: 420 });
+    status("shield", "Щит", 8000);
+    setTimeout(function () { if (shieldOn) { shieldOn = false; $("shield").classList.remove("is-on"); } }, 8000);
+  });
+
+  /* Блок: искры от «металла», короткий хитстоп с дрожью, урона нет */
+  $("blockBtn").addEventListener("click", function () {
+    if (busy) return;
+    var p = local(dummy);
+    fx.hitstop(70, [dwrap]); fx.jitter(dwrap, 70, 2);
+    hitSparks(p, { count: 16, colors: ["#ffffff", "#fff3b0", "#ffe066"], speed: 7, life: 260, size: 7, spread: 90 });
+    fx.wave(layer, p.x - p.w * 0.45, p.y, { color: "rgb(255 240 170 / .9)", size: 60, width: 2, ms: 220 });
+    number("Блок", "block");
+    shaker.add(.15);
+  });
+
+  /* Промах: манекен уходит в сторону с остаточными изображениями */
+  $("missBtn").addEventListener("click", function () {
+    if (busy) return;
+    number("Промах", "miss", { dx: -20 });
+    if (fx.reduced() || !dwrap.animate) return;
+    dwrap.animate([{ transform: "translateX(0)" }, { transform: "translateX(34px) skewX(-8deg)", offset: .35 }, { transform: "translateX(34px)", offset: .6 }, { transform: "translateX(0)" }], { duration: 520, easing: "cubic-bezier(.2,0,0,1)" });
+    [0, 40, 80, 120].forEach(function (t) { setTimeout(function () { fx.afterimage(dummy, layer, { ms: 300, alpha: .35 }); }, t); });
+  });
+
+  /* Статусы с тиками урона */
+  function dot(kind, label, color, numKind, ticks, every, dmg, cls, emit) {
+    if (busy) return;
+    dummy.classList.add(cls); status(kind, label, ticks * every);
+    fx.tint(dummy, color, 500);
+    for (var i = 1; i <= ticks; i++) (function (i) {
+      setTimeout(function () {
+        if (busy) return;
+        if (!absorbedByShield()) { hp = Math.max(1, hp - dmg); updateHp(); number("−" + dmg, numKind, { dx: (i % 2 ? -14 : 14) }); }
+        emit(); if (i === ticks) dummy.classList.remove(cls);
+      }, i * every);
+    })(i);
+  }
+  $("poisonBtn").addEventListener("click", function () {
+    dot("poison", "Яд", "#9be15d", "poison", 4, 650, 3, "is-poisoned", function () {
+      var p = local(dummy);
+      fx.burst(p.gx, p.gy + 10, { count: 7, colors: ["#b6f07a", "#7fc94a", "#d7ffb0"], speed: 1.6, life: 900, size: 7, gravity: -.04, angle: -90, spread: 60 });
+    });
+  });
+  $("burnBtn").addEventListener("click", function () {
+    dot("burn", "Горение", "#ff8a3c", "burn", 4, 600, 4, "is-burning", function () {
+      var p = local(dummy);
+      fx.burst(p.gx, p.gy + 20, { count: 10, colors: ["#ffd27a", "#ff9a3c", "#ff5a2a"], speed: 2.4, life: 700, size: 5, gravity: -.08, angle: -90, spread: 50 });
+    });
+  });
+  function shatter() {
+    frozen = false; dummy.classList.remove("is-frozen");
+    var p = local(dummy);
+    fx.burst(p.gx, p.gy, { count: 26, colors: ["#e6f6ff", "#9fd8ff", "#ffffff"], speed: 6, life: 600, size: 7, shape: "rect", gravity: .2 });
+    fx.wave(layer, p.x, p.y, { color: "rgb(180 225 255 / .9)", size: 160, width: 3, ms: 380 });
+    number("Раскол", "shield"); shaker.add(.3);
+    var st = $("statuses").querySelector(".st.freeze"); if (st) st.remove();
+    dwrap.getAnimations && dwrap.getAnimations({ subtree: true }).forEach(function (a) { try { a.play(); } catch (e) {} });
+  }
+  $("freezeBtn").addEventListener("click", function () {
+    if (busy || frozen) return;
+    frozen = true; dummy.classList.add("is-frozen"); status("freeze", "Заморозка", 2600);
+    var p = local(dummy);
+    fx.tint(dummy, "#9fd8ff", 500);
+    fx.burst(p.gx, p.gy, { count: 14, colors: ["#e6f6ff", "#9fd8ff"], speed: 2, life: 700, size: 4, spread: 360 });
+    dummy.getAnimations().forEach(function (a) { try { a.pause(); } catch (e) {} });
+    setTimeout(function () { if (frozen) shatter(); }, 2600);
+  });
+  $("stunBtn").addEventListener("click", function () {
+    if (busy) return;
+    dummy.classList.add("is-stunned"); $("stun").classList.add("is-on"); status("stun", "Оглушение", 2200);
+    var p = local(dummy);
+    fx.wave(layer, p.x, p.top, { color: "rgb(255 224 102 / .9)", size: 70, width: 2, ms: 360 });
+    fx.punch($("stun"), 1.4, 220);
+    setTimeout(function () { dummy.classList.remove("is-stunned"); $("stun").classList.remove("is-on"); }, 2200);
+  });
+
+  /* Замах врага: телеграф (знак опасности, свечение, круг на полу заполняется) → удар по герою; рывок в последний момент — уклонение */
+  var aoeTimer;
+  $("telegraphBtn").addEventListener("click", function () {
+    if (busy) return; busy = true;
+    var aoe = $("aoe"), danger = $("danger"), T = 1100, t0 = performance.now();
+    aoe.classList.add("is-on"); danger.classList.add("is-on"); dummy.classList.add("is-telegraph");
+    var wind = (!fx.reduced() && dummy.animate) ? dummy.animate([{ scale: "1" }, { scale: "1.12 .94" }], { duration: T, easing: "cubic-bezier(.5,0,1,1)", fill: "forwards" }) : null;
+    (function fill(now) {
+      var k = Math.min(1, (now - t0) / T); aoe.style.setProperty("--fill", k);
+      if (k < 1) aoeTimer = requestAnimationFrame(fill);
+    })(t0);
+    setTimeout(function () {
+      aoe.classList.remove("is-on"); danger.classList.remove("is-on"); dummy.classList.remove("is-telegraph");
+      if (wind) wind.cancel();
+      var h = local(hero);
+      if (dashing) {
+        fx.slowmo(.35, 350, [hero]);
+        fx.damageNumber(layer, h.x, h.top - 4, 0, { text: "Увернулся!", kind: "xp" });
+        fx.wave(layer, h.x, h.y, { color: "rgb(255 210 120 / .8)", size: 110, width: 2, ms: 400 });
+        gainXp(.1);
+      } else {
+        fx.tint(hero, "#ff5a4a", 420); fx.hitFlash(hero);
+        fx.wave(layer, h.x, h.bottom - 2, { color: "rgb(255 120 60 / .9)", size: 170, width: 4, ms: 480, squash: .3 });
+        fx.burst(h.gx, h.gy, { count: 14, colors: ["#ff9a3c", "#fff"], speed: 5, life: 400, size: 6, shape: "spark", spread: 140, angle: 200 });
+        fx.flash($("screenFlash"), "rgb(255 80 60)", .18, 260);
+        if (!fx.reduced() && hero.animate) hero.animate([{ transform: "translateX(0)" }, { transform: "translateX(-16px)", offset: .3 }, { transform: "translateX(0)" }], { duration: 360, easing: "cubic-bezier(.2,0,0,1)" });
+        shaker.add(.45);
+        fx.damageNumber(layer, h.x, h.top - 4, 0, { text: "−18", kind: "burn" });
+      }
+      busy = false;
+    }, T);
+  });
+
+  /* Рывок героя: смаз + остаточные изображения + пыль; во время рывка можно увернуться от замаха */
+  $("dashBtn").addEventListener("click", function () {
+    if (dashing) return; dashing = true;
+    var h = local(hero);
+    fx.burst(h.gx - 10, h.gy + h.h / 2, { count: 10, colors: ["#6b7684", "#8b95a4"], speed: 2.5, life: 420, size: 6, angle: -150, spread: 60, gravity: .05 });
+    if (!fx.reduced() && hero.animate) {
+      hero.animate([{ transform: "translateX(0)" }, { transform: "translateX(70px) scaleX(1.5) scaleY(.85)", offset: .3 }, { transform: "translateX(70px)", offset: .55 }, { transform: "translateX(0)" }], { duration: 560, easing: "cubic-bezier(.2,0,0,1)" });
+      [30, 70, 110, 150].forEach(function (t) { setTimeout(function () { fx.afterimage(hero, layer, { ms: 280, alpha: .4 }); }, t); });
+    }
+    setTimeout(function () { dashing = false; }, 420);
+  });
+  $("jumpBtn").addEventListener("click", function () {
+    fx.squashJump(hero, 54);
+    setTimeout(function () {
+      var h = local(hero);
+      fx.burst(h.gx, h.gy + h.h / 2, { count: 8, colors: ["#6b7684", "#8b95a4"], speed: 2.2, life: 380, size: 5, angle: -90, spread: 170, gravity: .06 });
+    }, fx.reduced() ? 0 : 510);
+  });
+
+  /* Уровень: полоса опыта заполняется → световой столб → кольцо → искры → штамп */
+  function gainXp(v) {
+    xp += v;
+    if (xp >= 1) {
+      $("xpFill").style.setProperty("--xp", 1);
+      setTimeout(function () {
+        xp -= 1; level++;
+        $("lvlText").textContent = "Ур. " + level; fx.punch($("lvlText"), 1.4, 260);
+        $("xpFill").style.setProperty("--xp", xp);
+        var h = local(hero);
+        fx.beam(layer, h.x, { width: 60, ms: 1000 });
+        fx.wave(layer, h.x, h.bottom - 2, { color: "rgb(255 215 120 / .9)", size: 160, width: 3, ms: 600, squash: .3 });
+        fx.burst(h.gx, h.gy + 10, { count: 22, colors: ["#ffd27a", "#fff3c4", "#ffb347"], speed: 3, life: 1000, size: 5, gravity: -.05, angle: -90, spread: 90 });
+        fx.stamp($("stampLayer"), "УРОВЕНЬ " + level + "!");
+        fx.announce("Новый уровень: " + level);
+      }, 520);
+    } else $("xpFill").style.setProperty("--xp", xp);
+  }
+  $("lvlBtn").addEventListener("click", function () { gainXp(1 - xp + .05); });
+
+  /* Монеты летят по дуге к счётчику, каждая прибавляет и «пингует» */
+  $("coinBtn").addEventListener("click", function () {
+    var p = local(dummy);
+    fx.flyTo(p.gx, p.gy, $("coins"), { count: 7, onEach: function () { coins += 5; $("coins").textContent = coins; fx.punch($("coins"), 1.2, 140); } });
+  });
+
+  /* Огненный шар: снаряд с хвостом → попадание → горение; кнопка уходит в перезарядку с сектором и цифрами */
+  var fireReady = true;
+  $("fireBtn").addEventListener("click", function () {
+    if (!fireReady || busy) return; fireReady = false;
+    var h = local(hero), d = local(dummy), b = document.createElement("span");
+    b.className = "fx-ghost"; b.style.cssText = "position:absolute;width:18px;height:18px;border-radius:50%;opacity:1;background:radial-gradient(circle,#fff6c8,#ffb347 45%,#ff6a2a);box-shadow:0 0 14px #ff9a3c;left:" + (h.x - 9) + "px;top:" + (h.y - 9) + "px";
+    layer.appendChild(b);
+    var impact = function () {
+      b.remove();
+      fx.wave(layer, d.x, d.y, { color: "rgb(255 150 60 / .95)", size: 150, width: 3, ms: 420 });
+      fx.burst(d.gx, d.gy, { count: 20, colors: ["#ffd27a", "#ff9a3c", "#ff5a2a"], speed: 5, life: 500, size: 6, spread: 360 });
+      hit(R(10, 14), false);
+      $("burnBtn").click();
+    };
+    if (fx.reduced() || !b.animate) impact();
+    else {
+      var trail = setInterval(function () { fx.afterimage(b, layer, { ms: 220, alpha: .5 }); }, 30);
+      b.animate([{ transform: "translate(0,0)" }, { transform: "translate(" + (d.x - h.x) / 2 + "px,-36px)", offset: .5 }, { transform: "translate(" + (d.x - h.x) + "px," + (d.y - h.y) + "px)" }], { duration: 380, easing: "ease-in" })
+        .onfinish = function () { clearInterval(trail); impact(); };
+    }
+    var cd = 3000, t0 = performance.now(), btn = $("fireBtn");
+    btn.setAttribute("aria-disabled", "true");
+    (function tick(now) {
+      var k = Math.min(1, (now - t0) / cd);
+      $("fireCd").style.setProperty("--cd", 1 - k);
+      $("fireCdN").textContent = k < 1 ? ((cd - (now - t0)) / 1000).toFixed(1) : "";
+      if (k < 1) requestAnimationFrame(tick);
+      else {
+        fireReady = true; btn.removeAttribute("aria-disabled");
+        fx.punch(btn, 1.12, 180); fx.once(btn, "is-glinting", 1500);
+        fx.announce("Огненный шар готов");
+      }
+    })(t0);
+  });
+
+  /* Ульта: копится от ударов; при 100% — столб, ударная волна и серия ударов с финальным критом */
+  $("ultBtn").addEventListener("click", function () {
+    if (ult < 100 || busy) return;
+    ult = 0; addUlt(0);
+    var h = local(hero);
+    fx.beam(layer, h.x, { width: 80, color: "rgb(210 166 255 / .9)", ms: 900 });
+    fx.wave(layer, h.x, h.y, { color: "rgb(210 166 255 / .95)", size: 320, width: 5, ms: 700 });
+    fx.flash($("screenFlash"), "rgb(200 150 255)", .25, 260);
+    fx.stamp($("stampLayer"), "УЛЬТА!", { color: "#e2c4ff", shadow: "0 3px 0 #3b1d63, 0 0 18px rgb(200 150 255 / .6)" });
+    shaker.add(.4);
+    [350, 520, 690, 860].forEach(function (t, i) { setTimeout(function () { hit(R(6, 9), false); }, t); });
+    setTimeout(function () { hit(R(26, 32), true); }, 1100);
+  });
+  $("killBtn").addEventListener("click", function () { if (busy) return; hit(Math.max(hp, 1), true); });
+  $("hitBtn").addEventListener("click", function () { hit(R(8, 12), false); });
+  $("critBtn").addEventListener("click", function () { hit(R(22, 29), true); });
+
+  $("pingBtn").addEventListener("click", function () { fx.once($("ping"), "is-pinging", 2200); });
+  var timerInt;
+  $("timerBtn").addEventListener("click", function () {
+    clearInterval(timerInt);
+    var t = 10, el = $("timer");
+    el.classList.add("is-warning"); el.textContent = "0:10";
+    timerInt = setInterval(function () {
+      t--; el.textContent = "0:" + String(t).padStart(2, "0");
+      if (t <= 3 && t > 0) fx.punch(el, 1.3, 200);
+      if (t <= 0) { clearInterval(timerInt); el.classList.remove("is-warning"); el.textContent = "0:30"; fx.stamp($("stampLayer"), "ВРЕМЯ!", { color: "#ff9a8e", shadow: "0 3px 0 #5a1010" }); }
+    }, 1000);
+  });
+  $("shakeRange").addEventListener("input", function () {
+    shaker.setIntensity(this.value / 100); $("shakeVal").textContent = this.value + "%";
+  });
+
+  /* Сундук */
+  /* Иконки — Lucide (ISC), вставлены через scripts/icon.py. Эмодзи не используем. */
+  var ITEMS = [["common", "Обычный", "<svg class=\"icon\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z\" /><path d=\"M12 22V12\" /><polyline points=\"3.29 7 12 12 20.71 7\" /><path d=\"m7.5 4.27 9 5.15\" /></svg>"], ["uncommon", "Необычный", "<svg class=\"icon\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2\" /><path d=\"M6.453 15h11.094\" /><path d=\"M8.5 2h7\" /></svg>"], ["rare", "Редкий", "<svg class=\"icon\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\" /></svg>"], ["legendary", "Легендарный", "<svg class=\"icon\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m13 19 6-6\" /><path d=\"M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5\" /><path d=\"m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586\" /><path d=\"m16 16 4 4\" /><path d=\"m19 21 2-2\" /><path d=\"m5 14 4 4\" /><path d=\"m5 21-2-2\" /><path d=\"M7.5 16.5 4 20\" /></svg>"]];
+  var chestTimers = [];
+  function renderSlot(it) {
+    var s = document.createElement("div");
+    s.className = "slot fx-rarity is-revealed";
+    s.dataset.rarity = it[0];
+    s.innerHTML = "<span><b aria-hidden=\"true\">" + it[2] + "</b>" + it[1] + "</span>";
+    return s;
+  }
+  function openChest(instant) {
+    chestTimers.forEach(clearTimeout); chestTimers = [];
+    var loot = $("loot"); loot.innerHTML = "";
+    var reduce = fx.reduced() || instant;
+    if (!reduce) shaker.add(0.2);
+    ITEMS.forEach(function (it, i) {
+      var delay = reduce ? 0 : 450 + i * 180 + (i === ITEMS.length - 1 ? 350 : 0);
+      chestTimers.push(setTimeout(function () {
+        var s = renderSlot(it); loot.appendChild(s);
+        if (!reduce) {
+          fx.punch(s, it[0] === "legendary" ? 1.25 : 1.12, 220);
+          if (it[0] === "legendary") {
+            var r = s.getBoundingClientRect();
+            fx.burst(r.left + r.width / 2, r.top + r.height / 2, { count: 18, colors: ["#f0a24b", "#ffe1a8"], speed: 4.5, life: 600, size: 5 });
+            shaker.add(0.3);
+          }
+        }
+      }, delay));
+    });
+    fx.announce("Сундук открыт: " + ITEMS.map(function (it) { return it[1]; }).join(", "));
+  }
+  $("chestBtn").addEventListener("click", function () { openChest(false); });
+  $("chestSkip").addEventListener("click", function () { openChest(true); });
+})();
+</script>
+</body>
+</html>

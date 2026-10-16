@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+/design/
+style-tiles.html
+tiles.html

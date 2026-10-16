@@ -1,0 +1,386 @@
+/* ui-design · библиотека эффектов (CSS)
+   Подключение: этот файл + effects.js. Цвета берутся из токенов палитры
+   (--accent, --danger, --success, --surface-2…), есть запасные значения.
+   Все движения работают только если пользователь не просил уменьшить движение
+   (prefers-reduced-motion) и на сайте не включён ручной режим <html data-motion="reduce">.
+   <html data-motion="full"> включает анимации вручную, даже если в системе стоит «уменьшить движение»
+   (блок в конце файла генерирует scripts/build_motion_override.py — после правок движения перезапусти его). */
+
+:root{
+  --fx-ease-out: cubic-bezier(.2,0,0,1);        /* M3 standard: вход и реакции */
+  --fx-ease-in: cubic-bezier(.3,0,1,1);         /* M3 standard-accelerate: уход */
+  --fx-ease-emph: cubic-bezier(.05,.7,.1,1);    /* M3 emphasized-decelerate: панели, шторки */
+  --fx-ease-back: cubic-bezier(.34,1.56,.64,1); /* лёгкий перелёт: «поп», награды */
+  --fx-fast: 120ms; --fx-base: 200ms; --fx-slow: 300ms;
+  --fx-accent: var(--accent, #067f95);
+  --fx-danger: var(--danger, #ce2c31);
+  --fx-success: var(--success, #218358);
+  --fx-skeleton: var(--surface-2, #eef0f3);
+  --fx-shimmer: rgb(255 255 255 / .55);
+}
+
+/* ---------- Статичные состояния (работают и при уменьшенном движении) ---------- */
+
+.fx-field-error{
+  border-color: var(--fx-danger) !important;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--fx-danger) 22%, transparent);
+}
+.fx-check circle, .fx-check path{ stroke-dasharray: 1; stroke-dashoffset: 1; }
+.fx-check.is-on circle, .fx-check.is-on path{ stroke-dashoffset: 0; }
+
+.fx-btn-loading{ position: relative; color: transparent !important; pointer-events: none; }
+.fx-btn-loading::after{
+  content: ""; position: absolute; inset: 0; margin: auto; width: 1.1em; height: 1.1em;
+  border-radius: 50%; border: 2px solid var(--fx-spinner, #fff); border-right-color: transparent;
+}
+
+.fx-skeleton{ background: var(--fx-skeleton); border-radius: 6px; position: relative; overflow: hidden; }
+
+.fx-collapse{ display: grid; grid-template-rows: 0fr; }
+.fx-collapse.is-open{ grid-template-rows: 1fr; }
+.fx-collapse > *{ overflow: hidden; min-height: 0; }
+
+.fx-tabs{ position: relative; }
+.fx-tabs-ind{
+  position: absolute; left: 0; bottom: 0; height: 2px; width: 1px; border-radius: 2px;
+  background: var(--fx-accent); transform-origin: left;
+  transform: translateX(var(--x, 0px)) scaleX(var(--w, 0));
+}
+
+dialog.fx-dialog::backdrop{ background: rgb(0 0 0 / .4); }
+
+.fx-toasts{
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.fx-toast{ pointer-events: auto; }
+.fx-toast[data-state="enter"], .fx-toast[data-state="exit"]{ opacity: 0; }
+
+.fx-scroll-progress{
+  position: fixed; inset: 0 0 auto; height: 3px; z-index: 60; background: var(--fx-accent);
+  transform-origin: left; transform: scaleX(0); pointer-events: none;
+}
+
+.fx-glint{ overflow: hidden; isolation: isolate; }
+.fx-glint::after{
+  content: ""; position: absolute; inset: 0; pointer-events: none; transform: translateX(-120%);
+  background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / .55) 50%, transparent 65%);
+}
+
+/* Игровые элементы */
+.fx-hp{ position: relative; height: 12px; border-radius: 6px; overflow: hidden; background: rgb(0 0 0 / .35); }
+.fx-hp-ghost, .fx-hp-fill{ position: absolute; inset: 0; transform-origin: left; }
+.fx-hp-ghost{ background: #f2d29b; transform: scaleX(var(--ghost, 1)); }
+.fx-hp-fill{ background: var(--fx-hp, #3dd68c); transform: scaleX(var(--hp, 1)); }
+.fx-dmg{
+  position: absolute; left: 0; top: 0; pointer-events: none; font-weight: 800; white-space: nowrap;
+  color: #fff; font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 0 #000, 1px 0 0 #000, -1px 0 0 #000, 0 -1px 0 #000, 0 2px 6px rgb(0 0 0 / .5);
+}
+.fx-dmg.is-crit{ color: #ffc56b; font-size: 1.45em; }
+.fx-dmg.is-heal{ color: #7be3a8; }
+.fx-vignette{
+  position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgb(210 40 40 / .5));
+}
+.fx-vignette.is-low{ opacity: .7; }
+.fx-rarity{ --r: #9aa0a6; box-shadow: 0 0 0 2px var(--r); }
+.fx-rarity[data-rarity="uncommon"]{ --r: #5fbf72; }
+.fx-rarity[data-rarity="rare"]{ --r: #5b9be6; }
+.fx-rarity[data-rarity="epic"]{ --r: #b07ae6; }
+.fx-rarity[data-rarity="legendary"]{ --r: #f0a24b; }
+
+/* Псевдоэлементу-кольцу нужен позиционированный родитель; :where() не перебивает position: absolute */
+:where(.fx-pulse, .fx-ping, .fx-lift, .fx-glint){ position: relative; }
+
+/* ---------- Движение: только при no-preference и без ручного «reduce» ---------- */
+@media (prefers-reduced-motion: no-preference){
+  :root:not([data-motion="reduce"]) .fx-press{ transition: transform var(--fx-fast) var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .fx-press:active{ transform: scale(.97); }
+
+  /* ТОЛЬКО ПО ЗАПРОСУ: подъём карточки при наведении. По умолчанию не используется. */
+  @media (hover: hover){
+    :root:not([data-motion="reduce"]) .fx-lift{ transition: transform var(--fx-base) var(--fx-ease-out); }
+    :root:not([data-motion="reduce"]) .fx-lift::after{
+      content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+      box-shadow: 0 14px 32px -14px rgb(0 0 0 / .28); transition: opacity var(--fx-base) var(--fx-ease-out);
+    }
+    :root:not([data-motion="reduce"]) .fx-lift:hover{ transform: translateY(-3px); }
+    :root:not([data-motion="reduce"]) .fx-lift:hover::after{ opacity: 1; }
+  }
+
+  :root:not([data-motion="reduce"]) .fx-field-error{ transition: border-color 150ms, box-shadow 150ms; }
+
+  :root:not([data-motion="reduce"]) .fx-check.is-on circle{ stroke-dashoffset: 1; animation: fx-draw 350ms var(--fx-ease-out) forwards; }
+  :root:not([data-motion="reduce"]) .fx-check.is-on path{ stroke-dashoffset: 1; animation: fx-draw 250ms var(--fx-ease-out) 300ms forwards; }
+
+  :root:not([data-motion="reduce"]) .fx-btn-success{ transition: background-color 200ms var(--fx-ease-out), border-color 200ms var(--fx-ease-out), color 200ms var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .fx-btn-success .fx-btn-check{ stroke-dashoffset: 1; animation: fx-draw 280ms var(--fx-ease-out) 80ms forwards, fx-pop 380ms var(--fx-ease-back) 80ms; }
+  :root:not([data-motion="reduce"]) .fx-btn-loading::after{ animation: fx-spin .8s linear infinite; }
+
+  :root:not([data-motion="reduce"]) .fx-skeleton::after{
+    content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, var(--fx-shimmer), transparent);
+    animation: fx-shimmer 1.4s linear infinite;
+  }
+
+  :root:not([data-motion="reduce"]) .fx-collapse{ transition: grid-template-rows 250ms var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .fx-tabs-ind{ transition: transform 250ms var(--fx-ease-out); }
+
+  :root:not([data-motion="reduce"]) dialog.fx-dialog{
+    opacity: 0; scale: .96;
+    transition: opacity .2s var(--fx-ease-out), scale .2s var(--fx-ease-out), overlay .2s allow-discrete, display .2s allow-discrete;
+  }
+  :root:not([data-motion="reduce"]) dialog.fx-dialog[open]{ opacity: 1; scale: 1; }
+  @starting-style{ :root:not([data-motion="reduce"]) dialog.fx-dialog[open]{ opacity: 0; scale: .96; } }
+
+  :root:not([data-motion="reduce"]) .fx-toast{ transition: opacity 300ms var(--fx-ease-out), transform 300ms var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .fx-toast[data-state="enter"],
+  :root:not([data-motion="reduce"]) .fx-toast[data-state="exit"]{ transform: translateY(12px); }
+
+  :root:not([data-motion="reduce"]) .fx-stagger > *{ animation: fx-rise 300ms var(--fx-ease-out) both; animation-delay: calc(min(var(--i, 0), 7) * 40ms); }
+
+  @supports (animation-timeline: view()){
+    :root:not([data-motion="reduce"]) .fx-reveal{ animation: fx-rise-far linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+  }
+
+  :root:not([data-motion="reduce"]) .fx-pulse.is-pulsing::after{
+    content: ""; position: absolute; inset: 0; border-radius: inherit; background: inherit;
+    animation: fx-ring 600ms var(--fx-ease-out) 3;
+  }
+
+  :root:not([data-motion="reduce"]) .fx-glint.is-glinting::after{ animation: fx-sweep 700ms ease-in-out 2; }
+
+  :root:not([data-motion="reduce"]) .fx-pop{ animation: fx-pop 350ms var(--fx-ease-back); }
+
+  :root:not([data-motion="reduce"]) :where(.fx-focus):focus-visible{ animation: fx-focus-in 150ms var(--fx-ease-out); }
+
+  /* игровые */
+  :root:not([data-motion="reduce"]) .fx-hp-ghost{ transition: transform 400ms var(--fx-ease-out) 450ms; }
+  :root:not([data-motion="reduce"]) .fx-dmg{ animation: fx-dmg 900ms var(--fx-ease-out) forwards; }
+  :root:not([data-motion="reduce"]) .fx-vignette{ transition: opacity .3s var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .fx-vignette.is-low{ animation: fx-beat 1s ease-in-out infinite; }
+  :root:not([data-motion="reduce"]) .fx-rarity.is-revealed{ animation: fx-glow 1.8s ease-in-out infinite; }
+  :root:not([data-motion="reduce"]) .fx-timer.is-warning{ animation: fx-tick 1s var(--fx-ease-out) infinite; }
+  :root:not([data-motion="reduce"]) .fx-ping.is-pinging::after{
+    content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid currentColor;
+    animation: fx-ring 700ms var(--fx-ease-out) 3;
+  }
+}
+
+/* Базовые значения для режима без анимации */
+.fx-dmg{ transform: translate(-50%, -100%); }
+.fx-timer.is-warning{ color: var(--fx-danger); }
+
+@keyframes fx-draw{ to{ stroke-dashoffset: 0; } }
+@keyframes fx-spin{ to{ transform: rotate(1turn); } }
+@keyframes fx-shimmer{ to{ transform: translateX(100%); } }
+@keyframes fx-rise{ from{ opacity: 0; transform: translateY(8px); } }
+@keyframes fx-rise-far{ from{ opacity: 0; transform: translateY(24px); } }
+@keyframes fx-ring{ from{ transform: scale(1); opacity: .55; } to{ transform: scale(2.2); opacity: 0; } }
+@keyframes fx-sweep{ to{ transform: translateX(120%); } }
+@keyframes fx-pop{ 0%{ transform: scale(1); } 40%{ transform: scale(1.25); } 100%{ transform: scale(1); } }
+@keyframes fx-focus-in{ from{ outline-offset: 6px; } }
+@keyframes fx-dmg{
+  0%{ transform: translate(-50%, -100%) scale(1.35); opacity: 1; }
+  18%{ transform: translate(-50%, calc(-100% - 6px)) scale(1); opacity: 1; }
+  100%{ transform: translate(calc(-50% + var(--dx, 0px)), calc(-100% - 56px)) scale(1); opacity: 0; }
+}
+@keyframes fx-beat{ 50%{ opacity: 1; } }
+@keyframes fx-glow{ 50%{ box-shadow: 0 0 0 2px var(--r), 0 0 22px 2px color-mix(in oklch, var(--r) 60%, transparent); } }
+@keyframes fx-tick{ 0%{ transform: scale(1.12); } 35%, 100%{ transform: scale(1); } }
+
+/* =====================================================================
+   Слой движения по умолчанию: вход страницы, hover/press, данные, тема
+   ===================================================================== */
+
+/* Ссылки: подчёркнуты всегда, при наведении меняется только толщина/цвет — без анимации */
+.fx-link{ text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.fx-link:hover, .fx-link:focus-visible{ text-decoration-thickness: 2px; }
+
+/* Строки таблиц и списков: подсветка при наведении */
+.fx-row > *{ transition: background-color 150ms var(--fx-ease-out); }
+
+@media (prefers-reduced-motion: no-preference){
+  /* Хореография входа: CSS-only, fill: backwards — до старта элемент в начальной точке, после конца анимация
+     полностью отпускает свойства (hover и другие transform продолжают работать).
+     Порядок — --i (ставит fx.sequence()), шаг 60 мс, суммарная задержка ограничена. */
+  :root:not([data-motion="reduce"]) .fx-enter{
+    animation: fx-enter 600ms var(--fx-ease-emph) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+  }
+  :root:not([data-motion="reduce"]) .fx-enter-fade{
+    animation: fx-fade 500ms var(--fx-ease-out) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+  }
+
+  /* Кнопки: при наведении — только смена цвета (без движения); сжатие — на нажатие */
+  :root:not([data-motion="reduce"]) .fx-btn{ transition: transform 120ms var(--fx-ease-out), background-color 150ms var(--fx-ease-out), color 150ms var(--fx-ease-out), border-color 150ms var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .fx-btn:active{ transform: scale(.97); transition-duration: 60ms; }
+
+  /* ТОЛЬКО ПО ЗАПРОСУ: движение при наведении (.fx-lift, .fx-nudge). По умолчанию не используется. */
+  @media (hover: hover){
+    :root:not([data-motion="reduce"]) .fx-nudge svg{ transition: transform 200ms var(--fx-ease-out); }
+    :root:not([data-motion="reduce"]) .fx-nudge:hover svg{ transform: translateX(3px); }
+  }
+
+  /* Графики: полосы растут, точки появляются (свойства scale/opacity, не трогают transform/translate) */
+  :root:not([data-motion="reduce"]) .fx-draw-x{ transform-origin: left; animation: fx-scale-x 700ms var(--fx-ease-emph) backwards; animation-delay: calc(200ms + min(var(--i, 0), 15) * 35ms); }
+  :root:not([data-motion="reduce"]) .fx-draw-y{ transform-origin: bottom; animation: fx-scale-y 700ms var(--fx-ease-emph) backwards; animation-delay: calc(200ms + min(var(--i, 0), 15) * 35ms); }
+  :root:not([data-motion="reduce"]) .fx-dot-in{ animation: fx-dot-in 400ms var(--fx-ease-back) backwards; animation-delay: calc(450ms + min(var(--i, 0), 15) * 35ms); }
+
+  /* Круговое раскрытие при смене темы (fx.themeSwitch) */
+  :root:not([data-motion="reduce"])::view-transition-old(root){ animation: none; }
+  :root:not([data-motion="reduce"])::view-transition-new(root){ animation: fx-circle 550ms var(--fx-ease-out); }
+}
+
+@keyframes fx-enter{ from{ opacity: 0; transform: translateY(16px); } }
+@keyframes fx-fade{ from{ opacity: 0; } }
+@keyframes fx-scale-x{ from{ scale: 0 1; } }
+@keyframes fx-scale-y{ from{ scale: 1 0; } }
+@keyframes fx-dot-in{ from{ opacity: 0; scale: .4; } }
+@keyframes fx-circle{ from{ clip-path: circle(0 at var(--fx-x, 50%) var(--fx-y, 0)); } to{ clip-path: circle(150% at var(--fx-x, 50%) var(--fx-y, 0)); } }
+
+/* Колокольчик уведомлений: покачивание от верхней точки + «поп» бейджа */
+.fx-bell svg{ transform-origin: 50% 2px; }
+@media (prefers-reduced-motion: no-preference){
+  :root:not([data-motion="reduce"]) .fx-bell.is-ringing svg{ animation: fx-bell 800ms var(--fx-ease-out); }
+  :root:not([data-motion="reduce"]) .fx-bell.is-ringing .fx-bell-badge{ animation: fx-badge-pop 450ms var(--fx-ease-back); }
+}
+@keyframes fx-bell{
+  0%{ transform: rotate(0); } 12%{ transform: rotate(16deg); } 26%{ transform: rotate(-14deg); }
+  40%{ transform: rotate(10deg); } 54%{ transform: rotate(-7deg); } 68%{ transform: rotate(4deg); }
+  82%{ transform: rotate(-2deg); } 100%{ transform: rotate(0); }
+}
+@keyframes fx-badge-pop{ 0%{ transform: scale(.6); } 55%{ transform: scale(1.3); } 100%{ transform: scale(1); } }
+
+/* ---------- Кнопка → успех: зелёная заливка + галочка вместо текста (fx.success) ---------- */
+.fx-btn-success{ background: var(--fx-success) !important; border-color: var(--fx-success) !important; color: var(--on-success, var(--surface, #fff)) !important; }
+.fx-btn-check{ width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.fx-sr{ position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Игровые слои эффектов (fx.tint, wave, lines, stamp, beam, afterimage, flyTo) ---------- */
+.fx-tint{ position: absolute; inset: 0; border-radius: inherit; mix-blend-mode: color; pointer-events: none; opacity: 0; }
+.fx-wave{ position: absolute; border-radius: 50%; border-style: solid; pointer-events: none; }
+.fx-lines{ position: absolute; pointer-events: none; overflow: visible; }
+.fx-stamp{ position: absolute; left: 50%; top: 38%; translate: -50% -50%; pointer-events: none; white-space: nowrap;
+  font-weight: 900; font-size: clamp(28px, 6vw, 52px); letter-spacing: .04em; font-style: italic;
+  color: #ffd27a; text-shadow: 0 3px 0 #6b3a00, 0 0 18px rgb(255 170 60 / .55); }
+.fx-ghost{ position: absolute; pointer-events: none; opacity: .4; }
+.fx-beam{ position: absolute; bottom: 0; top: 0; pointer-events: none; transform-origin: bottom; }
+.fx-coin{ position: fixed; z-index: 75; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 35% 35%, #fff2b0, #e2a72e); box-shadow: 0 0 6px rgb(255 210 90 / .6); }
+.fx-dmg.is-poison{ color: #b6f07a; } .fx-dmg.is-burn{ color: #ffaa5e; } .fx-dmg.is-shield{ color: #8fd0ff; }
+.fx-dmg.is-miss{ color: #c4cbd6; font-style: italic; font-weight: 700; } .fx-dmg.is-block{ color: #e8ebf0; font-weight: 800; }
+.fx-dmg.is-xp{ color: #ffd27a; }
+
+/* >>> motion-full override (сгенерировано build_motion_override.py) */
+:root[data-motion="full"] .fx-press{ transition: transform var(--fx-fast) var(--fx-ease-out); }
+  :root[data-motion="full"] .fx-press:active{ transform: scale(.97); }
+
+  /* ТОЛЬКО ПО ЗАПРОСУ: подъём карточки при наведении. По умолчанию не используется. */
+  @media (hover: hover){
+    :root[data-motion="full"] .fx-lift{ transition: transform var(--fx-base) var(--fx-ease-out); }
+    :root[data-motion="full"] .fx-lift::after{
+      content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+      box-shadow: 0 14px 32px -14px rgb(0 0 0 / .28); transition: opacity var(--fx-base) var(--fx-ease-out);
+    }
+    :root[data-motion="full"] .fx-lift:hover{ transform: translateY(-3px); }
+    :root[data-motion="full"] .fx-lift:hover::after{ opacity: 1; }
+  }
+
+  :root[data-motion="full"] .fx-field-error{ transition: border-color 150ms, box-shadow 150ms; }
+
+  :root[data-motion="full"] .fx-check.is-on circle{ stroke-dashoffset: 1; animation: fx-draw 350ms var(--fx-ease-out) forwards; }
+  :root[data-motion="full"] .fx-check.is-on path{ stroke-dashoffset: 1; animation: fx-draw 250ms var(--fx-ease-out) 300ms forwards; }
+
+  :root[data-motion="full"] .fx-btn-success{ transition: background-color 200ms var(--fx-ease-out), border-color 200ms var(--fx-ease-out), color 200ms var(--fx-ease-out); }
+  :root[data-motion="full"] .fx-btn-success .fx-btn-check{ stroke-dashoffset: 1; animation: fx-draw 280ms var(--fx-ease-out) 80ms forwards, fx-pop 380ms var(--fx-ease-back) 80ms; }
+  :root[data-motion="full"] .fx-btn-loading::after{ animation: fx-spin .8s linear infinite; }
+
+  :root[data-motion="full"] .fx-skeleton::after{
+    content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, var(--fx-shimmer), transparent);
+    animation: fx-shimmer 1.4s linear infinite;
+  }
+
+  :root[data-motion="full"] .fx-collapse{ transition: grid-template-rows 250ms var(--fx-ease-out); }
+  :root[data-motion="full"] .fx-tabs-ind{ transition: transform 250ms var(--fx-ease-out); }
+
+  :root[data-motion="full"] dialog.fx-dialog{
+    opacity: 0; scale: .96;
+    transition: opacity .2s var(--fx-ease-out), scale .2s var(--fx-ease-out), overlay .2s allow-discrete, display .2s allow-discrete;
+  }
+  :root[data-motion="full"] dialog.fx-dialog[open]{ opacity: 1; scale: 1; }
+  @starting-style{ :root[data-motion="full"] dialog.fx-dialog[open]{ opacity: 0; scale: .96; } }
+
+  :root[data-motion="full"] .fx-toast{ transition: opacity 300ms var(--fx-ease-out), transform 300ms var(--fx-ease-out); }
+  :root[data-motion="full"] .fx-toast[data-state="enter"],
+  :root[data-motion="full"] .fx-toast[data-state="exit"]{ transform: translateY(12px); }
+
+  :root[data-motion="full"] .fx-stagger > *{ animation: fx-rise 300ms var(--fx-ease-out) both; animation-delay: calc(min(var(--i, 0), 7) * 40ms); }
+
+  @supports (animation-timeline: view()){
+    :root[data-motion="full"] .fx-reveal{ animation: fx-rise-far linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+  }
+
+  :root[data-motion="full"] .fx-pulse.is-pulsing::after{
+    content: ""; position: absolute; inset: 0; border-radius: inherit; background: inherit;
+    animation: fx-ring 600ms var(--fx-ease-out) 3;
+  }
+
+  :root[data-motion="full"] .fx-glint.is-glinting::after{ animation: fx-sweep 700ms ease-in-out 2; }
+
+  :root[data-motion="full"] .fx-pop{ animation: fx-pop 350ms var(--fx-ease-back); }
+
+  :root[data-motion="full"] :where(.fx-focus):focus-visible{ animation: fx-focus-in 150ms var(--fx-ease-out); }
+
+  /* игровые */
+  :root[data-motion="full"] .fx-hp-ghost{ transition: transform 400ms var(--fx-ease-out) 450ms; }
+  :root[data-motion="full"] .fx-dmg{ animation: fx-dmg 900ms var(--fx-ease-out) forwards; }
+  :root[data-motion="full"] .fx-vignette{ transition: opacity .3s var(--fx-ease-out); }
+  :root[data-motion="full"] .fx-vignette.is-low{ animation: fx-beat 1s ease-in-out infinite; }
+  :root[data-motion="full"] .fx-rarity.is-revealed{ animation: fx-glow 1.8s ease-in-out infinite; }
+  :root[data-motion="full"] .fx-timer.is-warning{ animation: fx-tick 1s var(--fx-ease-out) infinite; }
+  :root[data-motion="full"] .fx-ping.is-pinging::after{
+    content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid currentColor;
+    animation: fx-ring 700ms var(--fx-ease-out) 3;
+  }
+
+
+  /* Хореография входа: CSS-only, fill: backwards — до старта элемент в начальной точке, после конца анимация
+     полностью отпускает свойства (hover и другие transform продолжают работать).
+     Порядок — --i (ставит fx.sequence()), шаг 60 мс, суммарная задержка ограничена. */
+  :root[data-motion="full"] .fx-enter{
+    animation: fx-enter 600ms var(--fx-ease-emph) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+  }
+  :root[data-motion="full"] .fx-enter-fade{
+    animation: fx-fade 500ms var(--fx-ease-out) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+  }
+
+  /* Кнопки: при наведении — только смена цвета (без движения); сжатие — на нажатие */
+  :root[data-motion="full"] .fx-btn{ transition: transform 120ms var(--fx-ease-out), background-color 150ms var(--fx-ease-out), color 150ms var(--fx-ease-out), border-color 150ms var(--fx-ease-out); }
+  :root[data-motion="full"] .fx-btn:active{ transform: scale(.97); transition-duration: 60ms; }
+
+  /* ТОЛЬКО ПО ЗАПРОСУ: движение при наведении (.fx-lift, .fx-nudge). По умолчанию не используется. */
+  @media (hover: hover){
+    :root[data-motion="full"] .fx-nudge svg{ transition: transform 200ms var(--fx-ease-out); }
+    :root[data-motion="full"] .fx-nudge:hover svg{ transform: translateX(3px); }
+  }
+
+  /* Графики: полосы растут, точки появляются (свойства scale/opacity, не трогают transform/translate) */
+  :root[data-motion="full"] .fx-draw-x{ transform-origin: left; animation: fx-scale-x 700ms var(--fx-ease-emph) backwards; animation-delay: calc(200ms + min(var(--i, 0), 15) * 35ms); }
+  :root[data-motion="full"] .fx-draw-y{ transform-origin: bottom; animation: fx-scale-y 700ms var(--fx-ease-emph) backwards; animation-delay: calc(200ms + min(var(--i, 0), 15) * 35ms); }
+  :root[data-motion="full"] .fx-dot-in{ animation: fx-dot-in 400ms var(--fx-ease-back) backwards; animation-delay: calc(450ms + min(var(--i, 0), 15) * 35ms); }
+
+  /* Круговое раскрытие при смене темы (fx.themeSwitch) */
+  :root[data-motion="full"]::view-transition-old(root){ animation: none; }
+  :root[data-motion="full"]::view-transition-new(root){ animation: fx-circle 550ms var(--fx-ease-out); }
+
+
+  :root[data-motion="full"] .fx-bell.is-ringing svg{ animation: fx-bell 800ms var(--fx-ease-out); }
+  :root[data-motion="full"] .fx-bell.is-ringing .fx-bell-badge{ animation: fx-badge-pop 450ms var(--fx-ease-back); }
+/* <<< motion-full override */
