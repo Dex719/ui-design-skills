@@ -32,6 +32,14 @@ jobs:
           PYTHONIOENCODING: cp1251
         run: python -I $S/make_palette.py --help > /dev/null && python -I $S/style_tiles.py --help > /dev/null
 
+      - name: Every background kind passes contrast
+        run: |
+          for bg in tinted white cream cool accent; do
+            for hue in 45 150 340; do
+              python -I $S/make_palette.py --hue $hue --chroma 0.15 --bg $bg --tint 0.6 > /dev/null || { echo "fail bg=$bg hue=$hue"; exit 1; }
+            done
+          done
+
       - name: Palettes match palettes.json and references/20
         run: python -I $S/build_palettes.py --check
 
