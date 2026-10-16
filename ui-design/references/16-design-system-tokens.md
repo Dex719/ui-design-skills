@@ -22,7 +22,7 @@
 
 | Уровень | Пример | Кто ссылается |
 |---|---|---|
-| Примитивные (palette) | `blue-500`, `space-4`, `radius-md` | Только семантические токены |
+| Примитивные (palette) | `accent-500`, `space-4`, `radius-md` | Только семантические токены |
 | Семантические (роль) | `color-bg-danger`, `color-text-secondary`, `space-section` | Компоненты |
 | Компонентные | `button-primary-bg`, `input-border-focus` | Конкретный компонент |
 
