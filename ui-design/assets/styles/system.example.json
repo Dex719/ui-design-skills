@@ -1,8 +1,8 @@
 {
   "name": "Пенсионный калькулятор",
   "brief": "понятно, спокойно, уважительно — не по-детски; люди 55+",
-  "color":  { "hue": 245, "chroma": 0.10, "neutral": "sand", "accent_l": 0.42, "bright": false, "dark_first": false,
-              "why": "глубокий синий на тёплом сером: доверие без холода; конкуренты зелёные" },
+  "color":  { "hue": 40, "chroma": 0.10, "neutral": "sand", "accent_l": 0.42, "bright": false, "dark_first": false,
+              "why": "глубокая терракота на тёплом сером: уважительно и по-человечески; конкуренты — синие банки и зелёные фонды" },
   "type":   { "display": "Golos Text", "body": "Golos Text", "mono": null, "display_weight": 700, "body_weight": 400,
               "base": 19, "ratio": 1.2, "display_max": 48, "line": 1.6, "heading_line": 1.2,
               "why": "высокая x-height и открытые формы; уровней мало — малая шкала" },

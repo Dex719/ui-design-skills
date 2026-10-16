@@ -7,12 +7,12 @@
   --border-strong: #868e8b;
   --text: #1a211e;
   --text-2: #5f6563;
-  --accent: #135c30;
-  --accent-hover: #024d24;
+  --accent: #0b5d2a;
+  --accent-hover: #004e20;
   --on-accent: #ffffff;
-  --accent-text: #135c30;
-  --accent-soft: #e2f6e6;
-  --focus: #135c30;
+  --accent-text: #0b5d2a;
+  --accent-soft: #e1f7e5;
+  --focus: #0b5d2a;
   --success: #127a50;
   --success-soft: #e6f6eb;
   --warning: #a25f05;
@@ -29,12 +29,12 @@
     --border-strong: #616865;
     --text: #eceeed;
     --text-2: #adb5b2;
-    --accent: #8ec79d;
-    --accent-hover: #9bd4a9;
+    --accent: #8cc998;
+    --accent-hover: #99d6a5;
     --on-accent: #101211;
-    --accent-text: #97cda5;
-    --accent-soft: #1e3424;
-    --focus: #97cda5;
+    --accent-text: #95cea0;
+    --accent-soft: #1d3422;
+    --focus: #95cea0;
     --success: #3dd68c;
     --success-soft: #132d21;
     --warning: #ffca16;
@@ -52,12 +52,12 @@
   --border-strong: #616865;
   --text: #eceeed;
   --text-2: #adb5b2;
-  --accent: #8ec79d;
-  --accent-hover: #9bd4a9;
+  --accent: #8cc998;
+  --accent-hover: #99d6a5;
   --on-accent: #101211;
-  --accent-text: #97cda5;
-  --accent-soft: #1e3424;
-  --focus: #97cda5;
+  --accent-text: #95cea0;
+  --accent-soft: #1d3422;
+  --focus: #95cea0;
   --success: #3dd68c;
   --success-soft: #132d21;
   --warning: #ffca16;
@@ -71,9 +71,9 @@ body{ background: var(--bg); color: var(--text); }
 /* нейтрали: sage (Radix) */
 /* light          text on bg            15.51:1 OK */
 /* light        text-2 on surface        5.95:1 OK */
-/* light     on-accent on accent         8.07:1 OK */
-/* light     on-accent on accent-hover  10.05:1 OK */
-/* light   accent-text on bg             7.64:1 OK */
+/* light     on-accent on accent         8.04:1 OK */
+/* light     on-accent on accent-hover   9.95:1 OK */
+/* light   accent-text on bg             7.60:1 OK */
 /* light   accent-text on accent-soft    7.13:1 OK */
 /* light border-strong on surface        3.36:1 OK */
 /* light       success on success-soft   4.78:1 OK */
@@ -81,10 +81,10 @@ body{ background: var(--bg); color: var(--text); }
 /* light        danger on danger-soft    4.75:1 OK */
 /* dark           text on bg            16.14:1 OK */
 /* dark         text-2 on surface        8.44:1 OK */
-/* dark      on-accent on accent         9.68:1 OK */
-/* dark      on-accent on accent-hover  11.09:1 OK */
-/* dark    accent-text on bg            10.38:1 OK */
-/* dark    accent-text on accent-soft    7.37:1 OK */
+/* dark      on-accent on accent         9.78:1 OK */
+/* dark      on-accent on accent-hover  11.21:1 OK */
+/* dark    accent-text on bg            10.40:1 OK */
+/* dark    accent-text on accent-soft    7.41:1 OK */
 /* dark  border-strong on surface        3.09:1 OK */
 /* dark        success on success-soft   7.86:1 OK */
 /* dark        warning on warning-soft  10.26:1 OK */

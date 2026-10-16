@@ -9,7 +9,7 @@
   --text: #edeef0;
   --text-2: #b0b4ba;
   --accent: #ff9689;
-  --accent-hover: #ffaba0;
+  --accent-hover: #feaba0;
   --on-accent: #111113;
   --accent-text: #ffa194;
   --accent-soft: #49201b;
@@ -32,11 +32,11 @@
     --text: #1c2024;
     --text-2: #60646c;
     --accent: #c74b41;
-    --accent-hover: #b63b33;
+    --accent-hover: #b63b32;
     --on-accent: #ffffff;
-    --accent-text: #b93e35;
+    --accent-text: #bc4138;
     --accent-soft: #feebe8;
-    --focus: #b93e35;
+    --focus: #bc4138;
     --success: #127a50;
     --success-soft: #e6f6eb;
     --warning: #a25f05;
@@ -55,11 +55,11 @@
   --text: #1c2024;
   --text-2: #60646c;
   --accent: #c74b41;
-  --accent-hover: #b63b33;
+  --accent-hover: #b63b32;
   --on-accent: #ffffff;
-  --accent-text: #b93e35;
+  --accent-text: #bc4138;
   --accent-soft: #feebe8;
-  --focus: #b93e35;
+  --focus: #bc4138;
   --success: #127a50;
   --success-soft: #e6f6eb;
   --warning: #a25f05;
@@ -74,9 +74,9 @@ body{ background: var(--bg); color: var(--text); }
 /* light          text on bg            15.58:1 OK */
 /* light        text-2 on surface        5.94:1 OK */
 /* light     on-accent on accent         4.66:1 OK */
-/* light     on-accent on accent-hover   5.73:1 OK */
-/* light   accent-text on bg             5.25:1 OK */
-/* light   accent-text on accent-soft    4.80:1 OK */
+/* light     on-accent on accent-hover   5.74:1 OK */
+/* light   accent-text on bg             5.05:1 OK */
+/* light   accent-text on accent-soft    4.62:1 OK */
 /* light border-strong on surface        3.30:1 OK */
 /* light       success on success-soft   4.78:1 OK */
 /* light       warning on warning-soft   4.63:1 OK */
@@ -84,7 +84,7 @@ body{ background: var(--bg); color: var(--text); }
 /* dark           text on bg            16.25:1 OK */
 /* dark         text-2 on surface        8.45:1 OK */
 /* dark      on-accent on accent         8.96:1 OK */
-/* dark      on-accent on accent-hover  10.40:1 OK */
+/* dark      on-accent on accent-hover  10.37:1 OK */
 /* dark    accent-text on bg             9.68:1 OK */
 /* dark    accent-text on accent-soft    7.16:1 OK */
 /* dark  border-strong on surface        3.07:1 OK */

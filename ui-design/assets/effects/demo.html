@@ -305,14 +305,14 @@ dialog.fx-dialog::backdrop{ background: rgb(0 0 0 / .4); }
 @media (prefers-reduced-motion: no-preference){
   /* Хореография входа: CSS-only, fill: backwards — до старта элемент в начальной точке, после конца анимация
      полностью отпускает свойства (hover и другие transform продолжают работать).
-     Порядок — --i (ставит fx.sequence()), шаг 60 мс, суммарная задержка ограничена. */
+     Порядок — --i (ставит fx.sequence()), шаг 50 мс, не больше 8 шагов (≤ 400 мс задержки). */
   :root:not([data-motion="reduce"]) .fx-enter{
-    animation: fx-enter 600ms var(--fx-ease-emph) backwards;
-    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+    animation: fx-enter 400ms var(--fx-ease-emph) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 50ms);
   }
   :root:not([data-motion="reduce"]) .fx-enter-fade{
-    animation: fx-fade 500ms var(--fx-ease-out) backwards;
-    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+    animation: fx-fade 400ms var(--fx-ease-out) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 50ms);
   }
 
   /* Кнопки: при наведении — только смена цвета (без движения); сжатие — на нажатие */
@@ -451,14 +451,14 @@ dialog.fx-dialog::backdrop{ background: rgb(0 0 0 / .4); }
 
   /* Хореография входа: CSS-only, fill: backwards — до старта элемент в начальной точке, после конца анимация
      полностью отпускает свойства (hover и другие transform продолжают работать).
-     Порядок — --i (ставит fx.sequence()), шаг 60 мс, суммарная задержка ограничена. */
+     Порядок — --i (ставит fx.sequence()), шаг 50 мс, не больше 8 шагов (≤ 400 мс задержки). */
   :root[data-motion="full"] .fx-enter{
-    animation: fx-enter 600ms var(--fx-ease-emph) backwards;
-    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+    animation: fx-enter 400ms var(--fx-ease-emph) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 50ms);
   }
   :root[data-motion="full"] .fx-enter-fade{
-    animation: fx-fade 500ms var(--fx-ease-out) backwards;
-    animation-delay: calc(min(var(--i, 0), 8) * 60ms);
+    animation: fx-fade 400ms var(--fx-ease-out) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 50ms);
   }
 
   /* Кнопки: при наведении — только смена цвета (без движения); сжатие — на нажатие */

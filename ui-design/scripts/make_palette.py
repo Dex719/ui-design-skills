@@ -58,9 +58,15 @@ def neutral_for_hue(h):
     return "slate"
 
 
-def ensure(fg, bgs, target, step):
-    """Сдвигает светлоту fg (step<0 темнее, >0 светлее), пока контраст со всеми bgs >= target."""
+def ensure(fg, bgs, target, step, chroma=None):
+    """Сдвигает светлоту fg (step<0 темнее, >0 светлее), пока контраст со всеми bgs >= target.
+
+    chroma — желаемая хрома. Её нельзя брать из уже обрезанного по гамуту hex: на светлых
+    и тёмных краях sRGB хрома падает, и без исходного значения цвет так и остаётся серым.
+    Поэтому хрома хранится отдельно, а обрезка по гамуту делается заново на каждом шаге."""
     L, C, H = hex_to_oklch(fg)
+    if chroma is not None:
+        C = chroma
     for _ in range(80):
         if all(contrast(fg, b) >= target for b in bgs):
             return fg
@@ -79,20 +85,20 @@ def build(hue, chroma, neutral, max_l=0.62, bright=False):
              "border-strong": nl[8], "text": nl[11], "text-2": nl[10]})
     L["accent-soft"] = oklch_to_hex(0.955, min(chroma * 0.3, 0.035), hue)
     if bright:   # яркая кнопка с тёмным текстом (жёлтый, лайм, мята, небесный)
-        acc = ensure(oklch_to_hex(0.84, chroma, hue), [nl[11]], 4.6, +0.01)
-        a_l, a_c, a_h = hex_to_oklch(acc)
+        acc = ensure(oklch_to_hex(0.84, chroma, hue), [nl[11]], 4.6, +0.01, chroma)
+        a_l = hex_to_oklch(acc)[0]
         L["accent"] = acc
-        L["accent-hover"] = oklch_to_hex(a_l - 0.04, a_c, a_h)
+        L["accent-hover"] = oklch_to_hex(a_l - 0.04, chroma, hue)
         L["on-accent"] = nl[11]
-        L["accent-text"] = ensure(oklch_to_hex(0.55, min(chroma, 0.14), hue), [L["bg"], L["surface"], L["accent-soft"]], 4.6, -0.01)
+        L["accent-text"] = ensure(oklch_to_hex(0.55, min(chroma, 0.14), hue), [L["bg"], L["surface"], L["accent-soft"]], 4.6, -0.01, min(chroma, 0.14))
     else:
         acc = oklch_to_hex(max_l, chroma, hue)
-        acc = ensure(acc, ["#ffffff"], 4.6, -0.01)
-        a_l, a_c, a_h = hex_to_oklch(acc)
+        acc = ensure(acc, ["#ffffff"], 4.6, -0.01, chroma)
+        a_l = hex_to_oklch(acc)[0]
         L["accent"] = acc
-        L["accent-hover"] = oklch_to_hex(a_l - 0.05, a_c, a_h)
+        L["accent-hover"] = oklch_to_hex(a_l - 0.05, chroma, hue)
         L["on-accent"] = "#ffffff"
-        L["accent-text"] = ensure(acc, [L["bg"], L["surface"], L["accent-soft"]], 4.6, -0.01)
+        L["accent-text"] = ensure(acc, [L["bg"], L["surface"], L["accent-soft"]], 4.6, -0.01, chroma)
     L["focus"] = L["accent-text"]
     L["border-strong"] = ensure(L["border-strong"], [L["surface"], L["bg"]], 3.0, -0.01)
     for k, (fg, soft) in SEMANTIC["light"].items():
@@ -103,13 +109,13 @@ def build(hue, chroma, neutral, max_l=0.62, bright=False):
     D = t["dark"]
     D.update(bg=nd[0], surface=nd[1], **{"surface-2": nd[2], "border": nd[5],
              "border-strong": nd[7], "text": nd[11], "text-2": nd[10]})
-    dacc = ensure(oklch_to_hex(0.78, chroma * 0.85, hue), [nd[0]], 4.6, +0.01)
-    d_l, d_c, d_h = hex_to_oklch(dacc)
+    dacc = ensure(oklch_to_hex(0.78, chroma * 0.85, hue), [nd[0]], 4.6, +0.01, chroma * 0.85)
+    d_l = hex_to_oklch(dacc)[0]
     D["accent"] = dacc
-    D["accent-hover"] = oklch_to_hex(min(0.95, d_l + 0.04), d_c, d_h)
+    D["accent-hover"] = oklch_to_hex(min(0.95, d_l + 0.04), chroma * 0.85, hue)
     D["on-accent"] = nd[0]
     D["accent-soft"] = oklch_to_hex(0.30, min(chroma * 0.4, 0.07), hue)
-    D["accent-text"] = ensure(oklch_to_hex(0.80, chroma * 0.8, hue), [D["bg"], D["surface"], D["accent-soft"]], 4.6, +0.01)
+    D["accent-text"] = ensure(oklch_to_hex(0.80, chroma * 0.8, hue), [D["bg"], D["surface"], D["accent-soft"]], 4.6, +0.01, chroma * 0.8)
     D["focus"] = D["accent-text"]
     D["border-strong"] = ensure(D["border-strong"], [D["surface"], D["bg"]], 3.0, +0.01)
     for k, (fg, soft) in SEMANTIC["dark"].items():
@@ -156,7 +162,7 @@ def report(t):
     return "\n".join(lines), fails
 
 
-def main():
+def parser():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--hue", type=float, required=True, help="тон акцента в OKLCH, 0-360")
     p.add_argument("--chroma", type=float, default=0.12, help="хрома акцента (0.06 мягко … 0.18 ярко)")
@@ -165,8 +171,12 @@ def main():
     p.add_argument("--name", default="custom")
     p.add_argument("--bright", action="store_true", help="яркая кнопка с тёмным текстом (жёлтый, лайм, мята, небесный)")
     p.add_argument("--dark-first", action="store_true", help="тёмная тема по умолчанию")
-    p.add_argument("--json", action="store_true")
-    a = p.parse_args()
+    p.add_argument("--json", action="store_true", help="вывести токены JSON-ом (для превью)")
+    return p
+
+
+def main():
+    a = parser().parse_args()
     neutral = neutral_for_hue(a.hue) if a.neutral == "auto" else a.neutral
     t = build(a.hue, a.chroma, neutral, a.max_l, a.bright)
     if a.json:

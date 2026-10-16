@@ -44,27 +44,29 @@ python3 scripts/check_contrast.py page.html                         # прове
 
 ## Примеры палитр (калибровка, не шаблоны)
 
-Файлы: `assets/palettes/<id>.css`. Все пары проверены (текст, кнопка, ссылки, бейдж, рамка поля, статусы) в обеих темах. Смотри на них, чтобы понять, как параметры меняют звучание; для продукта выводи свои параметры из брифа.
+Файлы: `assets/palettes/<id>.css`, источник — `assets/palettes/palettes.json` (пересборка: `scripts/build_palettes.py`). Все пары проверены (текст, кнопка, ссылки, бейдж, рамка поля, статусы) в обеих темах. Смотри на них, чтобы понять, как параметры меняют звучание; для продукта выводи свои параметры из брифа.
 
+<!-- palettes:begin (генерирует scripts/build_palettes.py) -->
 | id | Настроение | Где | Нейтрали | Акцент светлая / тёмная | Команда |
 |---|---|---|---|---|---|
-| `bank-petrol` | Доверие, спокойствие | Банки, финтех, госуслуги | slate | `#067f95` / `#6ac7dd` | `--hue 215 --chroma 0.11 --neutral slate` |
+| `bank-petrol` | Доверие, спокойствие | Банки, финтех, госуслуги | slate | `#077f95` / `#6ac7dd` | `--hue 215 --chroma 0.11 --neutral slate` |
 | `editorial-terracotta` | Тёплое чтение | Медиа, блоги, портфолио | sand | `#b6583a` / `#f59e83` | `--hue 38 --chroma 0.13 --neutral sand` |
 | `wellness-sage` | Мягко, свежо | Здоровье, медитации, эко | sage | `#348265` / `#88c7ab` | `--hue 165 --chroma 0.09 --neutral sage` |
-| `friendly-apricot` | Тепло, энергия | Еда, доставка, сервисы для людей | sand | `#b45d03` / `#f6a064` | `--hue 55 --chroma 0.15 --neutral sand` |
+| `friendly-apricot` | Тепло, энергия | Еда, доставка, сервисы для людей | sand | `#b45d04` / `#f6a064` | `--hue 55 --chroma 0.15 --neutral sand` |
 | `premium-bordeaux` | Сдержанная роскошь | Вино, ювелирка, премиум | sand | `#812a3b` / `#f19ca6` | `--hue 12 --chroma 0.12 --neutral sand --max-l 0.42` |
 | `tech-cobalt` | Ясность, точность | Dev-tools, SaaS, документация | slate | `#1275ce` / `#80bcfe` | `--hue 252 --chroma 0.16 --neutral slate` |
 | `playful-raspberry` | Смело, весело | Детское, креатив, соцсети | mauve | `#c3457f` / `#fe8ebc` | `--hue 355 --chroma 0.17 --neutral mauve` |
 | `nature-olive` | Органика, покой | Агро, туризм, локальные бренды | olive | `#617d39` / `#a8c287` | `--hue 128 --chroma 0.10 --neutral olive` |
-| `game-amber` | Тёмная тема по умолчанию | Игровые меню и HUD | slate | `#9c6900` / `#e7ab51` | `--hue 75 --chroma 0.15 --neutral slate` |
-| `lime-graphite` | Энергия, рост; тёмная по умолчанию | Финтех нового типа, трекеры | gray | `#9fc93e` / `#ade02a` | `--hue 125 --chroma 0.18 --neutral gray --bright --dark-first` |
+| `game-amber` | Азарт; тёмная по умолчанию | Игровые меню и HUD | slate | `#9c6900` / `#e7ab51` | `--hue 75 --chroma 0.15 --neutral slate --dark-first` |
+| `lime-graphite` | Энергия, рост; тёмная по умолчанию | Финтех нового типа, трекеры | gray | `#b0de49` / `#a1c851` | `--hue 125 --chroma 0.18 --neutral gray --bright --dark-first` |
 | `sunflower` | Солнечно, громко | Необрутализм, дети, промо | sand | `#f0c630` / `#d7b441` | `--hue 92 --chroma 0.16 --bright` |
-| `ocean-navy` | Глубоко, серьёзно | Госуслуги, юристы, страхование | slate | `#17559b` / `#86bafd` | `--hue 255 --chroma 0.13 --max-l 0.42` |
-| `sakura` | Мягко, нежно | Мода, красота, свадьбы | mauve | `#a75d75` / `#e5a1b5` | `--hue 355 --chroma 0.08` |
-| `plum-night` | Ночь, игры; тёмная по умолчанию | Киберспорт, стриминг | mauve | `#9b59aa` / `#d99ee7` | `--hue 320 --chroma 0.13 --dark-first` |
-| `forest` | Хвоя, плотность | Аналитика, агро, outdoor | sage | `#135c30` / `#8ec79d` | `--hue 150 --chroma 0.11 --max-l 0.42` |
-| `sky-bright` | Воздух, лёгкость | Путешествия, погода, wellness | slate | `#7ed8ff` / `#6ac4eb` | `--hue 225 --chroma 0.12 --bright` |
+| `ocean-navy` | Глубоко, серьёзно | Госуслуги, юристы, страхование | slate | `#0b4c92` / `#86bafd` | `--hue 255 --chroma 0.13 --max-l 0.42` |
+| `sakura` | Мягко, нежно | Мода, красота, свадьбы | mauve | `#9d637a` / `#dca6b9` | `--hue 355 --chroma 0.08` |
+| `plum-night` | Ночь, игры; тёмная по умолчанию | Киберспорт, стриминг | mauve | `#985ba6` / `#d7a0e3` | `--hue 320 --chroma 0.13 --dark-first` |
+| `forest` | Хвоя, плотность | Аналитика, агро, outdoor | sage | `#0b5d2a` / `#8cc998` | `--hue 150 --chroma 0.11 --max-l 0.42` |
+| `sky-bright` | Воздух, лёгкость | Путешествия, погода, wellness | slate | `#77d9ff` / `#67c5e8` | `--hue 225 --chroma 0.12 --bright` |
 | `coral-midnight` | Ночной город; тёмная по умолчанию | Музыка, события, ночная жизнь | slate | `#c74b41` / `#ff9689` | `--hue 28 --chroma 0.16 --neutral slate --dark-first` |
+<!-- palettes:end -->
 
 **Как использовать:** выведи параметры по `references/23` и сгенерируй палитру через `make_palette.py`. Флаг `--bright` даёт яркий акцент с тёмным текстом, `--dark-first` — тёмную тему по умолчанию. Пример бери как отправную точку, только если его параметры совпали с выведенными и причина записана. Цветов вне токенов не добавляй.
 

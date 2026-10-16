@@ -7,12 +7,12 @@
   --border-strong: #8b8d98;
   --text: #1c2024;
   --text-2: #60646c;
-  --accent: #17559b;
-  --accent-hover: #02468b;
+  --accent: #0b4c92;
+  --accent-hover: #003e7e;
   --on-accent: #ffffff;
-  --accent-text: #17559b;
+  --accent-text: #0b4c92;
   --accent-soft: #e7f1ff;
-  --focus: #17559b;
+  --focus: #0b4c92;
   --success: #127a50;
   --success-soft: #e6f6eb;
   --warning: #a25f05;
@@ -71,10 +71,10 @@ body{ background: var(--bg); color: var(--text); }
 /* нейтрали: slate (Radix) */
 /* light          text on bg            15.58:1 OK */
 /* light        text-2 on surface        5.94:1 OK */
-/* light     on-accent on accent         7.48:1 OK */
-/* light     on-accent on accent-hover   9.33:1 OK */
-/* light   accent-text on bg             7.11:1 OK */
-/* light   accent-text on accent-soft    6.56:1 OK */
+/* light     on-accent on accent         8.53:1 OK */
+/* light     on-accent on accent-hover  10.55:1 OK */
+/* light   accent-text on bg             8.11:1 OK */
+/* light   accent-text on accent-soft    7.48:1 OK */
 /* light border-strong on surface        3.30:1 OK */
 /* light       success on success-soft   4.78:1 OK */
 /* light       warning on warning-soft   4.63:1 OK */
