@@ -4,7 +4,7 @@ This repository includes or derives material from the following projects.
 
 ## Lucide icons — ISC
 
-`ui-design/assets/icons/` (118 SVG files, `icons.json`, `sprite.svg`) are taken from
+`ui-design/assets/icons/` (127 SVG files, `icons.json`, `sprite.svg`) are taken from
 [Lucide](https://lucide.dev). Full license text: [`ui-design/assets/icons/LICENSE-lucide.txt`](ui-design/assets/icons/LICENSE-lucide.txt).
 
 ## Radix Colors — MIT

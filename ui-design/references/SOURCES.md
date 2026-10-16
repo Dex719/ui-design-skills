@@ -216,3 +216,20 @@
 - https://www.radix-ui.com/colors/docs/palette-composition/composing-a-palette — пары акцент ↔ нейтраль
 - https://unicode.org/reports/tr51/ — эмодзи-представление символов (почему ★ ✓ ⚠ рисуются как эмодзи)
 - https://lucide.dev/ · https://tabler.io/icons · https://phosphoricons.com/ · https://fonts.google.com/icons · https://game-icons.net/ · https://kenney.nl/assets — открытые наборы иконок
+
+## ИИ-интерфейсы (раздел 24)
+- https://www.w3.org/TR/wai-aria-1.2/#log — role="log"
+- https://www.w3.org/TR/wai-aria-1.2/#aria-busy
+- https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/isComposing
+- https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/enterkeyhint
+- HAX, PAIR, Cloudscape — см. «Дизайн-системы, тесты, этика, ИИ» выше
+
+## Формы и ввод (раздел 25)
+- https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#autofill
+- https://www.w3.org/WAI/WCAG22/Understanding/identify-input-purpose.html — 1.3.5
+- https://www.w3.org/WAI/WCAG22/Understanding/accessible-authentication-minimum.html — 3.3.8
+- https://www.w3.org/WAI/WCAG22/Understanding/redundant-entry.html — 3.3.7
+- https://web.dev/articles/passkey-form-autofill — conditional UI, `username webauthn`
+- https://developer.chrome.com/docs/identity/web-apis/web-otp — формат SMS для WebOTP
+- https://pages.nist.gov/800-63-4/sp800-63b.html — требования к паролям (ред. 4)
+- https://baymard.com/research/checkout-usability

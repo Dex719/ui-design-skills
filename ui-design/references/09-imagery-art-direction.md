@@ -93,7 +93,7 @@
 
 ### Откуда брать иконки
 
-1. **Готовый набор скилла:** `assets/icons/` — Lucide (ISC), 118 иконок по группам. `python3 scripts/icon.py <имя>` выдаёт inline-SVG с `stroke="currentColor"`; `--list` — все имена, `--sprite` — спрайт `<symbol>`.
+1. **Готовый набор скилла:** `assets/icons/` — Lucide (ISC), 127 иконок по группам. `python3 scripts/icon.py <имя>` выдаёт inline-SVG с `stroke="currentColor"`; `--list` — все имена, `--sprite` — спрайт `<symbol>`.
 2. **Нет нужной иконки — скачай из открытого набора того же стиля:**
    - Lucide (lucide.dev, ISC, 1 600+);
    - Tabler Icons (MIT, 5 900+, тот же стиль 24/2 px);
