@@ -140,7 +140,7 @@ Claude подхватывает скилл сам, когда вы спраши�
 
 ## Проверки
 
-[`.github/workflows/check.yml`](.github/workflows/check.yml) запускается на Linux, Windows и macOS с Python 3.9 и 3.13: `--help` у каждого скрипта, пересборка и сравнение палитр, контраст всех палитр в обеих темах, пример системы с `--strict`, блок ручного режима движения и [`tests/check_repo.py`](tests/check_repo.py) — сверка чисел и путей в документации с файлами. Локально:
+[`.github/workflows/check.yml`](.github/workflows/check.yml) запускается на Linux, Windows и macOS с Python 3.9 и 3.13: `--help` у каждого скрипта, пересборка и сравнение палитр, контраст всех палитр в обеих темах, пример системы с `--strict`, блок ручного режима движения и [`tests/check_repo.py`](tests/check_repo.py) — сверка чисел и путей в документации с файлами. Наборы для проверки срабатывания скиллов по описанию — в [`evals/`](evals) (формат скилла `skill-creator`; для запуска нужен Claude Code на macOS/Linux). Локальные проверки:
 
 ```bash
 python3 tests/check_repo.py

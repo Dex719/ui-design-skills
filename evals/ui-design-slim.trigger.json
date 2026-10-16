@@ -1,0 +1,22 @@
+[
+  {"query": "глянь быстро карточку товара в components/ProductCard.vue — отступы какие-то рваные и кнопка «В корзину» теряется. поправь по-человечески", "should_trigger": true},
+  {"query": "сверстай экран регистрации для мобильного приложения: email, пароль, согласие с условиями. тёмная и светлая тема", "should_trigger": true},
+  {"query": "Quick UI review of this settings page before I ship it — is the hierarchy ok, are the buttons in the right places? screenshot attached: settings.png", "should_trigger": true},
+  {"query": "сделай модалку подтверждения удаления проекта, чтобы нельзя было случайно удалить и было понятно что пропадёт", "should_trigger": true},
+  {"query": "нужен пустой экран для списка заказов когда заказов ещё нет + скелетон для загрузки. react + css modules", "should_trigger": true},
+  {"query": "заказчик просит сделать кнопки ярче и добавить эмодзи в заголовки секций чтобы было веселее. как сделать это нормально?", "should_trigger": true},
+  {"query": "в игре на телефоне HUD перекрывает вырез экрана и кнопки слишком мелкие. какие размеры и отступы правильные?", "should_trigger": true},
+  {"query": "make the pricing table on our site look less generic, it's 3 tiers, monthly/yearly toggle, plain html+css", "should_trigger": true},
+  {"query": "какой контраст нужен для серого текста на белом и для текста на фото в герое? проверь мои цвета #8a8a8a на #ffffff", "should_trigger": true},
+  {"query": "форма оплаты: где поставить кнопку «Оплатить», как показывать ошибки карты, нужна ли кнопка «Сбросить»?", "should_trigger": true},
+  {"query": "сгенерируй иконку приложения в стиле 3D для App Store, 1024x1024", "should_trigger": false},
+  {"query": "сделай обложку для youtube видео про обзор айфона", "should_trigger": false},
+  {"query": "почему у меня flexbox в safari 15 не переносит элементы, а в chrome всё ок? вот css: .row{display:flex;gap:16px}", "should_trigger": false},
+  {"query": "настрой eslint и prettier в моём react проекте, чтобы форматирование было как у airbnb", "should_trigger": false},
+  {"query": "напиши компонент на react, который тянет курсы валют с api нацбанка и кэширует на час", "should_trigger": false},
+  {"query": "сделай word-документ с техзаданием на разработку сайта для клиники", "should_trigger": false},
+  {"query": "посчитай в excel юнит-экономику доставки: средний чек 6500 тг, комиссия 18%, курьер 900 тг", "should_trigger": false},
+  {"query": "смонтируй промо-видео на 30 секунд про наше приложение из этих скриншотов", "should_trigger": false},
+  {"query": "explain how React Server Components differ from client components and when to use each", "should_trigger": false},
+  {"query": "оптимизируй запросы к базе, страница каталога грузится 6 секунд, вот лог django-debug-toolbar", "should_trigger": false}
+]

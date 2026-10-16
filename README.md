@@ -140,7 +140,7 @@ Claude picks the skill up automatically when you ask about UI, UX, landing pages
 
 ## Checks
 
-[`.github/workflows/check.yml`](.github/workflows/check.yml) runs on Linux, Windows and macOS with Python 3.9 and 3.13: every script's `--help`, palettes regenerated and compared, contrast of all palettes in both themes, the example system with `--strict`, the motion override block, and [`tests/check_repo.py`](tests/check_repo.py), which checks that numbers and paths in the docs match the files. Run the same locally:
+[`.github/workflows/check.yml`](.github/workflows/check.yml) runs on Linux, Windows and macOS with Python 3.9 and 3.13: every script's `--help`, palettes regenerated and compared, contrast of all palettes in both themes, the example system with `--strict`, the motion override block, and [`tests/check_repo.py`](tests/check_repo.py), which checks that numbers and paths in the docs match the files. Trigger evals for both skill descriptions live in [`evals/`](evals) (format of the `skill-creator` skill; running them needs Claude Code on macOS/Linux). Run the same local checks:
 
 ```bash
 python3 tests/check_repo.py
