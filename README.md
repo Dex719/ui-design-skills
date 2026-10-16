@@ -64,20 +64,20 @@ ui-design/
 
 | # | Topic | # | Topic |
 |---|---|---|---|
-| 01 | Usability foundations, response times | 13 | UX writing, i18n, RTL, plurals |
-| 02 | UX laws, Gestalt, Nielsen heuristics | 14 | Data viz and dashboards |
-| 03 | Visual hierarchy, spacing, shadows, radii | 15 | Trust, dark patterns, AI features |
-| 04 | Color, contrast, dark mode | 16 | Design system and tokens (DTCG) |
-| 05 | Typography, Cyrillic, ₸ | 17 | Audit and usability testing |
-| 06 | Layout, grids, breakpoints, container queries | 18 | Game UI, HUD, safe areas, gamepad |
-| 07 | Navigation, forms, screen states, toasts, modals | 19 | Game feel, onboarding, game accessibility |
-| 08 | Motion and interaction | 20 | Color palettes |
-| 09 | Imagery, art direction, icons | 21 | Micro-interactions and effects catalog |
-| 10 | Web media and performance (CWV, srcset, OG) | 22 | Game VFX and "juice" |
-| 11 | Landing pages and web style | 23 | Design system from scratch |
-| 12 | Accessibility (WCAG 2.2, ARIA, EAA) | 24 | AI interfaces: chat, streaming, sources, agents |
-| 26 | Modern CSS and accessibility modes | 25 | Forms: autofill, passkeys, OTP, KZ formats, ₸, dates, files |
-| 27 | Data tables | | |
+| 01 | Usability foundations, response times | 15 | Trust, dark patterns, AI features |
+| 02 | UX laws, Gestalt, Nielsen heuristics | 16 | Design system and tokens (DTCG) |
+| 03 | Visual hierarchy, spacing, shadows, radii | 17 | Audit and usability testing |
+| 04 | Color, contrast, dark mode | 18 | Game UI, HUD, safe areas, gamepad |
+| 05 | Typography, Cyrillic, ₸ | 19 | Game feel, onboarding, game accessibility |
+| 06 | Layout, grids, breakpoints, container queries | 20 | Color palettes |
+| 07 | Navigation, forms, screen states, toasts, modals | 21 | Micro-interactions and effects catalog |
+| 08 | Motion and interaction | 22 | Game VFX and "juice" |
+| 09 | Imagery, art direction, icons | 23 | Design system from scratch |
+| 10 | Web media and performance (CWV, srcset, OG) | 24 | AI interfaces: chat, streaming, sources, agents |
+| 11 | Landing pages and web style | 25 | Forms: autofill, passkeys, OTP, KZ formats, ₸, dates, files |
+| 12 | Accessibility (WCAG 2.2, ARIA, EAA) | 26 | Modern CSS and accessibility modes |
+| 13 | UX writing, i18n, RTL, plurals | 27 | Data tables |
+| 14 | Data viz and dashboards | | |
 
 ### Tools
 
