@@ -18,7 +18,8 @@ let failed = 0;
 for (const scheme of ["light", "dark"]) {
   for (const p of PAGES) {
     for (const width of [1280, 390]) {
-      const page = await browser.newPage({ colorScheme: scheme, viewport: { width, height: 900 } });
+      const context = await browser.newContext({ colorScheme: scheme, viewport: { width, height: 900 } });
+      const page = await context.newPage();
       await page.goto(BASE + p.url, { waitUntil: "networkidle" });
       await page.waitForTimeout(500);
       let axe = new AxeBuilder({ page }).withTags(TAGS);
@@ -33,7 +34,7 @@ for (const scheme of ["light", "dark"]) {
           for (const n of v.nodes.slice(0, 5)) console.log(`    ${n.target.join(" ")}\n      ${(n.failureSummary || "").split("\n").join(" ")}`);
         }
       } else console.log(`ok   ${label}`);
-      await page.close();
+      await context.close();
     }
   }
 }
