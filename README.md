@@ -4,6 +4,8 @@
 
 Two [Agent Skills](https://docs.claude.com/en/docs/agents-and-tools/agent-skills) that teach Claude (Claude Code, Claude.ai, Claude Agent SDK) how to design, build and review user interfaces: websites and landing pages, mobile and desktop apps, dashboards, and game UI (HUD, menus, gamepad, game feel).
 
+**Before and after:** [dex719.github.io/ui-design-skills](https://dex719.github.io/ui-design-skills/) - the same screens built without the skill and with it.
+
 The skill content itself is written in **Russian**; Claude reads it and answers in whatever language you use.
 
 | Skill | What it is | Size |

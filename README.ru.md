@@ -4,6 +4,8 @@
 
 Два [скилла (Agent Skills)](https://docs.claude.com/en/docs/agents-and-tools/agent-skills), которые учат Claude (Claude Code, Claude.ai, Claude Agent SDK) проектировать, верстать и ревьюить интерфейсы: сайты и лендинги, мобильные и десктопные приложения, дашборды, игровой UI (HUD, меню, геймпад, game feel).
 
+**До и после:** [dex719.github.io/ui-design-skills](https://dex719.github.io/ui-design-skills/) - одни и те же экраны без скилла и со скиллом.
+
 Сами скиллы написаны на **русском**; Claude читает их и отвечает на том языке, на котором вы спрашиваете.
 
 | Скилл | Что это | Размер |
