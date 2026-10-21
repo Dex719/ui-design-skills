@@ -3,7 +3,7 @@ name: pages
 on:
   push:
     branches: [main]
-    paths: ["site/**", ".github/workflows/pages.yml"]
+    paths: ["site/**", "ui-design/assets/effects/**", "ui-design/assets/palettes/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -24,8 +24,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - name: Build site with effects demo
+        run: |
+          cp -r site _site
+          mkdir -p _site/effects _site/palettes
+          cp ui-design/assets/effects/demo.html ui-design/assets/effects/effects.css ui-design/assets/effects/effects.js _site/effects/
+          cp ui-design/assets/palettes/bank-petrol.css _site/palettes/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
