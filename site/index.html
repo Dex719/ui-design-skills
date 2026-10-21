@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ui-design - до и после</title>
+<meta name="description" content="Скилл ui-design для Claude: один и тот же интерфейс без скилла и со скиллом.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..700&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+:root{
+  --bg: #f4f3f0; --text: #1c1c1a; --text-2: #5e5d58; --line: #dddbd5; --surface: #ffffff;
+  --font: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+*, *::before, *::after{ box-sizing: border-box; }
+body{ margin: 0; background: var(--bg); color: var(--text); font: 17px/1.55 var(--font); }
+a{ color: inherit; text-underline-offset: .2em; }
+.wrap{ max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+@media (max-width: 600px){ .wrap{ padding: 0 16px; } }
+
+header.wrap{ padding-top: 56px; padding-bottom: 40px; }
+header h1{ margin: 0; font-size: clamp(32px, 5vw, 48px); line-height: 1.1; letter-spacing: -.02em; }
+header p{ margin: 12px 0 0; color: var(--text-2); max-width: 60ch; }
+
+.pair{ padding: 40px 0; border-top: 1px solid var(--line); }
+.pair h2{ margin: 0 0 20px; font-size: 22px; }
+.cols{ display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 860px){ .cols{ grid-template-columns: 1fr; } }
+.col{ min-width: 0; display: flex; flex-direction: column; }
+.col .stage{ flex: 1; }
+@media (max-width: 600px){ .stage{ padding: 16px; min-height: 0; } .b-hero h3, .a-hero h3{ font-size: 24px; } }
+.col > p{ margin: 0 0 10px; font-size: 15px; font-weight: 600; color: var(--text-2); }
+.col.after > p{ color: #16794a; }
+.stage{ min-height: 360px; border-radius: 8px; overflow: hidden; display: grid; place-items: center; padding: 28px; background: #e9e7e2; }
+.what{ margin: 16px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 15px; color: var(--text-2); }
+.what li::before{ content: "-"; margin-right: 8px; }
+
+footer.wrap{ padding-bottom: 64px; }
+footer .in{ padding-top: 40px; border-top: 1px solid var(--line); }
+footer h2{ margin: 0 0 12px; font-size: 22px; }
+.cmd{ display: flex; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 10px 10px 16px; margin-top: 8px; max-width: 760px; }
+.cmd code{ flex: 1; font: 14px/1.5 "JetBrains Mono", ui-monospace, monospace; overflow-wrap: anywhere; }
+.cmd button{ flex: none; min-height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); font: 600 14px var(--font); color: var(--text); cursor: pointer; }
+.cmd button:hover{ background: var(--line); }
+footer .note{ margin-top: 16px; font-size: 15px; color: var(--text-2); }
+
+/* ===== ДО: типичный интерфейс «по привычке» ===== */
+.b-pay{ width: 100%; max-width: 380px; padding: 28px; border-radius: 24px; color: #fff; background: linear-gradient(135deg, #7c3aed, #db2777); box-shadow: 0 0 40px rgba(168, 85, 247, .6); text-align: center; }
+.b-pay h3{ margin: 0 0 18px; font-size: 22px; }
+.b-pay .in{ display: block; margin: 10px 0; padding: 12px 16px; border-radius: 14px; background: rgba(255,255,255,.18); color: rgba(255,255,255,.55); text-align: left; font-size: 15px; }
+.b-pay .err{ margin: 6px 0 12px; font-size: 13px; color: #fecaca; }
+.b-pay .fine{ margin: 10px 0 0; font-size: 11px; color: rgba(255,255,255,.45); }
+.b-btns{ display: flex; gap: 10px; justify-content: center; margin-top: 8px; }
+.b-btn{ padding: 12px 26px; border-radius: 999px; font-weight: 700; color: #fff; background: linear-gradient(90deg, #06b6d4, #6366f1); box-shadow: 0 0 18px rgba(99,102,241,.8); }
+
+.b-hero{ width: 100%; padding: 40px 24px; border-radius: 16px; text-align: center; color: #fff; background: radial-gradient(circle at 50% 0%, #4338ca 0%, #0b1020 60%); }
+.b-hero .kick{ font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: #a5b4fc; }
+.b-hero h3{ margin: 12px 0; font-size: 30px; line-height: 1.15; background: linear-gradient(90deg, #22d3ee, #a78bfa, #f472b6); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.b-hero p{ margin: 0 auto 20px; max-width: 34ch; font-size: 14px; color: #94a3b8; }
+.b-hero .b-btns{ flex-wrap: wrap; }
+.b-hero .ghost{ padding: 12px 22px; border-radius: 999px; border: 1px solid #6366f1; color: #c7d2fe; font-weight: 600; }
+
+.b-dash{ width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.b-tile{ padding: 16px; border-radius: 16px; color: #fff; background: linear-gradient(135deg, #1e293b, #312e81); box-shadow: 0 0 20px rgba(56,189,248,.35); }
+.b-tile .l{ font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #94a3b8; }
+.b-tile .v{ margin-top: 6px; font: 700 22px "JetBrains Mono", monospace; color: #67e8f9; text-shadow: 0 0 10px #22d3ee; }
+.b-tile .d{ font-size: 12px; color: #4ade80; }
+
+/* ===== ПОСЛЕ: со скиллом ===== */
+.a-pay{ width: 100%; max-width: 380px; padding: 24px; border-radius: 8px; background: #fff; border: 1px solid #d9dde0; color: #1c2024; }
+.a-pay h3{ margin: 0 0 18px; font-size: 20px; }
+.a-field{ margin-bottom: 16px; }
+.a-field .lab{ display: block; font-size: 14px; color: #5f666b; margin-bottom: 4px; }
+.a-field .in{ display: block; padding: 0 12px; height: 44px; line-height: 42px; border: 1px solid #868e93; border-radius: 6px; font-variant-numeric: tabular-nums; }
+.a-field.bad .in{ border-color: #c9282e; border-width: 2px; line-height: 40px; }
+.a-field .err{ display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 14px; color: #c9282e; }
+.a-field .err svg{ width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.a-btns{ display: flex; align-items: center; gap: 16px; margin-top: 8px; }
+.a-btn{ display: inline-flex; align-items: center; height: 44px; padding: 0 20px; border-radius: 6px; background: #0b6b84; color: #fff; font-weight: 600; }
+.a-link{ color: #0b6b84; font-weight: 600; }
+
+.a-hero{ width: 100%; padding: 32px 28px; border-radius: 8px; background: #fbf7f0; color: #22201c; border: 1px solid #e6dfd3; }
+.a-hero h3{ margin: 0; font-size: 28px; line-height: 1.15; letter-spacing: -.01em; max-width: 16ch; }
+.a-hero p{ margin: 10px 0 18px; font-size: 15px; color: #625e57; max-width: 36ch; }
+.a-hero .row{ display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.a-hero .a-btn{ background: #a8452e; }
+.a-hero .free{ font-size: 14px; color: #625e57; }
+.a-hero table{ margin-top: 22px; width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; border: 1px solid #e6dfd3; }
+.a-hero th, .a-hero td{ padding: 7px 10px; text-align: left; border-bottom: 1px solid #efe9df; }
+.a-hero th{ font-weight: 500; color: #625e57; }
+.a-hero td.n{ text-align: right; font-variant-numeric: tabular-nums; }
+
+.a-dash{ width: 100%; padding: 24px; border-radius: 8px; background: #fff; border: 1px solid #d9dde0; color: #1c2024; }
+.a-dash .l{ font-size: 14px; color: #5f666b; }
+.a-dash .big{ margin-top: 2px; font-size: 36px; font-weight: 700; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.a-dash .d{ font-size: 14px; color: #5f666b; }
+.a-dash .d b{ color: #16794a; font-weight: 600; }
+.a-dash table{ margin-top: 18px; width: 100%; border-collapse: collapse; font-size: 14px; }
+.a-dash th, .a-dash td{ padding: 8px 0; text-align: left; border-bottom: 1px solid #eceef0; }
+.a-dash th{ font-weight: 500; color: #5f666b; }
+.a-dash .n{ text-align: right; font-variant-numeric: tabular-nums; }
+.a-dash .up{ color: #16794a; } .a-dash .down{ color: #c9282e; }
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <h1>ui-design: до и после</h1>
+  <p>Один и тот же экран от Claude без скилла и со скиллом. <a href="https://github.com/Dex719/ui-design-skills">Скилл на GitHub</a></p>
+</header>
+
+<main class="wrap">
+
+  <section class="pair">
+    <h2>Форма оплаты</h2>
+    <div class="cols">
+      <div class="col">
+        <p>Без скилла</p>
+        <div class="stage" aria-hidden="true">
+          <div class="b-pay">
+            <h3>💳 Оплата 🚀</h3>
+            <span class="in">Телефон</span>
+            <p class="err">❌ Ошибка!!! Неверный формат данных, попробуйте ещё раз</p>
+            <span class="in">Сумма</span>
+            <div class="b-btns"><span class="b-btn">ОК</span><span class="b-btn">Отмена</span></div>
+            <p class="fine">Нажимая кнопку, вы соглашаетесь с условиями</p>
+          </div>
+        </div>
+      </div>
+      <div class="col after">
+        <p>Со скиллом</p>
+        <div class="stage" aria-hidden="true">
+          <div class="a-pay">
+            <h3>Оплата заказа</h3>
+            <div class="a-field bad">
+              <span class="lab">Телефон</span>
+              <span class="in">+7 777 12</span>
+              <span class="err"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>Неверный номер</span>
+            </div>
+            <div class="a-field">
+              <span class="lab">Сумма</span>
+              <span class="in">12 500 ₸</span>
+            </div>
+            <div class="a-btns"><span class="a-btn">Оплатить 12 500 ₸</span><span class="a-link">Отменить</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="what">
+      <li>Подписи над полями, а не внутри</li>
+      <li>Ошибка у поля: коротко, с иконкой</li>
+      <li>Одна главная кнопка, на ней действие и сумма</li>
+    </ul>
+  </section>
+
+  <section class="pair">
+    <h2>Первый экран лендинга</h2>
+    <div class="cols">
+      <div class="col">
+        <p>Без скилла</p>
+        <div class="stage" aria-hidden="true">
+          <div class="b-hero">
+            <span class="kick">✨ New · AI-powered ✨</span>
+            <h3>Революционная платформа нового поколения</h3>
+            <p>Раскройте потенциал вашего бизнеса с помощью искусственного интеллекта</p>
+            <div class="b-btns"><span class="b-btn">Начать 🚀</span><span class="ghost">Узнать больше</span><span class="ghost">Демо</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="col after">
+        <p>Со скиллом</p>
+        <div class="stage" aria-hidden="true">
+          <div class="a-hero">
+            <h3>Отчёт для налоговой за 5 минут</h3>
+            <p>Загрузите банковскую выписку, сервис соберёт отчёт и проверит суммы.</p>
+            <div class="row"><span class="a-btn">Загрузить выписку</span><span class="free">Бесплатно, без карты</span></div>
+            <table>
+              <tr><th>Статья</th><th class="n">Сумма</th></tr>
+              <tr><td>Доход</td><td class="n">8 450 000 ₸</td></tr>
+              <tr><td>Налог 3%</td><td class="n">253 500 ₸</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="what">
+      <li>Заголовок о пользе, а не о «революции»</li>
+      <li>Одна кнопка вместо трёх</li>
+      <li>Пример результата вместо свечения и градиентов</li>
+    </ul>
+  </section>
+
+  <section class="pair">
+    <h2>Дашборд</h2>
+    <div class="cols">
+      <div class="col">
+        <p>Без скилла</p>
+        <div class="stage" aria-hidden="true">
+          <div class="b-dash">
+            <div class="b-tile"><div class="l">📈 Выручка</div><div class="v">4.82M</div><div class="d">+6.1% 🚀</div></div>
+            <div class="b-tile"><div class="l">👥 Клиенты</div><div class="v">1,284</div><div class="d">+12.5% 🔥</div></div>
+            <div class="b-tile"><div class="l">💰 Средний чек</div><div class="v">3,754</div><div class="d">+2.3% ✨</div></div>
+            <div class="b-tile"><div class="l">⚡ Конверсия</div><div class="v">4.7%</div><div class="d">+0.4% 💎</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col after">
+        <p>Со скиллом</p>
+        <div class="stage" aria-hidden="true">
+          <div class="a-dash">
+            <div class="l">Выручка за октябрь</div>
+            <div class="big">4 820 000 ₸</div>
+            <div class="d"><b>+6%</b> к сентябрю</div>
+            <table>
+              <tr><th>Канал</th><th class="n">Выручка</th><th class="n">Изменение</th></tr>
+              <tr><td>Сайт</td><td class="n">2 910 000 ₸</td><td class="n up">+9%</td></tr>
+              <tr><td>Приложение</td><td class="n">1 450 000 ₸</td><td class="n up">+4%</td></tr>
+              <tr><td>Магазины</td><td class="n">460 000 ₸</td><td class="n down">-3%</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="what">
+      <li>Одно главное число, остальное таблицей</li>
+      <li>Суммы полностью и с ₸, без «4.82M»</li>
+      <li>Рост и падение цветом и знаком, без эмодзи</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer class="wrap"><div class="in">
+  <h2>Установить</h2>
+  <div class="cmd"><code>git clone https://github.com/Dex719/ui-design-skills.git</code><button type="button">Скопировать</button></div>
+  <div class="cmd"><code>cp -r ui-design-skills/ui-design ~/.claude/skills/</code><button type="button">Скопировать</button></div>
+  <p class="note">Дальше просто попросите Claude сделать экран. Скилл подключится сам или по команде <code>/ui-design</code>.</p>
+</div></footer>
+
+<script>
+document.querySelectorAll(".cmd button").forEach(function (b) {
+  b.addEventListener("click", function () {
+    var text = b.previousElementSibling.textContent;
+    navigator.clipboard.writeText(text).then(function () {
+      b.textContent = "Скопировано";
+      setTimeout(function () { b.textContent = "Скопировать"; }, 1500);
+    });
+  });
+});
+</script>
+</body>
+</html>
