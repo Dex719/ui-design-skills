@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<script>try { if (/[?&]lang=en\b/.test(location.search) || (!/[?&]lang=ru\b/.test(location.search) && localStorage.getItem("fx-demo-lang") === "en")) document.documentElement.lang = "en"; } catch (e) {}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Эффекты ui-design</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap">
@@ -304,7 +305,6 @@ details.code pre{ margin: 8px 0 0; padding: 12px; background: var(--bg); border-
 details.code .btn{ margin-top: 8px; }
 .card.is-out, .is-out.arena-wrap, .is-out.reveal-grid{ opacity: .45; }
 .out-note{ font-size: 13px; color: var(--warning); font-weight: 600; }
-.is-plain, .is-plain *{ animation: none !important; transition: none !important; }
 
 /* ---------- Новые карточки ---------- */
 .pf-line{ display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--text-2); padding: 4px 0; border-bottom: 1px solid var(--border); }
@@ -372,6 +372,157 @@ details.code .btn{ margin-top: 8px; }
 .agent li.is-stop i{ border-color: var(--danger); }
 .agent-ask{ padding: 12px; border-radius: var(--r-sm); background: var(--warning-soft); display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
 .agent-ask p{ margin: 0; }
+</style>
+<style>
+/* ---------- Вторая волна карточек ---------- */
+.demo > .hint, .demo .row + .hint{ margin: 0; font-size: 13px; color: var(--text-2); }
+.card-wide{ grid-column: 1 / -1; }
+.amt-wrap{ position: relative; }
+.amt-wrap input{ padding-right: 36px; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.amt-cur{ position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-2); font-size: 20px; }
+.per-custom{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.per-out{ margin: 0; font-size: 14px; color: var(--text-2); }
+.per-out b{ color: var(--text); }
+.drop{ display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 20px 12px; border: 2px dashed var(--border-strong); border-radius: var(--r-md); text-align: center; font-size: 14px; cursor: pointer; color: var(--text-2); transition: background-color 150ms, border-color 150ms; }
+.drop b{ color: var(--accent-text); }
+.drop svg{ width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.drop.is-over{ background: var(--accent-soft); border-color: var(--accent); }
+#fileIn:focus-visible + * , .drop:has(+ #fileIn:focus-visible){ outline: 2px solid var(--focus); outline-offset: 2px; }
+.files{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.files li{ display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); font-size: 14px; }
+.files .progress{ grid-column: 1 / -1; }
+.files small{ color: var(--text-2); }
+.wiz-steps{ list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; counter-reset: w; font-size: 13px; }
+.wiz-steps li{ flex: 1; counter-increment: w; padding-top: 6px; border-top: 3px solid var(--border); color: var(--text-2); }
+.wiz-steps li::before{ content: counter(w) ". "; }
+.wiz-steps li.is-done{ border-top-color: var(--accent); color: var(--text); }
+.wiz-steps li[aria-current="step"]{ border-top-color: var(--accent); color: var(--text); font-weight: 600; }
+
+.tbl-tools{ display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.tbl-tools label{ display: inline-flex; gap: 8px; align-items: center; font-size: 14px; color: var(--text-2); }
+.tbl-tools input, .tbl-tools select{ font: 15px var(--font); color: var(--text); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r-sm); min-height: 40px; padding: 0 10px; }
+.tbl-q{ flex: 1 1 220px; } .tbl-q input{ width: 100%; }
+.tbl-bulk{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px; border-radius: var(--r-sm); background: var(--accent-soft); font-size: 14px; }
+.tbl-wrap{ overflow-x: auto; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface); }
+.tbl{ width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td{ text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.tbl thead th{ position: sticky; top: 0; background: var(--surface-2); font-weight: 600; color: var(--text-2); }
+.tbl th button{ font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; display: inline-flex; gap: 4px; align-items: center; }
+.tbl th[aria-sort="ascending"] button::after, .tbl th[aria-sort="descending"] button::after{ content: ""; width: 12px; height: 12px; background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 19V5'/%3E%3Cpath d='m5 12 7-7 7 7'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 19V5'/%3E%3Cpath d='m5 12 7-7 7 7'/%3E%3C/svg%3E") center / contain no-repeat; }
+.tbl th[aria-sort="descending"] button::after{ rotate: 180deg; }
+.tbl .n{ text-align: right; font-variant-numeric: tabular-nums; }
+.tbl .tbl-c{ width: 36px; }
+.tbl tbody tr:hover{ background: var(--surface-2); }
+.tbl tbody tr.is-sel{ background: var(--accent-soft); }
+.tbl input[type="checkbox"]{ width: 18px; height: 18px; accent-color: var(--accent); }
+.st-ok{ color: var(--success); } .st-wait{ color: var(--warning); } .st-bad{ color: var(--danger); }
+@media (max-width: 640px){
+  .tbl thead{ display: none; }
+  .tbl, .tbl tbody, .tbl tr, .tbl td{ display: block; }
+  .tbl tr{ display: grid; grid-template-columns: 28px 1fr auto; gap: 2px 8px; padding: 10px; border-bottom: 1px solid var(--border); }
+  .tbl td{ border: 0; padding: 0; white-space: normal; }
+  .tbl td:nth-child(1){ grid-row: span 3; }
+  .tbl td:nth-child(2){ font-weight: 600; }
+  .tbl td:nth-child(5){ grid-row: 1; grid-column: 3; }
+  .tbl td:nth-child(3), .tbl td:nth-child(4){ grid-column: 2; font-size: 13px; }
+}
+
+.perm{ display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: var(--r-sm); background: var(--surface); border: 1px solid var(--border); font-size: 14px; }
+.perm p{ margin: 0; color: var(--text-2); }
+
+.chat{ gap: 10px; }
+.chat-log{ display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; font-size: 14px; }
+.msg{ max-width: 88%; padding: 8px 12px; border-radius: var(--r-md); line-height: 1.45; }
+.msg.me{ align-self: flex-end; background: var(--accent); color: var(--on-accent); }
+.msg.ai{ align-self: flex-start; background: var(--surface); border: 1px solid var(--border); }
+.msg.err{ border-color: var(--danger); }
+.msg .src{ display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; font-size: 12px; }
+.msg .src a{ color: var(--accent-text); }
+.msg .act{ display: flex; gap: 6px; margin-top: 6px; }
+.chat-form{ display: flex; gap: 8px; align-items: flex-end; }
+.chat-form textarea{ flex: 1; resize: none; font: 15px/1.4 var(--font); color: var(--text); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r-sm); padding: 10px 12px; min-height: 44px; max-height: 140px; }
+
+.ob{ position: relative; }
+.ob-app{ display: flex; gap: 8px; flex-wrap: wrap; padding: 12px; border-radius: var(--r-sm); background: var(--surface); border: 1px solid var(--border); }
+.ob-app .is-hl{ box-shadow: 0 0 0 3px var(--focus); }
+.ob-tip{ padding: 12px; border-radius: var(--r-sm); background: var(--text); color: var(--bg); font-size: 14px; display: flex; flex-direction: column; gap: 6px; }
+.ob-tip p{ margin: 0; opacity: .85; }
+.ob-tip:focus{ outline: none; }
+.ob-tip .btn-secondary{ background: transparent; color: var(--bg); border-color: currentColor; }
+.ob-tip .btn-primary{ background: var(--bg); color: var(--text); }
+.ob-n{ font-size: 13px; margin-right: auto; opacity: .8; }
+
+.a11y-box{ display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: var(--r-sm); background: var(--surface); border: 1px solid var(--border); font-size: 15px; overflow-wrap: anywhere; }
+.a11y-box p{ margin: 0; color: var(--text-2); }
+.ps-badge-ok{ display: inline-flex; padding: 2px 8px; border-radius: 6px; background: var(--success-soft); color: var(--success); font-size: 13px; font-weight: 600; }
+.a11y-box.is-big{ font-size: 30px; }
+.a11y-box.is-big .btn, .a11y-box.is-big .ps-badge-ok{ font-size: 26px; min-height: 0; padding: 6px 12px; }
+.a11y-box.is-hc{ background: #000; color: #fff; border: 2px solid #fff; }
+.a11y-box.is-hc p{ color: #fff; }
+.a11y-box.is-hc .ps-badge-ok{ background: #000; color: #3ff23f; border: 1px solid #3ff23f; }
+.a11y-box.is-hc .btn{ background: #000; color: #ffff00; border: 2px solid #ffff00; }
+@media (forced-colors: active){
+  .ps-badge-ok, .tbl-bulk, .agent-ask, .perm{ border: 1px solid CanvasText; }
+  .fx-skeleton{ background: GrayText; }
+}
+
+/* Игры: тёмные карточки, как арена */
+.game-card{ background: #101318; color: #e8ebf0; border-color: #2a3542; }
+.game-card .when, .game-card .meta, .game-card .hint{ color: #a9b1be; }
+.game-card .meta b{ color: #fff; }
+.game-card .chip{ color: #f3c98a; background: #2a2114; }
+.game-card .demo{ background: #181d24; }
+.game-card .btn-secondary{ background: #1d232c; color: #e8ebf0; border-color: #3a4452; }
+.game-card .btn-primary{ background: #e7ab51; color: #101318; }
+.game-card .cmp, .game-card .seg5 button{ background: #1d232c; border-color: #3a4452; color: #c4cbd6; }
+.game-card .seg5 button[aria-pressed="true"]{ background: #e7ab51; color: #101318; border-color: #e7ab51; }
+.game-card .cmp button[aria-pressed="true"]{ background: #2a3340; color: #fff; }
+.game-card details.code summary{ color: #f3c98a; }
+.game-card details.code pre{ background: #181d24; color: #e8ebf0; }
+.game-card select{ font: 14px var(--font); background: #1d232c; color: #e8ebf0; border: 1px solid #3a4452; border-radius: 6px; min-height: 36px; }
+.game-card :focus-visible{ outline-color: #f0b862; }
+.gs{ gap: 12px; }
+.gs-controls{ display: grid; gap: 8px; }
+.gs-row{ display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; }
+.gs-row input[type="range"]{ accent-color: #e7ab51; }
+.gs-preview{ position: relative; overflow: hidden; height: 150px; border-radius: var(--r-sm); background: #24303a; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.gs-hpbar{ display: grid; grid-template-columns: 70px 1fr; gap: 8px; align-items: center; font-size: 13px; }
+.gs-hpbar i{ display: block; height: 10px; border-radius: 5px; }
+#gsEnemy{ background: #e5484d; width: 70%; } #gsAlly{ background: #3dd68c; width: 90%; }
+.gs-preview.is-cb #gsEnemy{ background: repeating-linear-gradient(45deg, #ff8a3d 0 6px, #ffb27a 6px 12px); } .gs-preview.is-cb #gsAlly{ background: #4aa8ff; }
+.gs-sub{ position: absolute; left: 12px; right: 12px; bottom: 10px; margin: 0; padding: 4px 8px; border-radius: 4px; background: rgb(0 0 0 / .7); color: #fff; font-size: 20px; line-height: 1.3; text-align: center; }
+.gs-flash{ position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+.glyphs{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 15px; }
+.glyphs li{ display: flex; align-items: center; gap: 10px; }
+.glyph{ display: inline-grid; place-items: center; min-width: 32px; height: 32px; padding: 0 8px; border-radius: 8px; font: 700 14px var(--font); background: #2a3340; color: #fff; border: 1px solid #4a5666; }
+.glyph.round{ border-radius: 50%; padding: 0; width: 32px; }
+.glyph.a{ background: #107c10; } .glyph.b{ background: #c50f1f; } .glyph.x{ background: #1f6bd8; } .glyph.y{ background: #d8a50f; color: #101318; }
+.glyph.cross{ color: #8cb7ff; } .glyph.circle{ color: #ff8a8a; } .glyph.square{ color: #ff9bdc; } .glyph.triangle{ color: #6ee0c0; }
+.lvlres{ gap: 10px; }
+.stars{ display: flex; gap: 8px; }
+.stars i{ width: 36px; height: 36px; background: #3a4452; clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+.stars i.is-on{ background: #f6d36b; }
+.lr-line{ display: flex; justify-content: space-between; font-size: 15px; }
+.lr-line b{ font-variant-numeric: tabular-nums; color: #f6d36b; }
+.lr-xp{ height: 8px; border-radius: 4px; background: #2a3340; overflow: hidden; }
+.lr-xp i{ display: block; height: 100%; background: #ffd27a; transform-origin: left; transform: scaleX(var(--xp, .3)); }
+@media (prefers-reduced-motion: no-preference){ :root:not([data-motion="reduce"]) .lr-xp i{ transition: transform .6s var(--fx-ease-out); } }
+:root[data-motion="full"] .lr-xp i{ transition: transform .6s var(--fx-ease-out); }
+.lr-up{ margin: 0; font-weight: 700; color: #ffd27a; }
+
+/* ---------- Ссылка, набор, вес ---------- */
+.card-tools{ display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 13px; }
+.card-tools button, .card-tools label{ font: 600 13px var(--font); color: var(--accent-text); background: none; border: 0; padding: 4px 0; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.game-card .card-tools button, .game-card .card-tools label{ color: #f3c98a; }
+.card:target{ box-shadow: 0 0 0 3px var(--focus); }
+.kit{ position: fixed; right: 16px; bottom: 16px; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; max-width: min(520px, calc(100vw - 32px)); padding: 10px 14px; border-radius: var(--r-md); background: var(--text); color: var(--bg); font-size: 14px; box-shadow: 0 12px 32px -12px rgb(0 0 0 / .45); }
+.kit .btn{ min-height: 36px; background: var(--bg); color: var(--text); }
+.kit .btn-x{ background: transparent; color: var(--bg); border: 1px solid currentColor; }
+.lang{ display: inline-flex; padding: 3px; gap: 2px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+.lang button{ font: 500 14px var(--font); min-height: 36px; padding: 0 12px; border: 0; border-radius: 7px; background: none; color: var(--text-2); cursor: pointer; }
+.lang button[aria-pressed="true"]{ background: var(--accent); color: var(--on-accent); }
 </style>
 </head>
 <body>
@@ -747,6 +898,172 @@ details.code .btn{ margin-top: 8px; }
     </div>
   </section>
 
+  <section class="section" aria-labelledby="s-input">
+    <h2 class="fx-enter" id="s-input">Формы и ввод</h2>
+    <div class="grid">
+      <article class="card fx-enter">
+        <h3>Сумма в тенге</h3>
+        <p class="when">Разряды разделяются пробелами при вводе, тиыны после запятой, лимит проверяется сразу. Быстрые суммы - для частых случаев.</p>
+        <div class="chips"><span class="chip">inputmode="decimal"</span><span class="chip">лимит 500 000 ₸</span></div>
+        <form class="demo" id="amtForm" novalidate>
+          <div class="field"><label for="amt">Сумма перевода</label>
+            <div class="amt-wrap"><input id="amt" inputmode="decimal" autocomplete="transaction-amount" placeholder="0"><span class="amt-cur" aria-hidden="true">₸</span></div>
+            <p class="err" id="amtErr" hidden></p><p class="hint" id="amtHint">Доступно 248 500 ₸</p></div>
+          <div class="row" role="group" aria-label="Быстрые суммы"><button class="btn btn-secondary btn-sm" type="button" data-amt="5000">5 000</button><button class="btn btn-secondary btn-sm" type="button" data-amt="10000">10 000</button><button class="btn btn-secondary btn-sm" type="button" data-amt="50000">50 000</button></div>
+          <div class="row"><button class="btn btn-primary fx-btn" type="submit" id="amtBtn">Перевести</button></div>
+        </form>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Выбор периода</h3>
+        <p class="when">Готовые периоды закрывают большинство случаев, свой период - двумя полями даты. Стрелки и Enter работают в календаре браузера.</p>
+        <div class="chips"><span class="chip">input type="date"</span><span class="chip">min / max</span></div>
+        <div class="demo">
+          <div class="seg5" role="group" aria-label="Период" id="perSeg">
+            <button type="button" data-per="today" aria-pressed="false">Сегодня</button>
+            <button type="button" data-per="week" aria-pressed="true">7 дней</button>
+            <button type="button" data-per="month" aria-pressed="false">Месяц</button>
+            <button type="button" data-per="custom" aria-pressed="false">Свой период</button>
+          </div>
+          <div class="per-custom" id="perCustom" hidden>
+            <div class="field"><label for="perFrom">С</label><input id="perFrom" type="date"></div>
+            <div class="field"><label for="perTo">По</label><input id="perTo" type="date"></div>
+          </div>
+          <p class="per-out" id="perOut" aria-live="polite"></p>
+        </div>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Загрузка файла</h3>
+        <p class="when">Перетащить или выбрать. Тип и размер проверяются до отправки, у загрузки есть прогресс и отмена.</p>
+        <div class="chips"><span class="chip">PDF, JPG, PNG</span><span class="chip">до 5 МБ</span><span class="chip">прогресс + отмена</span></div>
+        <div class="demo">
+          <label class="drop" id="drop" for="fileIn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
+            <span><b>Выберите файл</b> или перетащите сюда</span>
+            <small>PDF, JPG или PNG до 5 МБ</small>
+          </label>
+          <input type="file" id="fileIn" class="fx-sr" accept=".pdf,.jpg,.jpeg,.png">
+          <p class="err" id="fileErr" hidden></p>
+          <ul class="files" id="files" aria-live="polite"></ul>
+          <div class="row"><button class="btn btn-secondary btn-sm" type="button" id="fileBig">Пример: файл 12 МБ</button></div>
+        </div>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Многошаговая форма</h3>
+        <p class="when">Шаги видны сверху, «Назад» не стирает введённое, черновик сохраняется в браузере. Номер шага объявляется скринридеру.</p>
+        <div class="chips"><span class="chip">3 шага</span><span class="chip">черновик</span><span class="chip">aria-current="step"</span></div>
+        <form class="demo" id="wiz" novalidate>
+          <ol class="wiz-steps" id="wizSteps"><li aria-current="step">Данные</li><li>Адрес</li><li>Проверка</li></ol>
+          <div class="wiz-pane" data-step="0">
+            <div class="field"><label for="wName">Имя и фамилия</label><input id="wName" autocomplete="name"><p class="err" id="wNameErr" hidden></p></div>
+          </div>
+          <div class="wiz-pane" data-step="1" hidden>
+            <div class="field"><label for="wCity">Город</label><input id="wCity" autocomplete="address-level2"><p class="err" id="wCityErr" hidden></p></div>
+          </div>
+          <div class="wiz-pane" data-step="2" hidden>
+            <div class="pf-line"><span>Имя</span><b id="wSumName"></b></div>
+            <div class="pf-line"><span>Город</span><b id="wSumCity"></b></div>
+          </div>
+          <div class="row"><button class="btn btn-secondary fx-btn" type="button" id="wBack" hidden>Назад</button><button class="btn btn-primary fx-btn" type="submit" id="wNext">Далее</button></div>
+          <p class="hint" id="wDraft" aria-live="polite"></p>
+        </form>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="s-services">
+    <h2 class="fx-enter" id="s-services">Таблицы, ИИ и сервисы</h2>
+    <div class="grid">
+      <article class="card card-wide fx-enter">
+        <h3>Таблица данных</h3>
+        <p class="when">Сортировка по заголовку, фильтр и поиск, выбор строк и массовое действие. На узком экране строки становятся карточками.</p>
+        <div class="chips"><span class="chip">aria-sort</span><span class="chip">массовые действия</span><span class="chip">карточки до 640 px</span></div>
+        <div class="demo">
+          <div class="tbl-tools">
+            <label class="tbl-q"><span class="fx-sr">Поиск по операциям</span><input type="search" id="tblQ" placeholder="Поиск по названию"></label>
+            <label>Статус <select id="tblSt"><option value="">Все</option><option>Выполнен</option><option>В обработке</option><option>Отклонён</option></select></label>
+          </div>
+          <div class="tbl-bulk" id="tblBulk" hidden><span id="tblCount"></span><button class="btn btn-secondary btn-sm fx-btn" type="button" id="tblExport">Выгрузить в CSV</button><button class="btn btn-ghost btn-sm" type="button" id="tblClear">Снять выбор</button></div>
+          <div class="tbl-wrap">
+            <table class="tbl" id="tbl">
+              <thead><tr><th scope="col" class="tbl-c"><input type="checkbox" id="tblAll" aria-label="Выбрать все строки"></th><th scope="col" aria-sort="none"><button type="button" data-sort="name">Операция</button></th><th scope="col" aria-sort="descending"><button type="button" data-sort="date">Дата</button></th><th scope="col">Статус</th><th scope="col" class="n" aria-sort="none"><button type="button" data-sort="sum">Сумма</button></th></tr></thead>
+              <tbody id="tblBody"></tbody>
+            </table>
+          </div>
+          <p class="hint" id="tblEmpty" hidden>Ничего не найдено. Измените поиск или статус.</p>
+        </div>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Запрос разрешения</h3>
+        <p class="when">Сначала объяснение в интерфейсе и выбор «Не сейчас», и только после согласия - системный запрос браузера. Отказ не повторяется на каждом входе.</p>
+        <div class="chips"><span class="chip">pre-permission</span><span class="chip">Notification</span></div>
+        <div class="demo">
+          <div class="perm" id="perm">
+            <b>Уведомлять о поступлениях?</b>
+            <p>Пришлём сообщение, когда на счёт придут деньги. Выключить можно в настройках.</p>
+            <div class="row"><button class="btn btn-primary fx-btn" type="button" id="permYes">Включить уведомления</button><button class="btn btn-secondary fx-btn" type="button" id="permNo">Не сейчас</button></div>
+          </div>
+          <p class="hint" id="permOut" aria-live="polite"></p>
+        </div>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Чат с ассистентом</h3>
+        <p class="when">Поле растёт с текстом, Enter отправляет, Shift+Enter - новая строка. У ответа есть источники, «Повторить» и понятная ошибка лимита.</p>
+        <div class="chips"><span class="chip">источники</span><span class="chip">повтор</span><span class="chip">лимит</span></div>
+        <div class="demo chat">
+          <div class="chat-log" id="chatLog" aria-live="polite"></div>
+          <form class="chat-form" id="chatForm">
+            <label class="fx-sr" for="chatIn">Сообщение</label>
+            <textarea id="chatIn" rows="1" placeholder="Спросите о расходах"></textarea>
+            <button class="btn btn-primary fx-btn" type="submit" id="chatSend">Отправить</button>
+          </form>
+          <div class="row"><button class="btn btn-secondary btn-sm" type="button" id="chatLimit">Пример: лимит исчерпан</button></div>
+        </div>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Подсказки при первом входе</h3>
+        <p class="when">Три подсказки у тех элементов, о которых они говорят. «Пропустить» видно всегда, обучение можно пройти снова.</p>
+        <div class="chips"><span class="chip">3 шага</span><span class="chip">пропуск</span><span class="chip">фокус на подсказке</span></div>
+        <div class="demo ob" id="ob">
+          <div class="ob-app">
+            <button class="btn btn-secondary btn-sm" type="button" data-ob="0">Перевести</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-ob="1">История</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-ob="2">Карты</button>
+          </div>
+          <div class="ob-tip" id="obTip" role="dialog" aria-labelledby="obTitle" hidden tabindex="-1">
+            <b id="obTitle"></b><p id="obText"></p>
+            <div class="row"><span class="ob-n" id="obN"></span><button class="btn btn-secondary btn-sm" type="button" id="obSkip">Пропустить</button><button class="btn btn-primary btn-sm" type="button" id="obNext">Дальше</button></div>
+          </div>
+          <div class="row"><button class="btn btn-secondary fx-btn" type="button" id="obStart">Показать подсказки</button></div>
+        </div>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Контрастная тема и крупный шрифт</h3>
+        <p class="when">Как интерфейс выглядит в контрастной теме Windows (forced-colors) и при увеличении текста до 200%. Ничто не должно пропасть или наехать.</p>
+        <div class="chips"><span class="chip">forced-colors</span><span class="chip">200% текста</span><span class="chip">WCAG 1.4.4</span></div>
+        <div class="demo">
+          <div class="seg5" role="group" aria-label="Режим просмотра" id="a11ySeg">
+            <button type="button" data-a11y="normal" aria-pressed="true">Обычно</button>
+            <button type="button" data-a11y="hc" aria-pressed="false">Контрастная тема</button>
+            <button type="button" data-a11y="big" aria-pressed="false">Текст 200%</button>
+          </div>
+          <div class="a11y-box" id="a11yBox">
+            <b>Перевод выполнен</b>
+            <p>12 500 ₸ отправлены Айгерим С.</p>
+            <div class="row"><span class="ps-badge-ok">Выполнен</span><button class="btn btn-primary btn-sm" type="button">Скачать чек</button></div>
+          </div>
+          <p class="hint">Контрастная тема здесь изображена: настоящую включают в настройках Windows, и страница подстраивается сама.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
   <section class="section" aria-labelledby="s-game">
     <h2 class="fx-enter" id="s-game">Игровой отклик</h2>
     <p>Каждое событие — набор слоёв: вспышка, хитстоп с дрожью, цифра, частицы, волна, тряска, звук (здесь без звука). Сила набора растёт с важностью события: удар → крит → добивание → ульта. Ползунок тряски — как в настройках доступности игр.</p>
@@ -830,6 +1147,61 @@ details.code .btn{ margin-top: 8px; }
         </div>
         <div class="loot" id="loot" aria-live="polite"></div>
       </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="s-gamemenu">
+    <h2 class="fx-enter" id="s-gamemenu">Игры: меню и настройки</h2>
+    <div class="grid">
+      <article class="card fx-enter game-card">
+        <h3>Настройки доступности игры</h3>
+        <p class="when">Размер субтитров, сила тряски, вспышки и режим для дальтоников. Каждая настройка сразу видна на примере ниже.</p>
+        <div class="chips"><span class="chip">GAG</span><span class="chip">XAG 101-117</span><span class="chip">пример вживую</span></div>
+        <div class="demo gs">
+          <div class="gs-controls">
+            <label class="gs-row">Размер субтитров <select id="gsSub"><option value="16">Мелкий</option><option value="20" selected>Средний</option><option value="26">Крупный</option></select></label>
+            <label class="gs-row">Тряска экрана <input type="range" id="gsShake" min="0" max="100" value="100"> <span id="gsShakeV">100%</span></label>
+            <label class="gs-row"><input type="checkbox" id="gsFlash"> Без вспышек</label>
+            <label class="gs-row">Цвета <select id="gsCb"><option value="none">Обычные</option><option value="deut">Красный и зелёный различимы плохо</option></select></label>
+          </div>
+          <div class="gs-preview" id="gsPrev">
+            <div class="gs-flash" id="gsFlashL" aria-hidden="true"></div>
+            <div class="gs-hpbar"><span>Враг</span><i id="gsEnemy"></i></div>
+            <div class="gs-hpbar"><span>Союзник</span><i id="gsAlly"></i></div>
+            <p class="gs-sub" id="gsSubT">- Держись, мы почти у цели.</p>
+          </div>
+          <div class="row"><button class="btn btn-secondary btn-sm fx-btn" type="button" id="gsTest">Проверить взрыв</button></div>
+        </div>
+      </article>
+
+      <article class="card fx-enter game-card">
+        <h3>Подсказки кнопок по устройству</h3>
+        <p class="when">Подсказка показывает ту кнопку, которой человек играет прямо сейчас: клавиатура, Xbox или PlayStation. Переключается по последнему вводу.</p>
+        <div class="chips"><span class="chip">последний ввод</span><span class="chip">Gamepad API</span></div>
+        <div class="demo">
+          <div class="seg5" role="group" aria-label="Устройство" id="padSeg">
+            <button type="button" data-pad="kb" aria-pressed="true">Клавиатура</button>
+            <button type="button" data-pad="xbox" aria-pressed="false">Xbox</button>
+            <button type="button" data-pad="ps" aria-pressed="false">PlayStation</button>
+          </div>
+          <ul class="glyphs" id="glyphs"></ul>
+          <p class="hint" id="padHint">Подключите геймпад и нажмите любую кнопку: подсказки сменятся сами.</p>
+        </div>
+      </article>
+
+      <article class="card fx-enter game-card">
+        <h3>Итог уровня</h3>
+        <p class="when">Звёзды открываются по очереди, опыт считается, новый уровень отмечен один раз. «Дальше» доступна сразу: итог можно пропустить.</p>
+        <div class="chips"><span class="chip">шаг 250 мс</span><span class="chip">без бесконечных пульсаций</span></div>
+        <div class="demo lvlres" id="lvlRes">
+          <div class="stars" id="stars" aria-label="2 звезды из 3" role="img"><i></i><i></i><i></i></div>
+          <div class="lr-line"><span>Опыт</span><b id="lrXp">+0</b></div>
+          <div class="lr-line"><span>Монеты</span><b id="lrCoins">+0</b></div>
+          <div class="lr-xp"><i id="lrBar"></i></div>
+          <p class="lr-up" id="lrUp" hidden>Новый уровень: 5</p>
+          <div class="row"><button class="btn btn-primary fx-btn" type="button" id="lrPlay">Показать итог</button><button class="btn btn-secondary fx-btn" type="button" id="lrNext">Дальше</button></div>
+        </div>
+      </article>
     </div>
   </section>
 
@@ -1486,7 +1858,19 @@ details.code .btn{ margin-top: 8px; }
     "Список → карточка": [2, "экран меняется сразу", 'row.style.viewTransitionName = "acc";\nfx.viewTransition(function () { renderCard(account); });'],
     "Перетаскивание с клавиатуры": [1, "строка встаёт на новое место сразу", 'fx.flip(list, function () { list.insertBefore(li, li.previousElementSibling); });\nfx.announce("Аренда: место 1 из 4");'],
     "Телефон, ИИН и код из SMS": [0, "движения нет", '<input type="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__">\n<input inputmode="numeric" autocomplete="one-time-code" maxlength="6">'],
-    "Прогресс агента ИИ": [2, "шаги отмечаются без вращения индикатора", '// шаг: is-run → is-done; «Остановить» прерывает AbortController\n// действие наружу - только после явного «Отправить письмо»']
+    "Прогресс агента ИИ": [2, "шаги отмечаются без вращения индикатора", '// шаг: is-run → is-done; «Остановить» прерывает AbortController\n// действие наружу - только после явного «Отправить письмо»'],
+    "Сумма в тенге": [0, "движения нет", '<input inputmode="decimal" autocomplete="transaction-amount">\n// при вводе: 12500,5 → «12 500,5»; лимит - fx.fieldError(input, "Больше лимита", err)'],
+    "Выбор периода": [0, "движения нет", '<input type="date" min="2026-01-01" max="2026-10-21">\n// готовые периоды: aria-pressed на выбранной кнопке'],
+    "Загрузка файла": [1, "прогресс меняется без плавности", '<label for="file">Выберите файл</label><input type="file" id="file" accept=".pdf,.jpg,.png">\n// проверка: file.size <= 5 * 1024 * 1024; прогресс - xhr.upload.onprogress, отмена - xhr.abort()'],
+    "Многошаговая форма": [1, "шаги меняются сразу", '<ol><li aria-current="step">Данные</li>…</ol>\nlocalStorage.setItem("draft", JSON.stringify(data));\nfx.announce("Шаг 2 из 3: Адрес");'],
+    "Таблица данных": [1, "строки встают на места сразу", '<th aria-sort="descending"><button>Дата</button></th>\nfx.flip(tbody, function () { rows.sort(byDate).forEach(function (r) { tbody.appendChild(r); }); });'],
+    "Запрос разрешения": [0, "движения нет", 'yes.onclick = function () { Notification.requestPermission(); };\nno.onclick = function () { localStorage.setItem("push-asked", Date.now()); };'],
+    "Чат с ассистентом": [2, "ответ появляется кусками без анимации каретки", 'fx.stream(answerEl, chunks, { signal: ctrl.signal });\n// ошибка лимита: текст + время, когда лимит обновится, без «Повторить»'],
+    "Подсказки при первом входе": [2, "подсказки сменяются сразу", 'target.classList.add("is-hl");\ntip.hidden = false; tip.focus();\n// «Пропустить» - всегда; Esc закрывает'],
+    "Контрастная тема и крупный шрифт": [0, "движения нет", '@media (forced-colors: active) {\n  .badge { border: 1px solid CanvasText; }\n}\n/* размеры в rem: текст 200% без наездов */'],
+    "Настройки доступности игры": [3, "без тряски и вспышек, остаётся цифра и звук", 'var shaker = fx.trauma(scene, { intensity: settings.shake });\nif (!settings.noFlash) fx.flash(overlay, { alpha: .6 });'],
+    "Подсказки кнопок по устройству": [0, "движения нет", 'addEventListener("keydown", function () { setGlyphs("kb"); });\naddEventListener("gamepadconnected", function (e) { setGlyphs(/054c/i.test(e.gamepad.id) ? "ps" : "xbox"); });'],
+    "Итог уровня": [3, "звёзды и числа сразу финальные", 'stars.forEach(function (s, i) { setTimeout(function () { s.classList.add("is-on"); fx.pop(s); }, i * 250); });\nfx.countUp(xpEl, 1250);']
   };
 
   /* ---------- Карточки: мета, сравнение, код ---------- */
@@ -1505,8 +1889,8 @@ details.code .btn{ margin-top: 8px; }
     var cmp = el("div", "cmp"); cmp.setAttribute("role", "group"); cmp.setAttribute("aria-label", "Сравнение: " + h.textContent);
     var off = el("button", null, "Без анимации"), on = el("button", null, "С анимацией");
     off.type = on.type = "button"; off.setAttribute("aria-pressed", "false"); on.setAttribute("aria-pressed", "true");
-    off.addEventListener("click", function () { press([off, on], off); card.classList.add("is-plain"); });
-    on.addEventListener("click", function () { press([off, on], on); card.classList.remove("is-plain"); });
+    off.addEventListener("click", function () { press([off, on], off); card.setAttribute("data-motion", "reduce"); });
+    on.addEventListener("click", function () { press([off, on], on); card.removeAttribute("data-motion"); });
     cmp.appendChild(off); cmp.appendChild(on); meta.after(cmp);
 
     var det = el("details", "code"), sum = el("summary", null, "Показать код"), pre = el("pre"), code = el("code", null, m[2]);
@@ -1518,19 +1902,6 @@ details.code .btn{ margin-top: 8px; }
   var arena = document.querySelector(".arena-wrap"); if (arena) arena.dataset.lvl = 3;
   var reveal = document.querySelector(".reveal-grid"); if (reveal) reveal.dataset.lvl = 3;
 
-  /* «Без анимации» в карточке: пока с ней работают, библиотека ведёт себя как при «уменьшить движение». */
-  var plainTimer = 0, savedMode = null;
-  function plainStart(e) {
-    if (!e.target.closest || !e.target.closest(".is-plain")) return;
-    if (savedMode === null) savedMode = root.getAttribute("data-motion") || "";
-    root.setAttribute("data-motion", "reduce");
-    clearTimeout(plainTimer);
-    plainTimer = setTimeout(function () {
-      if (savedMode) root.setAttribute("data-motion", savedMode); else root.removeAttribute("data-motion");
-      savedMode = null;
-    }, 2500);
-  }
-  ["pointerdown", "keydown", "submit"].forEach(function (t) { document.addEventListener(t, plainStart, true); });
 
   /* ---------- Панель ---------- */
   var head = document.querySelector(".head");
@@ -1742,6 +2113,1185 @@ details.code .btn{ margin-top: 8px; }
   $("agentYes").addEventListener("click", function () { agentStep = STEPS.length; renderSteps("done"); agentEnd("Сводка отправлена"); fx.toast("Сводка отправлена на buh@sauley.kz"); $("agentRun").focus(); });
   $("agentNo").addEventListener("click", function () { renderSteps("stop"); agentEnd("Письмо не отправлено"); fx.toast("Письмо не отправлено. Сводка сохранена в черновиках."); $("agentRun").focus(); });
   renderSteps("idle");
+})();
+</script>
+<script>
+/* Витрина, вторая часть: формы и ввод, таблица, сервисы, игровые меню; ссылки на карточки, набор эффектов и его вес. */
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var el = function (tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  function press(btns, on) { btns.forEach(function (b) { b.setAttribute("aria-pressed", String(b === on)); }); }
+  var nf = function (v) { return Math.round(v).toLocaleString("ru-RU"); };
+
+  /* ---------- Сумма в тенге ---------- */
+  var amt = $("amt"), LIMIT = 248500;
+  function amtValue() { return parseFloat(amt.value.replace(/\s/g, "").replace(",", ".")) || 0; }
+  function amtFormat() {
+    var raw = amt.value.replace(/[^\d,.]/g, "").replace(".", ",");
+    var parts = raw.split(","), int = parts[0].replace(/^0+(?=\d)/, ""), frac = parts.length > 1 ? "," + parts[1].replace(/,/g, "").slice(0, 2) : "";
+    amt.value = int.replace(/\B(?=(\d{3})+(?!\d))/g, " ") + frac;
+    if (amtValue() > LIMIT) fx.fieldError(amt, "Больше доступной суммы", $("amtErr")); else fx.clearFieldError(amt, $("amtErr"));
+  }
+  amt.addEventListener("input", amtFormat);
+  document.querySelectorAll("[data-amt]").forEach(function (b) { b.addEventListener("click", function () { amt.value = b.dataset.amt; amtFormat(); amt.focus(); }); });
+  $("amtForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var v = amtValue();
+    if (!v) { fx.fieldError(amt, "Обязательное поле", $("amtErr")); amt.focus(); return; }
+    if (v > LIMIT) { amt.focus(); return; }
+    fx.success($("amtBtn"), { label: "Переведено " + nf(v) + " ₸", reset: 2500 });
+  });
+
+  /* ---------- Период ---------- */
+  var perBtns = [].slice.call(document.querySelectorAll("#perSeg button"));
+  var today = new Date(2026, 9, 21), iso = function (d) { return d.toISOString().slice(0, 10); };
+  var ru = function (d) { return d.toLocaleDateString(document.documentElement.lang === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long" }); };
+  $("perFrom").max = $("perTo").max = iso(today);
+  function perShow(from, to) {
+    var o = $("perOut"); o.textContent = "";
+    o.appendChild(document.createTextNode("Операции с ")); o.appendChild(el("b", null, ru(from)));
+    o.appendChild(document.createTextNode(" по ")); o.appendChild(el("b", null, ru(to)));
+  }
+  function perSet(kind) {
+    press(perBtns, perBtns.filter(function (b) { return b.dataset.per === kind; })[0]);
+    $("perCustom").hidden = kind !== "custom";
+    var from = new Date(today);
+    if (kind === "week") from.setDate(from.getDate() - 6);
+    if (kind === "month") from.setMonth(from.getMonth() - 1);
+    if (kind === "custom") { $("perFrom").value = $("perFrom").value || iso(new Date(2026, 9, 1)); $("perTo").value = $("perTo").value || iso(today); perCustom(); $("perFrom").focus(); return; }
+    perShow(from, today);
+  }
+  function perCustom() {
+    var f = new Date($("perFrom").value), t = new Date($("perTo").value);
+    if (isNaN(f) || isNaN(t)) return;
+    if (f > t) { $("perOut").textContent = "Начало периода позже конца. Поменяйте даты местами."; return; }
+    perShow(f, t);
+  }
+  perBtns.forEach(function (b) { b.addEventListener("click", function () { perSet(b.dataset.per); }); });
+  $("perFrom").addEventListener("change", perCustom); $("perTo").addEventListener("change", perCustom);
+  perSet("week");
+  document.addEventListener("fx-demo-lang", function () { var on = perBtns.filter(function (b) { return b.getAttribute("aria-pressed") === "true"; })[0]; if (on && on.dataset.per !== "custom") perSet(on.dataset.per); else perCustom(); });
+
+  /* ---------- Загрузка файла ---------- */
+  var drop = $("drop"), fileIn = $("fileIn"), MAX = 5 * 1024 * 1024;
+  function mb(n) { return (n / 1024 / 1024).toFixed(1).replace(".", ",") + " МБ"; }
+  function addFile(name, size) {
+    fx.clearFieldError(fileIn, $("fileErr"));
+    if (!/\.(pdf|jpe?g|png)$/i.test(name)) { fx.fieldError(fileIn, "Неверный тип файла: нужен PDF, JPG или PNG", $("fileErr")); return; }
+    if (size > MAX) { fx.fieldError(fileIn, "Файл больше 5 МБ: " + mb(size), $("fileErr")); return; }
+    var li = el("li"), nm = el("span", null, name), st = el("small", null, "Загрузка 0%"), cancel = el("button", "btn btn-ghost btn-sm", "Отменить");
+    var bar = el("div", "progress"), fill = el("i"); bar.appendChild(fill);
+    bar.setAttribute("role", "progressbar"); bar.setAttribute("aria-label", "Загрузка " + name); bar.setAttribute("aria-valuemin", "0"); bar.setAttribute("aria-valuemax", "100");
+    cancel.type = "button";
+    var info = el("div"); info.appendChild(nm); info.appendChild(el("br")); info.appendChild(st);
+    li.appendChild(info); li.appendChild(cancel); li.appendChild(bar); $("files").appendChild(li);
+    var p = 0, t = setInterval(function () {
+      p = Math.min(100, p + 9 + Math.random() * 14);
+      fill.style.setProperty("--p", p / 100); bar.setAttribute("aria-valuenow", String(Math.round(p)));
+      st.textContent = "Загрузка " + Math.round(p) + "%";
+      if (p >= 100) { clearInterval(t); st.textContent = mb(size) + " · загружен"; cancel.textContent = "Удалить"; fx.announce(name + " загружен"); bar.remove(); }
+    }, 220);
+    cancel.addEventListener("click", function () { clearInterval(t); li.remove(); fx.announce(p >= 100 ? name + " удалён" : "Загрузка отменена"); drop.focus(); });
+  }
+  fileIn.addEventListener("change", function () { [].forEach.call(fileIn.files, function (f) { addFile(f.name, f.size); }); fileIn.value = ""; });
+  ["dragenter", "dragover"].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add("is-over"); }); });
+  ["dragleave", "drop"].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove("is-over"); }); });
+  drop.addEventListener("drop", function (e) { [].forEach.call(e.dataTransfer.files, function (f) { addFile(f.name, f.size); }); });
+  drop.tabIndex = 0;
+  drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileIn.click(); } });
+  $("fileBig").addEventListener("click", function () { addFile("Скан паспорта.pdf", 12.4 * 1024 * 1024); });
+
+  /* ---------- Многошаговая форма ---------- */
+  var wiz = $("wiz"), wStep = 0, wPanes = [].slice.call(wiz.querySelectorAll(".wiz-pane")), wLis = [].slice.call($("wizSteps").children);
+  var WNAMES = ["Данные", "Адрес", "Проверка"];
+  try { var dr = JSON.parse(localStorage.getItem("fx-demo-wiz") || "{}"); if (dr.name) $("wName").value = dr.name; if (dr.city) $("wCity").value = dr.city; } catch (e) {}
+  function wSave() { try { localStorage.setItem("fx-demo-wiz", JSON.stringify({ name: $("wName").value, city: $("wCity").value })); $("wDraft").textContent = "Черновик сохранён"; } catch (e) {} }
+  $("wName").addEventListener("input", wSave); $("wCity").addEventListener("input", wSave);
+  function wShow(i) {
+    wStep = i;
+    wPanes.forEach(function (p, k) { p.hidden = k !== i; });
+    wLis.forEach(function (li, k) { if (k === i) li.setAttribute("aria-current", "step"); else li.removeAttribute("aria-current"); li.classList.toggle("is-done", k < i); });
+    $("wBack").hidden = i === 0;
+    $("wNext").textContent = i === 2 ? "Отправить заявку" : "Далее";
+    if (i === 2) { $("wSumName").textContent = $("wName").value; $("wSumCity").textContent = $("wCity").value; }
+    fx.announce("Шаг " + (i + 1) + " из 3: " + WNAMES[i]);
+    var f = wPanes[i].querySelector("input"); if (f) f.focus();
+  }
+  $("wBack").addEventListener("click", function () { wShow(wStep - 1); });
+  wiz.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var f = wPanes[wStep].querySelector("input");
+    if (f && !f.value.trim()) { fx.fieldError(f, "Обязательное поле", $(f.id + "Err")); f.focus(); return; }
+    if (f) fx.clearFieldError(f, $(f.id + "Err"));
+    if (wStep < 2) { wShow(wStep + 1); return; }
+    fx.success($("wNext"), { label: "Заявка отправлена" });
+    try { localStorage.removeItem("fx-demo-wiz"); } catch (er) {}
+    $("wDraft").textContent = "";
+    setTimeout(function () { fx.resetSuccess($("wNext")); $("wName").value = $("wCity").value = ""; wShow(0); }, 2200);
+  });
+
+  /* ---------- Таблица ---------- */
+  var DATA = [
+    ["Kaspi Магазин", "2026-10-20", "Выполнен", -45900], ["Зарплата ТОО «Сауле»", "2026-10-18", "Выполнен", 420000],
+    ["Перевод Айгерим С.", "2026-10-17", "В обработке", -15000], ["Коммунальные услуги", "2026-10-15", "Выполнен", -23640],
+    ["Возврат Wildberries", "2026-10-14", "В обработке", 8700], ["Аптека «Биосфера»", "2026-10-12", "Отклонён", -5400],
+    ["Кешбэк за сентябрь", "2026-10-05", "Выполнен", 3120]
+  ];
+  var tSort = { key: "date", dir: -1 }, tSel = {}, tbody = $("tblBody");
+  var stCls = { "Выполнен": "st-ok", "В обработке": "st-wait", "Отклонён": "st-bad" };
+  function tRows() {
+    var q = $("tblQ").value.trim().toLowerCase(), st = $("tblSt").value;
+    var rows = DATA.filter(function (r) { return (!q || r[0].toLowerCase().indexOf(q) >= 0) && (!st || r[2] === st); });
+    var k = { name: 0, date: 1, sum: 3 }[tSort.key];
+    rows.sort(function (a, b) { return (a[k] > b[k] ? 1 : a[k] < b[k] ? -1 : 0) * tSort.dir; });
+    return rows;
+  }
+  function tRender(animate) {
+    var rows = tRows();
+    var apply = function () {
+      var existing = {}; [].forEach.call(tbody.children, function (tr) { existing[tr.dataset.key] = tr; });
+      tbody.textContent = "";
+      rows.forEach(function (r) {
+        var tr = existing[r[0]] || tMake(r); tr.classList.toggle("is-sel", !!tSel[r[0]]); tr.querySelector("input").checked = !!tSel[r[0]]; tbody.appendChild(tr);
+      });
+    };
+    if (animate) fx.flip(tbody, apply, { key: function (n) { return n.dataset.key; } }); else apply();
+    $("tblEmpty").hidden = rows.length > 0;
+    tBulk();
+  }
+  function tMake(r) {
+    var tr = el("tr"); tr.dataset.key = r[0];
+    var c = el("td"), cb = el("input"); cb.type = "checkbox"; cb.setAttribute("aria-label", "Выбрать: " + r[0]);
+    cb.addEventListener("change", function () { if (cb.checked) tSel[r[0]] = true; else delete tSel[r[0]]; tr.classList.toggle("is-sel", cb.checked); tBulk(); });
+    c.appendChild(cb); tr.appendChild(c);
+    tr.appendChild(el("td", null, r[0]));
+    tr.appendChild(el("td", null, new Date(r[1]).toLocaleDateString(document.documentElement.lang === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "short" })));
+    tr.appendChild(el("td", stCls[r[2]], r[2]));
+    tr.appendChild(el("td", "n", (r[3] > 0 ? "+" : "-") + nf(Math.abs(r[3])) + " ₸"));
+    return tr;
+  }
+  function tBulk() {
+    var n = Object.keys(tSel).length, vis = tRows();
+    $("tblBulk").hidden = n === 0;
+    $("tblCount").textContent = "Выбрано: " + n;
+    var all = $("tblAll"), visSel = vis.filter(function (r) { return tSel[r[0]]; }).length;
+    all.checked = vis.length > 0 && visSel === vis.length; all.indeterminate = visSel > 0 && visSel < vis.length;
+  }
+  $("tblAll").addEventListener("change", function () { var on = this.checked; tRows().forEach(function (r) { if (on) tSel[r[0]] = true; else delete tSel[r[0]]; }); tRender(false); });
+  document.querySelectorAll("#tbl th button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var k = b.dataset.sort; tSort = { key: k, dir: tSort.key === k ? -tSort.dir : (k === "name" ? 1 : -1) };
+      document.querySelectorAll("#tbl th[aria-sort]").forEach(function (th) { th.setAttribute("aria-sort", "none"); });
+      b.parentNode.setAttribute("aria-sort", tSort.dir > 0 ? "ascending" : "descending");
+      tRender(true);
+    });
+  });
+  $("tblQ").addEventListener("input", function () { tRender(true); }); $("tblSt").addEventListener("change", function () { tRender(true); });
+  $("tblClear").addEventListener("click", function () { tSel = {}; tRender(false); $("tblAll").focus(); });
+  $("tblExport").addEventListener("click", function () { fx.toast("Выгружено строк: " + Object.keys(tSel).length + ". Файл операции.csv готов."); });
+  tRender(false);
+  document.addEventListener("fx-demo-lang", function () { tbody.textContent = ""; tRender(false); });
+
+  /* ---------- Разрешение ---------- */
+  $("permYes").addEventListener("click", function () {
+    if (!("Notification" in window)) { $("permOut").textContent = "Браузер не поддерживает уведомления."; return; }
+    Notification.requestPermission().then(function (r) {
+      $("permOut").textContent = r === "granted" ? "Уведомления включены." : r === "denied" ? "Уведомления запрещены в браузере. Включить их можно в настройках сайта." : "Решение отложено.";
+    });
+  });
+  $("permNo").addEventListener("click", function () { $("perm").hidden = true; $("permOut").textContent = "Хорошо, не будем спрашивать неделю. Включить можно в настройках."; });
+
+  /* ---------- Чат ---------- */
+  var log = $("chatLog"), chatIn = $("chatIn"), busy = false;
+  var ANSWER = "За неделю вы потратили 98 340 ₸. Больше всего - на продукты: 41 200 ₸, это на 12% больше прошлой недели. Ещё 23 640 ₸ ушло на коммунальные услуги.";
+  function msg(cls, text) { var m = el("div", "msg " + cls); if (text) m.appendChild(el("span", null, text)); log.appendChild(m); log.scrollTop = log.scrollHeight; return m; }
+  function ask(q) {
+    if (busy) return; busy = true;
+    msg("me", q);
+    var m = msg("ai"), out = el("span"); m.appendChild(out); m.setAttribute("aria-busy", "true");
+    $("chatSend").setAttribute("aria-disabled", "true");
+    fx.stream(out, ANSWER, { cps: 90 }).then(function () {
+      m.removeAttribute("aria-busy"); busy = false; $("chatSend").removeAttribute("aria-disabled");
+      var src = el("div", "src"); src.appendChild(document.createTextNode("Источники: "));
+      ["Выписка Kaspi Gold, 14-20 октября", "Категории расходов"].forEach(function (t) { var a = el("a", null, t); a.href = "#s-services"; src.appendChild(a); });
+      m.appendChild(src);
+      var act = el("div", "act"), re = el("button", "btn btn-secondary btn-sm", "Повторить"), cp = el("button", "btn btn-secondary btn-sm", "Скопировать");
+      re.type = cp.type = "button"; cp.appendChild(el("span", "fx-sr"));
+      re.addEventListener("click", function () { m.remove(); busy = false; ask(q); });
+      cp.addEventListener("click", function () { fx.copy(cp, ANSWER); });
+      act.appendChild(re); act.appendChild(cp); m.appendChild(act);
+      log.scrollTop = log.scrollHeight;
+    });
+  }
+  chatIn.addEventListener("input", function () { chatIn.style.height = "auto"; chatIn.style.height = Math.min(140, chatIn.scrollHeight) + "px"; });
+  chatIn.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("chatForm").requestSubmit(); } });
+  $("chatForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var q = chatIn.value.trim(); if (!q) { chatIn.focus(); return; }
+    chatIn.value = ""; chatIn.style.height = ""; ask(q);
+  });
+  $("chatLimit").addEventListener("click", function () {
+    var m = msg("ai err"); m.appendChild(el("b", null, "Лимит сообщений на сегодня исчерпан")); m.appendChild(el("br"));
+    m.appendChild(document.createTextNode("Новые вопросы можно задать с 00:00. История чата сохранена."));
+    fx.announce("Лимит сообщений исчерпан");
+  });
+  msg("ai", "Спросите о расходах, например: сколько я потратил за неделю?");
+
+  /* ---------- Подсказки при первом входе ---------- */
+  var OB = [["Перевод", "Деньги по номеру телефона, без комиссии внутри банка."], ["История", "Все операции с поиском и фильтрами по дате."], ["Карты", "Лимиты, блокировка и реквизиты каждой карты."]];
+  var obI = -1, obBtns = [].slice.call(document.querySelectorAll("[data-ob]"));
+  function obShow(i) {
+    obBtns.forEach(function (b) { b.classList.remove("is-hl"); });
+    if (i < 0 || i >= OB.length) { $("obTip").hidden = true; obI = -1; $("obStart").focus(); return; }
+    obI = i; obBtns[i].classList.add("is-hl");
+    $("obTitle").textContent = OB[i][0]; $("obText").textContent = OB[i][1]; $("obN").textContent = (i + 1) + " из " + OB.length;
+    $("obNext").textContent = i === OB.length - 1 ? "Понятно" : "Дальше";
+    $("obTip").hidden = false; $("obTip").focus();
+  }
+  $("obStart").addEventListener("click", function () { obShow(0); });
+  $("obNext").addEventListener("click", function () { obShow(obI + 1); });
+  $("obSkip").addEventListener("click", function () { obShow(-1); });
+  $("obTip").addEventListener("keydown", function (e) { if (e.key === "Escape") obShow(-1); });
+
+  /* ---------- Контраст и 200% ---------- */
+  var aBtns = [].slice.call(document.querySelectorAll("#a11ySeg button"));
+  aBtns.forEach(function (b) { b.addEventListener("click", function () {
+    press(aBtns, b); var box = $("a11yBox");
+    box.classList.toggle("is-hc", b.dataset.a11y === "hc"); box.classList.toggle("is-big", b.dataset.a11y === "big");
+  }); });
+
+  /* ---------- Настройки доступности игры ---------- */
+  var gsPrev = $("gsPrev"), gsShaker = fx.trauma(gsPrev, { maxOffset: 12, maxAngle: 2, decay: 1.6 });
+  function gsApply() {
+    $("gsSubT").style.fontSize = $("gsSub").value + "px";
+    $("gsShakeV").textContent = $("gsShake").value + "%";
+    gsShaker.setIntensity($("gsShake").value / 100);
+    gsPrev.classList.toggle("is-cb", $("gsCb").value !== "none");
+  }
+  ["gsSub", "gsShake", "gsCb"].forEach(function (id) { $(id).addEventListener("input", gsApply); });
+  $("gsTest").addEventListener("click", function () {
+    gsShaker.add(0.8);
+    if (!$("gsFlash").checked) fx.flash($("gsFlashL"), { color: "#fff", alpha: 0.6, ms: 220 });
+    fx.announce("Взрыв рядом");
+  });
+  gsApply();
+
+  /* ---------- Подсказки кнопок ---------- */
+  var GLYPHS = {
+    kb: [["E", "", "Открыть дверь"], ["Пробел", "", "Прыжок"], ["Shift", "", "Бег"], ["Esc", "", "Меню"]],
+    xbox: [["A", "round a", "Открыть дверь"], ["B", "round b", "Прыжок"], ["LB", "", "Бег"], ["Menu", "", "Меню"]],
+    ps: [["Крест", "round cross", "Открыть дверь"], ["Круг", "round circle", "Прыжок"], ["L1", "", "Бег"], ["Options", "", "Меню"]]
+  };
+  var PS_SVG = { "Крест": '<path d="M7 7l10 10M17 7 7 17"/>', "Круг": '<circle cx="12" cy="12" r="6"/>' };
+  var padBtns = [].slice.call(document.querySelectorAll("#padSeg button")), padNow = "kb";
+  function setPad(kind) {
+    if (!GLYPHS[kind]) return; padNow = kind;
+    press(padBtns, padBtns.filter(function (b) { return b.dataset.pad === kind; })[0]);
+    var ul = $("glyphs"); ul.textContent = "";
+    GLYPHS[kind].forEach(function (g) {
+      var li = el("li"), k = el("span", "glyph " + g[1]);
+      if (PS_SVG[g[0]]) { k.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">' + PS_SVG[g[0]] + "</svg>"; k.setAttribute("aria-label", g[0]); k.setAttribute("role", "img"); }
+      else k.textContent = g[0];
+      li.appendChild(k); li.appendChild(el("span", null, g[2])); ul.appendChild(li);
+    });
+  }
+  padBtns.forEach(function (b) { b.addEventListener("click", function () { setPad(b.dataset.pad); }); });
+  window.addEventListener("gamepadconnected", function (e) { setPad(/054c|playstation|dualsense|dualshock/i.test(e.gamepad.id) ? "ps" : "xbox"); $("padHint").textContent = "Найден геймпад: " + e.gamepad.id.split("(")[0].trim(); });
+  setPad("kb");
+
+  /* ---------- Итог уровня ---------- */
+  var lrTimers = [];
+  function lrReset() { lrTimers.forEach(clearTimeout); lrTimers = []; [].forEach.call($("stars").children, function (s) { s.classList.remove("is-on"); }); $("lrXp").textContent = "+0"; $("lrCoins").textContent = "+0"; $("lrBar").style.setProperty("--xp", ".3"); $("lrUp").hidden = true; }
+  $("lrPlay").addEventListener("click", function () {
+    lrReset();
+    var stars = [].slice.call($("stars").children).slice(0, 2), step = fx.reduced() ? 0 : 250;
+    stars.forEach(function (s, i) { lrTimers.push(setTimeout(function () { s.classList.add("is-on"); fx.pop(s); }, i * step)); });
+    lrTimers.push(setTimeout(function () {
+      fx.countUp($("lrXp"), 1250, { format: function (v) { return "+" + nf(v); } });
+      fx.countUp($("lrCoins"), 340, { format: function (v) { return "+" + nf(v); } });
+      $("lrBar").style.setProperty("--xp", "1");
+    }, stars.length * step));
+    lrTimers.push(setTimeout(function () { $("lrUp").hidden = false; fx.announce("Новый уровень: 5"); }, stars.length * step + (step ? 700 : 0)));
+  });
+  $("lrNext").addEventListener("click", function () {
+    lrTimers.forEach(clearTimeout);
+    [].forEach.call($("stars").children, function (s, i) { s.classList.toggle("is-on", i < 2); });
+    $("lrXp").textContent = "+1 250"; $("lrCoins").textContent = "+340"; $("lrBar").style.setProperty("--xp", "1"); $("lrUp").hidden = false;
+    fx.toast("Уровень 5 начинается");
+  });
+
+  /* ================= Ссылка на карточку, набор эффектов и вес ================= */
+  var FNS = {
+    "Вход: тряска при ошибке, зелёная кнопка при успехе": "fieldError clearFieldError success resetSuccess btn",
+    "Ошибки при отправке": "clearFieldError", "Нажатие и загрузка": "loading btn press", "Копирование и лайк": "copy pop burst",
+    "Модалка и тост": "toast dialog", "Аккордеон": "collapse", "Скользящее подчёркивание вкладок": "tabs", "Скелетон": "skeleton",
+    "Прогресс и счётчик": "countUp", "Каскад списка": "stagger", "Сортировка с перестановкой (FLIP)": "flip stagger",
+    "Прорисовка графика и счёт": "countAll draw-x", "Свайп для удаления + «Отменить»": "swipeToDelete toast", "Нижняя шторка": "sheet",
+    "Потоковый ответ ИИ": "stream", "Тост с действием": "toast", "Новое уведомление: колокольчик": "ring bell bell-badge pulse",
+    "Блик на премиум-бейдже": "once glint", "Конфетти": "confetti", "Оплата целиком": "loading check", "Пять состояний списка": "skeleton",
+    "Одометр баланса": "odometer", "Подсказка на popover": "", "Список → карточка": "viewTransition", "Перетаскивание с клавиатуры": "flip",
+    "Телефон, ИИН и код из SMS": "fieldError clearFieldError success toast", "Прогресс агента ИИ": "toast",
+    "Сумма в тенге": "fieldError clearFieldError success", "Выбор периода": "", "Загрузка файла": "fieldError clearFieldError",
+    "Многошаговая форма": "fieldError clearFieldError success resetSuccess", "Таблица данных": "flip toast", "Запрос разрешения": "",
+    "Чат с ассистентом": "stream copy", "Подсказки при первом входе": "", "Контрастная тема и крупный шрифт": "",
+    "Настройки доступности игры": "trauma flash", "Подсказки кнопок по устройству": "", "Итог уровня": "pop countUp toast"
+  };
+  var TR = { "а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"e","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"h","ц":"c","ч":"ch","ш":"sh","щ":"sch","ы":"y","э":"e","ю":"yu","я":"ya" };
+  function slug(t) { return t.toLowerCase().split("").map(function (c) { return TR[c] != null ? TR[c] : c; }).join("").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48); }
+
+  /* Порт scripts/fx_subset.py: только выбранные функции со вспомогательными и нужные правила CSS. */
+  var SRC = null;
+  function loadSrc() {
+    if (!SRC) SRC = Promise.all([fetch("effects.js").then(function (r) { return r.text(); }), fetch("effects.css").then(function (r) { return r.text(); })])
+      .then(function (t) { return { js: t[0].replace(/\r\n/g, "\n"), css: t[1].replace(/\r\n/g, "\n") }; });
+    return SRC;
+  }
+  var ALWAYS = ["reduced", "systemReduced", "setMotion", "setStrings"];
+  function stripCode(t) { return t.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/.*$/gm, " ").replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, '""'); }
+  function idents(t) { return t.match(/[A-Za-z_$][\w$]*/g) || []; }
+  function splitJs(js) {
+    var lines = js.split("\n"), starts = [], DECL = /^  (?:function ([A-Za-z_$][\w$]*)\s*\(|var\s|window\.fx\s*=|Object\.keys\(window\.fx\))/;
+    lines.forEach(function (ln, i) {
+      if (!DECL.test(ln)) return;
+      var j = i;
+      if (j > 0 && /\*\/\s*$/.test(lines[j - 1])) { j--; while (j > 0 && lines[j].indexOf("/*") < 0) j--; }
+      starts.push(j);
+    });
+    var end = 0; lines.forEach(function (ln, i) { if (ln.indexOf("})();") === 0) end = i; });
+    var res = { prolog: lines.slice(0, starts[0]).join("\n"), epilog: lines.slice(end).join("\n"), chunks: [] };
+    starts.forEach(function (st, k) {
+      var text = lines.slice(st, k + 1 < starts.length ? starts[k + 1] : end).join("\n"), code = stripCode(text);
+      if (/^  window\.fx\s*=/m.test(text)) { res.exp = text; return; }
+      if (/^  Object\.keys\(window\.fx\)/m.test(text)) { res.wrap = text; return; }
+      var m = code.match(/^  function ([A-Za-z_$][\w$]*)/m), names;
+      if (m) names = [m[1]];
+      else { var first = code.match(/^  var\s+(.*)$/m)[1]; names = []; first.replace(/(?:^|,)\s*([A-Za-z_$][\w$]*)\s*(?==|,|;|$)/g, function (_, n) { names.push(n); }); }
+      res.chunks.push({ names: names, text: text, deps: idents(code) });
+    });
+    var body = res.exp.match(/\{([\s\S]*)\}/)[1];
+    res.version = body.match(/version:\s*"([^"]+)"/)[1];
+    res.api = Object.create(null); body.replace(/([A-Za-z_$][\w$]*):\s*([A-Za-z_$][\w$]*)/g, function (_, k, v) { res.api[k] = v; });
+    return res;
+  }
+  function buildJs(js, wanted) {
+    var s = splitJs(js), by = Object.create(null), keep = new Set(), todo = [];
+    s.chunks.forEach(function (c) { c.names.forEach(function (n) { by[n] = c; }); });
+    wanted.concat(ALWAYS).forEach(function (n) { todo.push(s.api[n]); });
+    if (s.wrap) idents(stripCode(s.wrap)).forEach(function (t) { if (by[t]) todo.push(t); });
+    while (todo.length) { var c = by[todo.pop()]; if (!c || keep.has(c)) continue; keep.add(c); c.deps.forEach(function (d) { if (by[d]) todo.push(d); }); }
+    var names = Object.keys(s.api).filter(function (n) { return wanted.indexOf(n) >= 0 || ALWAYS.indexOf(n) >= 0; });
+    var parts = [s.prolog.replace(/\n+$/, "")];
+    s.chunks.forEach(function (c) { if (keep.has(c)) parts.push(c.text.replace(/\n+$/, "")); });
+    parts.push('  window.fx = {\n    version: "' + s.version + '",\n    ' + names.map(function (n) { return n + ": " + s.api[n]; }).join(", ") + "\n  };");
+    if (s.wrap) parts.push(s.wrap.replace(/\n+$/, ""));
+    return "/* ui-design · effects.js, подмножество: " + wanted.join(", ") + " */\n" + parts.join("\n\n") + "\n" + s.epilog;
+  }
+  function cssBlocks(css) {
+    var out = [], i = 0, n = css.length;
+    while (i < n) {
+      if (css.substr(i, 2) === "/*") { i = css.indexOf("*/", i) + 2; continue; }
+      if (/\s/.test(css[i])) { i++; continue; }
+      var j = css.indexOf("{", i); if (j < 0) break;
+      var d = 0, k = j; for (; k < n; k++) { if (css[k] === "{") d++; else if (css[k] === "}") { d--; if (!d) break; } }
+      out.push([css.slice(i, j).trim(), css.slice(j + 1, k)]); i = k + 1;
+    }
+    return out;
+  }
+  function splitSel(sel) { var parts = [], d = 0, cur = ""; for (var i = 0; i < sel.length; i++) { var ch = sel[i]; if (ch === "(") d++; if (ch === ")") d--; if (ch === "," && !d) { parts.push(cur.trim()); cur = ""; } else cur += ch; } parts.push(cur.trim()); return parts.filter(Boolean); }
+  function filterCss(css, used) {
+    var res = [];
+    cssBlocks(css).forEach(function (b) {
+      var pre = b[0], body = b[1];
+      if (pre.indexOf("@keyframes") === 0) res.push(["kf", pre.split(/\s+/)[1], pre + "{" + body + "}"]);
+      else if (pre[0] === "@") { var inner = filterCss(body, used); if (inner.trim()) res.push(["at", null, pre + "{\n" + inner + "\n}"]); }
+      else {
+        var keep = splitSel(pre).filter(function (s) { return (s.match(/\.fx-[\w-]+/g) || []).every(function (c) { return used.has(c.slice(1)); }); });
+        if (keep.length) res.push(["rule", null, keep.join(", ") + "{" + body + "}"]);
+      }
+    });
+    var kept = res.filter(function (r) { return r[0] !== "kf"; }).map(function (r) { return r[2]; }).join("\n");
+    return res.filter(function (r) { return r[0] !== "kf" || new RegExp("\\b" + r[1] + "\\b").test(kept); }).map(function (r) { return r[2]; }).join("\n");
+  }
+  function subset(list) {
+    return loadSrc().then(function (src) {
+      var api = splitJs(src.js).api, funcs = list.filter(function (n) { return api[n]; }), extra = list.filter(function (n) { return !api[n]; });
+      var js = buildJs(src.js, funcs), used = new Set((js.match(/fx-[\w-]+/g) || []).concat(extra.map(function (e) { return "fx-" + e; })));
+      return { js: js, css: "/* ui-design · effects.css, подмножество */\n" + filterCss(src.css, used) + "\n", full: src };
+    });
+  }
+  function gz(text) {
+    if (!window.CompressionStream) return Promise.resolve(null);
+    var stream = new Blob([text]).stream().pipeThrough(new CompressionStream("gzip"));
+    return new Response(stream).arrayBuffer().then(function (b) { return b.byteLength; });
+  }
+  var kb = function (n) { return (n / 1024).toFixed(1).replace(".", ",") + " КБ"; };
+  function download(name, text, type) {
+    var a = el("a"); a.href = URL.createObjectURL(new Blob([text], { type: type })); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+  function saveSubset(list, label) {
+    return subset(list).then(function (s) {
+      download("fx.js", s.js, "text/javascript");
+      setTimeout(function () { download("fx.css", s.css, "text/css"); }, 400);
+      fx.toast("Скачано: fx.js и fx.css (" + label + ")");
+    });
+  }
+
+  /* Набор: выбранные карточки → один fx.js и fx.css */
+  var kit = new Set();
+  var bar = el("div", "kit"); bar.setAttribute("role", "region"); bar.setAttribute("aria-label", "Набор эффектов"); bar.hidden = true;
+  var kitText = el("span"); kitText.setAttribute("aria-live", "polite");
+  var kitDl = el("button", "btn fx-btn", "Скачать набор"), kitX = el("button", "btn btn-x", "Очистить"); kitDl.type = kitX.type = "button";
+  bar.appendChild(kitText); bar.appendChild(kitDl); bar.appendChild(kitX); document.body.appendChild(bar);
+  function kitList() { var all = []; kit.forEach(function (t) { (FNS[t] || "").split(" ").filter(Boolean).forEach(function (n) { if (all.indexOf(n) < 0) all.push(n); }); }); return all; }
+  function kitUpdate() {
+    bar.hidden = kit.size === 0; if (!kit.size) return;
+    var list = kitList();
+    kitText.textContent = "В наборе карточек: " + kit.size + " · считаем вес…";
+    subset(list).then(function (s) {
+      return Promise.all([gz(s.js), gz(s.css), gz(s.full.js), gz(s.full.css)]).then(function (g) {
+        var raw = s.js.length + s.css.length;
+        var txt = "В наборе карточек: " + kit.size + " · " + kb(raw);
+        if (g[0] != null) txt += " (gzip " + kb(g[0] + g[1]) + ", " + Math.round(100 * (g[0] + g[1]) / (g[2] + g[3])) + "% библиотеки)";
+        kitText.textContent = txt;
+      });
+    });
+  }
+  kitDl.addEventListener("click", function () { saveSubset(kitList(), "карточек: " + kit.size); });
+  kitX.addEventListener("click", function () { kit.clear(); document.querySelectorAll(".kit-cb").forEach(function (c) { c.checked = false; }); kitUpdate(); });
+
+  document.querySelectorAll(".card").forEach(function (card) {
+    var h = card.querySelector("h3"); if (!h) return;
+    var title = h.textContent.trim(); if (!(title in FNS)) return;
+    card.id = card.id || "fx-" + slug(title);
+    var tools = el("div", "card-tools");
+    var link = el("button", null, "Ссылка на карточку"); link.type = "button";
+    link.addEventListener("click", function () {
+      var url = location.href.split("#")[0] + "#" + card.id;
+      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () { fx.toast("Ссылка скопирована"); }, function () { location.hash = card.id; });
+    });
+    tools.appendChild(link);
+    var fns = FNS[title].split(" ").filter(Boolean);
+    if (fns.length) {
+      var dl = el("button", null, "Скачать этот эффект"); dl.type = "button";
+      dl.addEventListener("click", function () { saveSubset(fns, title); });
+      var lab = el("label"), cb = el("input"); cb.type = "checkbox"; cb.className = "kit-cb";
+      cb.addEventListener("change", function () { if (cb.checked) kit.add(title); else kit.delete(title); kitUpdate(); });
+      lab.appendChild(cb); lab.appendChild(document.createTextNode("В набор"));
+      tools.appendChild(dl); tools.appendChild(lab);
+    }
+    var det = card.querySelector("details.code"); (det || card.lastElementChild).before(tools);
+  });
+  if (location.hash) { var t = document.getElementById(location.hash.slice(1)); if (t) setTimeout(function () { t.scrollIntoView(); }, 50); }
+})();
+</script>
+<script type="application/json" id="enMap">
+{
+"Эффекты ui-design": "ui-design effects",
+"Эффекты и микро-анимации": "Effects and micro-animations",
+"Живые примеры из библиотеки скилла. У каждого эффекта - когда его использовать, уровень движения, код и сравнение «без анимации / с анимацией». Переключатель «Анимации» показывает, как эффекты сохраняют смысл без движения.": "Live examples from the skill library. Each effect has when to use it, motion level, code, and a “no animation / with animation” comparison. The “Animations” switch shows how effects keep their meaning without motion.",
+"Сменить тему": "Switch theme",
+"Анимации": "Animations",
+"Как в системе": "System default",
+"Включены": "On",
+"Уменьшены": "Reduced",
+"В системе включено": "Turned on in the system:",
+"«уменьшение движения»": "“reduce motion”",
+", поэтому эффекты приглушены: остаются цвет, текст и цифры. Так и должно быть по WCAG — но посмотреть анимации можно.": ", so effects are muted: color, text and numbers stay. That is how it should be per WCAG, but you can still view the animations.",
+"Показать анимации": "Show animations",
+"Формы и ошибки": "Forms and errors",
+"Вход: тряска при ошибке, зелёная кнопка при успехе": "Sign-in: shake on error, green button on success",
+"Ошибка: тряска только когда отклонено всё действие (вход, PIN, код), всегда вместе с красной рамкой, иконкой и текстом. Успех: сама кнопка становится зелёной и рисует галочку — без отдельной надписи рядом.": "Error: shake only when the whole action is rejected (sign-in, PIN, code), always together with a red border, icon and text. Success: the button itself turns green and draws a checkmark, with no separate label next to it.",
+"тряска 360 мс": "shake 360 ms",
+"успех: заливка 200 мс": "success: fill 200 ms",
+"галочка 280 мс": "checkmark 280 ms",
+"Пароль": "Password",
+"Верный пароль для примера: ui-design": "Correct password for the demo: ui-design",
+"Войти": "Sign in",
+"Ошибки при отправке": "Errors on submit",
+"Отправка формы с несколькими ошибками. Сообщение — у каждого поля, фокус и прокрутка — к первому ошибочному. Отдельного списка ошибок нет: он повторял бы то, что уже написано у полей.": "Submitting a form with several errors. A message at each field; focus and scroll go to the first invalid one. There is no separate error list: it would repeat what is already written at the fields.",
+"ошибка у поля": "error at field",
+"фокус на первое": "focus on first",
+"без тряски": "no shake",
+"Почта": "Email",
+"Телефон": "Phone",
+"Отправить заявку": "Submit request",
+"Кнопки и отклик": "Buttons and feedback",
+"Нажатие и загрузка": "Press and loading",
+"Нажатие сжимает кнопку на 3%. Загрузка — спиннер внутри, ширина не меняется, повторный клик заблокирован.": "Pressing shrinks the button by 3%. Loading: a spinner inside, width does not change, repeat clicks are blocked.",
+"120 мс": "120 ms",
+"спиннер 0.8 с/оборот": "spinner 0.8 s/turn",
+"Оплатить 12 500 ₸": "Pay 12 500 ₸",
+"Просто нажать": "Just press",
+"Копирование и лайк": "Copy and like",
+"Короткая смена подписи и «поп» масштаба. Лайк анимируется только при включении; частицы — 8 штук, полсекунды.": "A short label change and a scale “pop”. The like animates only when turned on; particles: 8 of them, half a second.",
+"pop 350 мс": "pop 350 ms",
+"частицы 500 мс": "particles 500 ms",
+"Скопировать реквизиты": "Copy details",
+"Нравится": "Like",
+"Модалка и тост": "Modal and toast",
+"Модалка: прозрачность и масштаб от 0.96, никогда не с нуля. Тост — только для пассивных сообщений, пауза при наведении.": "Modal: opacity and scale from 0.96, never from zero. Toast: only for passive messages, pauses on hover.",
+"200 мс": "200 ms",
+"тост 4 с": "toast 4 s",
+"Открыть модалку": "Open modal",
+"Показать тост": "Show toast",
+"Раскрытие и навигация": "Expanding and navigation",
+"Аккордеон": "Accordion",
+"Высота анимируется через grid-template-rows 0fr → 1fr — работает во всех браузерах. Шеврон поворачивается за то же время.": "Height is animated with grid-template-rows 0fr → 1fr, which works in all browsers. The chevron rotates in the same time.",
+"250 мс": "250 ms",
+"Какие комиссии за перевод?": "What are the transfer fees?",
+"Переводы внутри банка — без комиссии. На карты других банков — 0,95%, минимум 200 ₸. Комиссия видна до подтверждения.": "Transfers within the bank are free. To other banks' cards: 0,95%, minimum 200 ₸. The fee is shown before you confirm.",
+"Скользящее подчёркивание вкладок": "Sliding tab underline",
+"Один индикатор скользит к выбранной вкладке через transform, а не left/width.": "One indicator slides to the selected tab using transform, not left/width.",
+"Счета": "Accounts",
+"Карты": "Cards",
+"Накопления": "Savings",
+"2 счёта · 248 500 ₸": "2 accounts · 248 500 ₸",
+"Загрузка и данные": "Loading and data",
+"Скелетон": "Skeleton",
+"Повторяет реальную раскладку. Мерцание мягкое; при уменьшенном движении — статичный скелетон.": "Matches the real layout. The shimmer is soft; with reduced motion the skeleton is static.",
+"shimmer 1.4 с": "shimmer 1.4 s",
+"АС": "AS",
+"Айгерим Садыкова": "Aigerim Sadykova",
+"Последний перевод: 15 000 ₸": "Last transfer: 15 000 ₸",
+"Загрузить": "Load",
+"Прогресс и счётчик": "Progress and counter",
+"Прогресс — scaleX с плавностью 300 мс. Число растёт один раз при показе; длительность растёт логарифмически от разницы. Суммы, которые сверяют, не анимируйте.": "Progress is scaleX with 300 ms easing. The number grows once on show; duration grows logarithmically with the difference. Do not animate amounts that people check.",
+"350–1200 мс": "350-1200 ms",
+"Цель накопления": "Savings goal",
+"₸ накоплено": "₸ saved",
+"Пополнить на 50 000 ₸": "Top up by 50 000 ₸",
+"Каскад списка": "List cascade",
+"Каскад — только при первом показе, шаг 40 мс, не больше 8 элементов. Карточки при наведении не двигаются — меняется только цвет фона.": "Cascade only on first show, 40 ms step, no more than 8 items. Cards do not move on hover - only the background color changes.",
+"300 мс": "300 ms",
+"шаг 40 мс": "step 40 ms",
+"без hover-движения": "no hover movement",
+"Кофейня «Сауле» · −1 800 ₸": "Saule coffee shop · −1 800 ₸",
+"Зарплата · +420 000 ₸": "Salary · +420 000 ₸",
+"Такси · −2 350 ₸": "Taxi · −2 350 ₸",
+"Кешбэк · +3 120 ₸": "Cashback · +3 120 ₸",
+"Цели": "Goals",
+"Перезапустить каскад": "Restart cascade",
+"Данные в движении": "Data in motion",
+"Сортировка с перестановкой (FLIP)": "Sorting with reordering (FLIP)",
+"При сортировке и фильтре строки едут на новые места, а не перескакивают. Новые появляются снизу с каскадом.": "When sorting and filtering, rows move to their new places instead of jumping. New ones appear from the bottom with a cascade.",
+"380 мс": "380 ms",
+"По сумме": "By amount",
+"По названию": "By name",
+"Только доходы": "Income only",
+"Аптека · −5 400 ₸": "Pharmacy · −5 400 ₸",
+"Прорисовка графика и счёт": "Chart drawing and counting",
+"При первом показе столбцы растут от нуля, точки появляются, числа считаются. Без JS и при уменьшенном движении всё сразу на месте.": "On first show, bars grow from zero, points appear, numbers count up. Without JS and with reduced motion, everything is in place at once.",
+"700 мс": "700 ms",
+"шаг 35 мс": "step 35 ms",
+"Янв": "Jan",
+"Фев": "Feb",
+"Мар": "Mar",
+"Апр": "Apr",
+"Показать снова": "Show again",
+"Жесты и ИИ": "Gestures and AI",
+"Свайп для удаления + «Отменить»": "Swipe to delete + “Undo”",
+"Строка уезжает влево, сворачивается, внизу — тост с «Отменить». Удаление совершается только после окна отмены. Кнопка «Удалить» — обязательная альтернатива жесту.": "The row slides left, collapses, and a toast with “Undo” appears at the bottom. Deletion happens only after the undo window. The “Delete” button is a required alternative to the gesture.",
+"порог 40%": "threshold 40%",
+"200 + 180 мс": "200 + 180 ms",
+"Undo 6 с": "Undo 6 s",
+"Удалить": "Delete",
+"Нижняя шторка": "Bottom sheet",
+"Открывается снизу, закрывается свайпом вниз за ручку, по фону, Esc или кнопкой-ручкой. Фокус внутри, остальная страница недоступна.": "Opens from the bottom, closes by swiping down on the handle, by tapping the backdrop, Esc, or the handle button. Focus stays inside, the rest of the page is unavailable.",
+"260 мс": "260 ms",
+"порог 30% / 0.6 px/мс": "threshold 30% / 0.6 px/ms",
+"Открыть шторку": "Open sheet",
+"Потоковый ответ ИИ": "Streaming AI reply",
+"Текст дописывается со статичной кареткой; «Стоп» на месте «Спросить». Скринридер получает итог, а не каждый кусок.": "Text is appended with a static caret; “Stop” replaces “Ask”. A screen reader gets the final result, not every chunk.",
+"60 симв/с": "60 chars/s",
+"Спросить": "Ask",
+"Тост с действием": "Toast with action",
+"Действие в тосте — дополнение, а не единственный путь. С действием тост живёт дольше (8 с) и не исчезает под курсором и фокусом.": "The action in a toast is an extra, not the only way. With an action the toast lasts longer (8 s) and does not disappear under the cursor or focus.",
+"8 с": "8 s",
+"пауза на фокусе": "pause on focus",
+"Архивировать чат": "Archive chat",
+"Фильтры": "Filters",
+"Потяните за ручку вниз, нажмите на фон или Esc.": "Drag the handle down, tap the backdrop or press Esc.",
+"Применить": "Apply",
+"Внимание и праздник": "Attention and celebration",
+"Новое уведомление: колокольчик": "New notification: bell",
+"Колокольчик качается от верхней точки, бейдж «выпрыгивает» и даёт 3 импульса кольца — и всё стоит. Бесконечная пульсация отвлекает и нарушает WCAG 2.2.2. Число объявляется скринридеру.": "The bell swings from its top point, the badge “pops out” and gives 3 ring pulses, then everything stops. Endless pulsing distracts and violates WCAG 2.2.2. The number is announced to the screen reader.",
+"качание 800 мс": "swing 800 ms",
+"бейдж 450 мс": "badge 450 ms",
+"кольцо 600 мс × 3": "ring 600 ms × 3",
+"Уведомления: 3 новых": "Notifications: 3 new",
+"Новое уведомление": "New notification",
+"Блик на премиум-бейдже": "Shine on a premium badge",
+"Диагональный блик 1–2 раза при показе или по событию. Не по наведению и не бесконечно.": "A diagonal shine 1-2 times on show or on an event. Not on hover and not endless.",
+"700 мс × 2": "700 ms × 2",
+"Запустить блик": "Run shine",
+"Конфетти": "Confetti",
+"Только для редких праздничных событий: первая цель достигнута, онбординг пройден. Не для рутинных операций и не в серьёзных контекстах.": "Only for rare celebratory events: first goal reached, onboarding completed. Not for routine operations and not in serious contexts.",
+"≈ 1.6 с": "≈ 1.6 s",
+"90 частиц": "90 particles",
+"Цель достигнута!": "Goal reached!",
+"Сценарии и паттерны": "Scenarios and patterns",
+"Готовые куски экранов: что анимировать и что оставить неподвижным, если цена ошибки высокая.": "Ready-made pieces of screens: what to animate and what to keep still when the cost of a mistake is high.",
+"Оплата целиком": "Full payment",
+"Деньги - минимальный уровень движения: загрузка в кнопке, одна галочка, чек. Сумма видна сразу и не считается.": "Money - minimum motion level: loading in the button, one checkmark, a receipt. The amount is visible right away and is not counted up.",
+"загрузка в кнопке": "loading in the button",
+"галочка 350 мс": "checkmark 350 ms",
+"без счёта суммы": "no amount counting",
+"Получатель": "Recipient",
+"ТОО «Сауле»": "Saule LLP",
+"С карты": "From card",
+"Комиссия": "Fee",
+"Оплачено": "Paid",
+"Сумма": "Amount",
+"Номер операции": "Transaction number",
+"Новый платёж": "New payment",
+"Пять состояний списка": "Five list states",
+"Один и тот же список: данные, загрузка, пусто, ошибка, офлайн. У каждого состояния своё действие, а не пустой экран.": "The same list: data, loading, empty, error, offline. Each state has its own action, not an empty screen.",
+"скелетон": "skeleton",
+"пустое состояние": "empty state",
+"повтор": "retry",
+"Состояние списка": "List state",
+"Данные": "Data",
+"Загрузка": "Loading",
+"Пусто": "Empty",
+"Ошибка": "Error",
+"Офлайн": "Offline",
+"Одометр баланса": "Balance odometer",
+"Разряды прокручиваются к новому значению, старшие чуть дольше. Подходит для дашбордов и игр, не для шага оплаты.": "Digits scroll to the new value, the higher ones slightly longer. Good for dashboards and games, not for the payment step.",
+"700 мс + 40 мс на разряд": "700 ms + 40 ms per digit",
+"Пополнить на 1 250 ₸": "Top up by 1 250 ₸",
+"Зарплата 420 000 ₸": "Salary 420 000 ₸",
+"Подсказка на popover": "Popover tooltip",
+"Своя подсказка вместо атрибута title: открывается нажатием и с клавиатуры, закрывается Esc и кликом мимо. Привязка к кнопке через anchor positioning, без него - расчётом.": "A custom tooltip instead of the title attribute: opens on press and from the keyboard, closes with Esc and a click outside. Attached to the button with anchor positioning, or by calculation without it.",
+"150 мс": "150 ms",
+"Комиссия 0,95%": "Fee 0,95%",
+"Как считается комиссия": "How the fee is calculated",
+"На карты других банков - 0,95% от суммы, минимум 200 ₸. Внутри банка - без комиссии.": "To other banks' cards - 0,95% of the amount, minimum 200 ₸. Within the bank - free.",
+"Список → карточка": "List → card",
+"Строка списка превращается в шапку карточки: видно, откуда пришёл экран. View Transitions; без поддержки экран меняется сразу.": "A list row turns into the card header: you can see where the screen came from. View Transitions; without support the screen changes instantly.",
+"Перетаскивание с клавиатуры": "Keyboard drag and drop",
+"Порядок меняется мышью за ручку или кнопками «Выше» и «Ниже». Новое место объявляется скринридеру.": "The order changes with the mouse by the handle or with the “Up” and “Down” buttons. The new position is announced to the screen reader.",
+"FLIP 380 мс": "FLIP 380 ms",
+"Аренда": "Rent",
+"Выше": "Up",
+"Ниже": "Down",
+"Коммунальные": "Utilities",
+"Интернет": "Internet",
+"Мобильная связь": "Mobile service",
+"Телефон, ИИН и код из SMS": "Phone, IIN and SMS code",
+"Формат виден маской прямо в поле. Код - шесть ячеек: фокус идёт дальше сам, вставка кода целиком работает, Backspace возвращает назад.": "The format is shown by a mask right in the field. The code has six cells: focus moves on by itself, pasting the whole code works, Backspace goes back.",
+"ИИН": "IIN",
+"Код из SMS": "SMS code",
+"Цифра 1 из 6": "Digit 1 of 6",
+"Цифра 2 из 6": "Digit 2 of 6",
+"Цифра 3 из 6": "Digit 3 of 6",
+"Цифра 4 из 6": "Digit 4 of 6",
+"Цифра 5 из 6": "Digit 5 of 6",
+"Цифра 6 из 6": "Digit 6 of 6",
+"Для примера подходит любой код": "Any code works for the demo",
+"Подтвердить": "Confirm",
+"Прогресс агента ИИ": "AI agent progress",
+"Агент показывает шаги, его можно остановить в любой момент. Действие наружу (письмо, оплата) - только после явного подтверждения.": "The agent shows its steps and can be stopped at any moment. An outward action (email, payment) only after explicit confirmation.",
+"шаги": "steps",
+"остановка": "stop",
+"подтверждение": "confirmation",
+"Отправить сводку на": "Send the summary to",
+"Отправить письмо": "Send email",
+"Не отправлять": "Don't send",
+"Собрать сводку за неделю": "Compile the weekly summary",
+"Остановить": "Stop",
+"Формы и ввод": "Forms and input",
+"Сумма в тенге": "Amount in tenge",
+"Разряды разделяются пробелами при вводе, тиыны после запятой, лимит проверяется сразу. Быстрые суммы - для частых случаев.": "Digits are separated by spaces as you type, tiyn after the comma, the limit is checked immediately. Quick amounts are for frequent cases.",
+"лимит 500 000 ₸": "limit 500 000 ₸",
+"Сумма перевода": "Transfer amount",
+"Доступно 248 500 ₸": "Available 248 500 ₸",
+"Быстрые суммы": "Quick amounts",
+"Перевести": "Transfer",
+"Выбор периода": "Period selection",
+"Готовые периоды закрывают большинство случаев, свой период - двумя полями даты. Стрелки и Enter работают в календаре браузера.": "Preset periods cover most cases, a custom period takes two date fields. Arrows and Enter work in the browser calendar.",
+"Период": "Period",
+"Сегодня": "Today",
+"7 дней": "7 days",
+"Месяц": "Month",
+"Свой период": "Custom period",
+"С": "From",
+"По": "To",
+"Загрузка файла": "File upload",
+"Перетащить или выбрать. Тип и размер проверяются до отправки, у загрузки есть прогресс и отмена.": "Drag or choose. Type and size are checked before sending; the upload has progress and cancel.",
+"до 5 МБ": "up to 5 MB",
+"прогресс + отмена": "progress + cancel",
+"Выберите файл": "Choose a file",
+"или перетащите сюда": "or drag it here",
+"PDF, JPG или PNG до 5 МБ": "PDF, JPG or PNG up to 5 MB",
+"Пример: файл 12 МБ": "Example: 12 MB file",
+"Многошаговая форма": "Multi-step form",
+"Шаги видны сверху, «Назад» не стирает введённое, черновик сохраняется в браузере. Номер шага объявляется скринридеру.": "Steps are shown at the top, “Back” does not erase what was entered, the draft is saved in the browser. The step number is announced to the screen reader.",
+"3 шага": "3 steps",
+"черновик": "draft",
+"Адрес": "Address",
+"Проверка": "Review",
+"Имя и фамилия": "First and last name",
+"Город": "City",
+"Имя": "First name",
+"Назад": "Back",
+"Далее": "Next",
+"Таблицы, ИИ и сервисы": "Tables, AI and services",
+"Таблица данных": "Data table",
+"Сортировка по заголовку, фильтр и поиск, выбор строк и массовое действие. На узком экране строки становятся карточками.": "Sort by header, filter and search, row selection and a bulk action. On a narrow screen rows become cards.",
+"массовые действия": "bulk actions",
+"карточки до 640 px": "cards below 640 px",
+"Поиск по операциям": "Search transactions",
+"Поиск по названию": "Search by name",
+"Статус": "Status",
+"Все": "All",
+"Выполнен": "Completed",
+"В обработке": "Processing",
+"Отклонён": "Rejected",
+"Выгрузить в CSV": "Export to CSV",
+"Снять выбор": "Clear selection",
+"Выбрать все строки": "Select all rows",
+"Операция": "Transaction",
+"Дата": "Date",
+"Ничего не найдено. Измените поиск или статус.": "Nothing found. Change the search or status.",
+"Запрос разрешения": "Permission request",
+"Сначала объяснение в интерфейсе и выбор «Не сейчас», и только после согласия - системный запрос браузера. Отказ не повторяется на каждом входе.": "First an explanation in the interface and a “Not now” choice, and only after consent the system browser prompt. A refusal is not repeated at every visit.",
+"Уведомлять о поступлениях?": "Notify about incoming money?",
+"Пришлём сообщение, когда на счёт придут деньги. Выключить можно в настройках.": "We will send a message when money arrives in your account. You can turn it off in settings.",
+"Включить уведомления": "Turn on notifications",
+"Не сейчас": "Not now",
+"Чат с ассистентом": "Assistant chat",
+"Поле растёт с текстом, Enter отправляет, Shift+Enter - новая строка. У ответа есть источники, «Повторить» и понятная ошибка лимита.": "The field grows with the text, Enter sends, Shift+Enter adds a new line. The reply has sources, “Retry” and a clear limit error.",
+"источники": "sources",
+"лимит": "limit",
+"Сообщение": "Message",
+"Спросите о расходах": "Ask about your spending",
+"Отправить": "Send",
+"Пример: лимит исчерпан": "Example: limit reached",
+"Подсказки при первом входе": "Hints on first sign-in",
+"Три подсказки у тех элементов, о которых они говорят. «Пропустить» видно всегда, обучение можно пройти снова.": "Three hints at the elements they talk about. “Skip” is always visible, and the tour can be taken again.",
+"пропуск": "skip",
+"фокус на подсказке": "focus on the hint",
+"История": "History",
+"Пропустить": "Skip",
+"Дальше": "Next",
+"Показать подсказки": "Show hints",
+"Контрастная тема и крупный шрифт": "High contrast theme and large text",
+"Как интерфейс выглядит в контрастной теме Windows (forced-colors) и при увеличении текста до 200%. Ничто не должно пропасть или наехать.": "How the interface looks in the Windows high contrast theme (forced-colors) and with text enlarged to 200%. Nothing should disappear or overlap.",
+"200% текста": "200% text",
+"Режим просмотра": "View mode",
+"Обычно": "Normal",
+"Контрастная тема": "High contrast theme",
+"Текст 200%": "Text 200%",
+"Перевод выполнен": "Transfer completed",
+"12 500 ₸ отправлены Айгерим С.": "12 500 ₸ sent to Aigerim S.",
+"Скачать чек": "Download receipt",
+"Контрастная тема здесь изображена: настоящую включают в настройках Windows, и страница подстраивается сама.": "The high contrast theme is only imitated here: the real one is turned on in Windows settings, and the page adapts by itself.",
+"Игровой отклик": "Game feedback",
+"Каждое событие — набор слоёв: вспышка, хитстоп с дрожью, цифра, частицы, волна, тряска, звук (здесь без звука). Сила набора растёт с важностью события: удар → крит → добивание → ульта. Ползунок тряски — как в настройках доступности игр.": "Each event is a set of layers: flash, hit stop with shake, number, particles, wave, screen shake, sound (no sound here). The strength of the set grows with the event's importance: hit → crit → finisher → ultimate. The shake slider works like in game accessibility settings.",
+"Манекен": "Dummy",
+"Здоровье манекена": "Dummy health",
+"Ур. 1": "Lv. 1",
+"Ульта": "Ultimate",
+"Атака": "Attack",
+"Удар": "Hit",
+"Крит": "Crit",
+"Добить": "Finish",
+"Огненный шар": "Fireball",
+"Враг": "Enemy",
+"Щит": "Shield",
+"Блок": "Block",
+"Промах": "Miss",
+"Замах врага": "Enemy wind-up",
+"Статусы": "Statuses",
+"Яд": "Poison",
+"Огонь": "Fire",
+"Заморозка": "Freeze",
+"Оглушение": "Stun",
+"Герой": "Hero",
+"Лечение": "Heal",
+"Рывок": "Dash",
+"Прыжок": "Jump",
+"Новый уровень": "Level up",
+"Собрать монеты": "Collect coins",
+"Интерфейс": "Interface",
+"Метка цели": "Target marker",
+"Таймер: 10 с": "Timer: 10 s",
+"Тряска экрана": "Screen shake",
+"Подсказка: нажми «Замах врага», а когда круг под героем почти заполнится — «Рывок», чтобы увернуться.": "Hint: press “Enemy wind-up”, and when the circle under the hero is almost full, press “Dash” to dodge.",
+"Сундук: раскрытие по редкости": "Chest: reveal by rarity",
+"Нарастание → вспышка → предметы по очереди, редкий последним. Редкость — цветом и подписью, свечение мягкое. Есть «Открыть всё сразу».": "Build-up → flash → items one by one, the rare one last. Rarity is shown by color and label, the glow is soft. There is an “Open all at once”.",
+"Открыть сундук": "Open chest",
+"Открыть всё сразу": "Open all at once",
+"Игры: меню и настройки": "Games: menu and settings",
+"Настройки доступности игры": "Game accessibility settings",
+"Размер субтитров, сила тряски, вспышки и режим для дальтоников. Каждая настройка сразу видна на примере ниже.": "Subtitle size, shake strength, flashes and a color-blind mode. Each setting is visible right away in the example below.",
+"пример вживую": "live example",
+"Размер субтитров": "Subtitle size",
+"Мелкий": "Small",
+"Средний": "Medium",
+"Крупный": "Large",
+"Без вспышек": "No flashes",
+"Цвета": "Colors",
+"Обычные": "Normal",
+"Красный и зелёный различимы плохо": "Red and green are hard to tell apart",
+"Союзник": "Ally",
+"- Держись, мы почти у цели.": "- Hold on, we are almost there.",
+"Проверить взрыв": "Test explosion",
+"Подсказки кнопок по устройству": "Button hints by device",
+"Подсказка показывает ту кнопку, которой человек играет прямо сейчас: клавиатура, Xbox или PlayStation. Переключается по последнему вводу.": "The hint shows the button the player is using right now: keyboard, Xbox or PlayStation. It switches by the last input.",
+"последний ввод": "last input",
+"Устройство": "Device",
+"Клавиатура": "Keyboard",
+"Подключите геймпад и нажмите любую кнопку: подсказки сменятся сами.": "Connect a gamepad and press any button: the hints will switch by themselves.",
+"Итог уровня": "Level summary",
+"Звёзды открываются по очереди, опыт считается, новый уровень отмечен один раз. «Дальше» доступна сразу: итог можно пропустить.": "Stars open one by one, experience is counted, the new level is marked once. “Next” is available right away: the summary can be skipped.",
+"шаг 250 мс": "step 250 ms",
+"без бесконечных пульсаций": "no endless pulsing",
+"2 звезды из 3": "2 stars out of 3",
+"Опыт": "Experience",
+"Монеты": "Coins",
+"Новый уровень: 5": "New level: 5",
+"Показать итог": "Show summary",
+"Скролл": "Scroll",
+"Полоса прогресса чтения вверху страницы и появление блоков при прокрутке — на чистом CSS (animation-timeline). Без поддержки браузера или при уменьшенном движении контент просто виден.": "A reading progress bar at the top of the page and blocks appearing on scroll - in pure CSS (animation-timeline). Without browser support or with reduced motion the content is simply visible.",
+"Сдвиг 24 px": "Shift 24 px",
+"Прозрачность 0 → 1": "Opacity 0 → 1",
+"Контент виден по умолчанию": "Content visible by default",
+"Удалить шаблон «Аренда»?": "Delete the “Rent” template?",
+"Шаблон исчезнет из списка платежей. Историю переводов это не затронет.": "The template will disappear from the payments list. Transfer history is not affected.",
+"Оставить": "Keep",
+"Удалить шаблон": "Delete template",
+"Анимации уменьшены": "Animations reduced",
+"Анимации включены": "Animations on",
+"Анимации как в системе": "Animations follow the system",
+"Вход выполнен": "Signed in",
+"Пароль не подходит. Проверьте раскладку и Caps Lock.": "Wrong password. Check the keyboard layout and Caps Lock.",
+"Введите пароль.": "Enter a password.",
+"Неверная почта": "Invalid email",
+"Неверный номер": "Invalid number",
+"Заявка отправлена": "Request sent",
+"Платёж отправлен": "Payment sent",
+"Шаблон удалён": "Template deleted",
+"Изменения сохранены": "Changes saved",
+"Карта добавлена в кошелёк": "Card added to wallet",
+"Выписка отправлена на почту": "Statement sent to your email",
+"3 карты · основная •• 4417": "3 cards · main •• 4417",
+"1 цель · «Отпуск» 62%": "1 goal · “Vacation” 62%",
+"Показать скелетон": "Show skeleton",
+"Цель достигнута": "Goal reached",
+"новых": "new",
+"Уведомления: новых нет": "Notifications: none new",
+"Все уведомления прочитаны": "All notifications read",
+"Поздравляем, цель достигнута": "Congratulations, goal reached",
+"Все операции": "All transactions",
+"Ульта готова": "Ultimate ready",
+"Поглощено": "Absorbed",
+"ПОБЕДА": "VICTORY",
+"Макс.": "Max",
+"Раскол": "Split",
+"Увернулся!": "Dodged!",
+"Ур.": "Lv.",
+"УРОВЕНЬ": "LEVEL",
+"Новый уровень:": "New level:",
+"Огненный шар готов": "Fireball ready",
+"ВРЕМЯ!": "TIME!",
+"Редкий": "Rare",
+"Сундук открыт:": "Chest opened:",
+"Фильтры применены": "Filters applied",
+"Стоп": "Stop",
+"Остановить ответ": "Stop reply",
+"Комиссия за перевод между своими картами — 0 ₸. На карты других банков — 0,95%, минимум 200 ₸. Лимит без комиссии — 1 000 000 ₸ в месяц.": "The fee for transfers between your own cards is 0 ₸. To other banks' cards: 0,95%, minimum 200 ₸. The fee-free limit is 1 000 000 ₸ per month.",
+"Чат перенесён в архив": "Chat moved to archive",
+"Отменить": "Undo",
+"Чат возвращён": "Chat restored",
+"Минимальный": "Minimal",
+"Сдержанный": "Restrained",
+"Продуктовый": "Product",
+"Выразительный": "Expressive",
+"деньги, здоровье, документы, шаг оплаты": "money, health, documents, payment step",
+"рабочие инструменты, админки, CRM": "work tools, admin panels, CRM",
+"приложения, кабинеты, дашборды": "apps, accounts, dashboards",
+"лендинги, промо, игры": "landing pages, promo, games",
+"без тряски: красная рамка и текст ошибки; кнопка зеленеет сразу": "no shake: red border and error text; the button turns green at once",
+"Неверный пароль": "Wrong password",
+"Отправляем платёж": "Sending the payment",
+"Аренда: место 1 из 4": "Rent: position 1 of 4",
+"Больше лимита": "Over the limit",
+"Шаг 2 из 3: Адрес": "Step 2 of 3: Address",
+"Уровень:": "Level:",
+"Меньше движения:": "Less motion:",
+"Сравнение:": "Comparison:",
+"Без анимации": "No animation",
+"С анимацией": "With animation",
+"Показать код": "Show code",
+"Скопировать код": "Copy code",
+"Найти эффект: тост, ошибка, свайп": "Find an effect: toast, error, swipe",
+"Ничего не найдено. Попробуйте другое слово.": "Nothing found. Try another word.",
+"Уровень «": "Level “",
+". Приглушены эффекты, которые в него не входят.": ". Effects that are not part of it are muted.",
+"Не входит в уровень «": "Not part of level “",
+"Оплачено 12 500 ₸": "Paid 12 500 ₸",
+"Операций пока нет": "No transactions yet",
+"Здесь появятся переводы и покупки.": "Transfers and purchases will appear here.",
+"Пополнить счёт": "Top up account",
+"Не удалось загрузить операции": "Could not load transactions",
+"Проверьте соединение и попробуйте ещё раз.": "Check your connection and try again.",
+"Повторить": "Retry",
+"Нет интернета": "No internet",
+"Показаны операции на 14:20. Новые появятся, когда связь вернётся.": "Showing transactions as of 14:20. New ones will appear when the connection is back.",
+"15 000 ₸ - Айгерим С.": "15 000 ₸ - Aigerim S.",
+"Депозит": "Deposit",
+"+42 000 ₸ - проценты": "+42 000 ₸ - interest",
+"-6 400 ₸ - Магнум": "-6 400 ₸ - Magnum",
+"Счёт": "Account",
+"Последняя операция": "Last transaction",
+": место": ": position",
+"из": "of",
+"Обязательное поле": "Required field",
+"Неверный ИИН": "Invalid IIN",
+"Введите все 6 цифр кода": "Enter all 6 digits of the code",
+"Агент остановлен": "Agent stopped",
+"Агент остановлен. Готовые шаги сохранены.": "Agent stopped. Completed steps are saved.",
+"Сводка отправлена": "Summary sent",
+"Сводка отправлена на buh@sauley.kz": "Summary sent to buh@sauley.kz",
+"Письмо не отправлено": "Email not sent",
+"Письмо не отправлено. Сводка сохранена в черновиках.": "Email not sent. The summary is saved in drafts.",
+"Больше доступной суммы": "More than the available amount",
+"Операции с": "Transactions from",
+"по": "to",
+"Начало периода позже конца. Поменяйте даты местами.": "The start of the period is later than the end. Swap the dates.",
+"МБ": "MB",
+"Неверный тип файла: нужен PDF, JPG или PNG": "Wrong file type: PDF, JPG or PNG required",
+"Файл больше 5 МБ:": "File is larger than 5 MB:",
+"Загрузка 0%": "Uploading 0%",
+"· загружен": "· uploaded",
+"загружен": "uploaded",
+"удалён": "deleted",
+"Загрузка отменена": "Upload canceled",
+"Скан паспорта.pdf": "Passport scan.pdf",
+"Черновик сохранён": "Draft saved",
+"Шаг": "Step",
+"из 3:": "of 3:",
+"Kaspi Магазин": "Kaspi Magazin",
+"Зарплата ТОО «Сауле»": "Salary from Saule LLP",
+"Перевод Айгерим С.": "Transfer from Aigerim S.",
+"Коммунальные услуги": "Utilities",
+"Возврат Wildberries": "Wildberries refund",
+"Аптека «Биосфера»": "Biosfera pharmacy",
+"Кешбэк за сентябрь": "Cashback for September",
+"Выбрано:": "Selected:",
+"Выгружено строк:": "Rows exported:",
+". Файл операции.csv готов.": ". The file operations.csv is ready.",
+"Браузер не поддерживает уведомления.": "The browser does not support notifications.",
+"Хорошо, не будем спрашивать неделю. Включить можно в настройках.": "Okay, we won't ask for a week. You can turn them on in settings.",
+"Источники:": "Sources:",
+"Выписка Kaspi Gold, 14-20 октября": "Kaspi Gold statement, 14-20 October",
+"Категории расходов": "Spending categories",
+"Лимит сообщений на сегодня исчерпан": "Message limit for today is reached",
+"Новые вопросы можно задать с 00:00. История чата сохранена.": "You can ask new questions from 00:00. Chat history is saved.",
+"Лимит сообщений исчерпан": "Message limit reached",
+"Спросите о расходах, например: сколько я потратил за неделю?": "Ask about spending, for example: how much did I spend this week?",
+"Перевод": "Transfer",
+"Деньги по номеру телефона, без комиссии внутри банка.": "Money by phone number, free within the bank.",
+"Все операции с поиском и фильтрами по дате.": "All transactions with search and date filters.",
+"Лимиты, блокировка и реквизиты каждой карты.": "Limits, blocking and details for each card.",
+"Понятно": "Got it",
+"Взрыв рядом": "Explosion nearby",
+"Открыть дверь": "Open the door",
+"Пробел": "Space",
+"Бег": "Run",
+"Меню": "Menu",
+"Найден геймпад:": "Gamepad found:",
+"Уровень 5 начинается": "Level 5 begins",
+"КБ": "KB",
+"Скачано: fx.js и fx.css (": "Downloaded: fx.js and fx.css (",
+"В наборе карточек:": "In the set of cards:",
+"· считаем вес…": "· calculating size…",
+"% библиотеки)": "% of the library)",
+"карточек:": "cards:",
+"Ссылка на карточку": "Card link",
+"Ссылка скопирована": "Link copied",
+"Скачать этот эффект": "Download this effect",
+"В набор": "Add to set",
+"Уведомления:": "Notifications:",
+"комбо": "combo",
+"КРИТ!": "CRIT!",
+"Горение": "Burning",
+"УЛЬТА!": "ULT!",
+"Обычный": "Common",
+"Необычный": "Uncommon",
+"Легендарный": "Legendary",
+"Платёж удалён": "Payment deleted",
+"движения нет: сообщения у полей и фокус на первом ошибочном": "no motion here: messages at the fields and focus on the first invalid one",
+"подпись меняется без движения, частиц нет": "the label changes without motion, no particles",
+"модалка и тост появляются сразу, без масштаба": "the modal and the toast appear at once, without scaling",
+"раскрывается сразу, без анимации высоты": "opens at once, without animating the height",
+"подчёркивание переходит к вкладке сразу": "the underline jumps to the tab at once",
+"скелетон статичный, без мерцания": "the skeleton is static, no shimmer",
+"число сразу финальное, прогресс без плавности": "the number is final at once, the progress bar does not ease",
+"все строки видны сразу": "all rows are visible at once",
+"строки встают на новые места сразу": "rows jump to their new places at once",
+"столбцы и числа сразу на месте": "bars and numbers are in place at once",
+"строка исчезает сразу, тост с «Отменить» остаётся": "the row disappears at once, the toast with “Undo” stays",
+"шторка появляется и закрывается без сдвига": "the sheet opens and closes without sliding",
+"текст появляется кусками без анимации каретки": "text appears in chunks, the caret does not animate",
+"тост без сдвига, действие работает так же": "the toast does not slide, the action works the same",
+"колокольчик не качается, число на бейдже меняется и объявляется": "the bell does not swing, the badge number changes and is announced",
+"блика нет, бейдж тот же": "no glint, the badge stays the same",
+"конфетти нет, остаётся текст события": "no confetti, the event text stays",
+"галочка рисуется сразу, чек появляется без сдвига": "the check mark is drawn at once, the receipt appears without sliding",
+"движения нет: каждое состояние показывается сразу": "no motion here: each state is shown at once",
+"число сразу финальное": "the number is final at once",
+"подсказка появляется сразу": "the tooltip appears at once",
+"экран меняется сразу": "the screen changes at once",
+"строка встаёт на новое место сразу": "the row jumps to its new place at once",
+"движения нет": "no motion here",
+"шаги отмечаются без вращения индикатора": "steps are marked without a spinning indicator",
+"прогресс меняется без плавности": "progress changes without easing",
+"шаги меняются сразу": "steps change at once",
+"строки встают на места сразу": "rows jump into place at once",
+"ответ появляется кусками без анимации каретки": "the answer appears in chunks, the caret does not animate",
+"подсказки сменяются сразу": "hints change at once",
+"без тряски и вспышек, остаётся цифра и звук": "no shake or flashes, the number and the sound stay",
+"звёзды и числа сразу финальные": "stars and numbers are final at once",
+"Разделы и фильтры": "Sections and filters",
+"Найти эффект": "Find an effect",
+"Уровень движения": "Motion level",
+"Все эффекты": "All effects",
+"Палитра": "Palette",
+"Кофейня «Сауле»": "Saule coffee shop",
+"Зарплата": "Salary",
+"Такси": "Taxi",
+"Назад к счетам": "Back to accounts",
+"Подтверждено": "Confirmed",
+"Найти выписки за неделю": "Find this week's statements",
+"Посчитать расходы по категориям": "Sum up spending by category",
+"Подготовить сводку": "Prepare a summary",
+"Отправить сводку бухгалтеру": "Send the summary to the accountant",
+"Переведено": "Sent",
+"Выбрать:": "Select:",
+"Уведомления включены.": "Notifications are on.",
+"Уведомления запрещены в браузере. Включить их можно в настройках сайта.": "Notifications are blocked in the browser. You can allow them in the site settings.",
+"Решение отложено.": "Decision postponed.",
+"За неделю вы потратили 98 340 ₸. Больше всего - на продукты: 41 200 ₸, это на 12% больше прошлой недели. Ещё 23 640 ₸ ушло на коммунальные услуги.": "This week you spent 98 340 ₸. Most of it went on groceries: 41 200 ₸, 12% more than last week. Another 23 640 ₸ went on utilities.",
+"Скопировать": "Copy",
+"Крест": "Cross",
+"Круг": "Circle",
+"Готово": "Done",
+"Скопировано": "Copied",
+"Скопировано в буфер обмена": "Copied to clipboard",
+"Выделите и скопируйте": "Select and copy",
+"Закрыть": "Close",
+"Новых уведомлений": "New notifications",
+"Восстановлено": "Restored",
+"Удалено": "Deleted",
+"Закрыть панель": "Close panel",
+"Ответ готов": "Answer ready",
+"Ответ остановлен": "Answer stopped",
+"без сжатия; во время загрузки кнопка заблокирована, подпись объявляется": "no squeeze; while loading the button is locked and its label is announced",
+"Скачать набор": "Download the kit",
+"Очистить": "Clear"
+}
+</script>
+<script>
+/* Язык витрины: русский в разметке, английский - по словарю ниже. Текст, который появляется позже (тосты, шаги), переводится на лету. */
+(function () {
+  "use strict";
+  var MAP = JSON.parse(document.getElementById("enMap").textContent);
+  var FRAG = Object.keys(MAP).filter(function (k) { return k.trim().length >= 4; }).sort(function (a, b) { return b.length - a.length; });
+  var SKIP = /^(SCRIPT|STYLE|PRE|CODE|TEXTAREA)$/;
+  var ATTRS = ["aria-label", "placeholder", "title", "alt"];
+  var origText = new WeakMap(), origAttr = new WeakMap(), lang = "ru", busy = false;
+  var RU_STRINGS = { locale: "ru-RU", done: "Готово", copied: "Скопировано", copiedLong: "Скопировано в буфер обмена", copyFailed: "Выделите и скопируйте", close: "Закрыть", newNotifications: "Новых уведомлений", undo: "Отменить", undone: "Восстановлено", deleted: "Удалено", sheetClose: "Закрыть панель", streamDone: "Ответ готов", streamStopped: "Ответ остановлен" };
+  var EN_STRINGS = { locale: "en-US", done: "Done", copied: "Copied", copiedLong: "Copied to clipboard", copyFailed: "Select and copy", close: "Close", newNotifications: "New notifications", undo: "Undo", undone: "Restored", deleted: "Deleted", sheetClose: "Close panel", streamDone: "Answer ready", streamStopped: "Answer stopped" };
+
+  function translate(t) {
+    var core = t.replace(/\s+/g, " ").trim();
+    if (!core || !/[А-Яа-яЁё]/.test(core)) return null;
+    var en = MAP[core];
+    if (en == null) {
+      en = core;
+      FRAG.forEach(function (k) { if (en.indexOf(k) >= 0) en = en.split(k).join(MAP[k]); });
+      if (en === core || /[А-Яа-яЁё]/.test(en)) return null;   /* куски - только если перевелось всё */
+    }
+    var lead = t.match(/^\s*/)[0], trail = t.match(/\s*$/)[0];
+    return lead + en + trail;
+  }
+  function inSkip(n) { for (var p = n.parentNode; p && p.nodeType === 1; p = p.parentNode) { if (SKIP.test(p.tagName)) return true; } return false; }
+  function walk(rootNode) {
+    if (rootNode.nodeType === 3) { textNode(rootNode); return; }
+    if (rootNode.nodeType !== 1 || SKIP.test(rootNode.tagName) || inSkip(rootNode)) return;
+    attrs(rootNode);
+    var w = document.createTreeWalker(rootNode, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {
+      acceptNode: function (n) { return n.nodeType === 1 && SKIP.test(n.tagName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; }
+    });
+    for (var n = w.nextNode(); n; n = w.nextNode()) { if (n.nodeType === 3) textNode(n); else attrs(n); }
+  }
+  function textNode(n) {
+    if (inSkip(n)) return;
+    var en = translate(n.nodeValue); if (en == null) return;
+    origText.set(n, n.nodeValue); n.nodeValue = en;
+  }
+  function attrs(e) {
+    ATTRS.forEach(function (a) {
+      var v = e.getAttribute(a); if (!v) return;
+      var en = translate(v); if (en == null) return;
+      var o = origAttr.get(e) || {}; o[a] = v; origAttr.set(e, o); e.setAttribute(a, en);
+    });
+  }
+  var touched = [];
+  var mo = new MutationObserver(function (list) {
+    if (lang !== "en" || busy) return;
+    busy = true;
+    list.forEach(function (m) {
+      if (m.type === "characterData") textNode(m.target);
+      else if (m.type === "attributes") { if (m.target.nodeType === 1) attrs(m.target); }
+      else m.addedNodes.forEach(function (n) { walk(n); });
+    });
+    busy = false;
+  });
+  function collect(rootNode) {
+    var w = document.createTreeWalker(rootNode, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT), out = [];
+    for (var n = w.nextNode(); n; n = w.nextNode()) out.push(n);
+    return out;
+  }
+  function setLang(next) {
+    if (next === lang) return;
+    busy = true;
+    if (next === "en") {
+      walk(document.body);
+      document.title = "ui-design effects";
+      mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
+      if (window.fx) fx.setStrings(EN_STRINGS);
+    } else {
+      mo.disconnect();
+      collect(document.body).forEach(function (n) {
+        if (n.nodeType === 3 && origText.has(n)) { n.nodeValue = origText.get(n); origText.delete(n); }
+        if (n.nodeType === 1 && origAttr.has(n)) { var o = origAttr.get(n); Object.keys(o).forEach(function (a) { n.setAttribute(a, o[a]); }); origAttr.delete(n); }
+      });
+      document.title = "Эффекты ui-design";
+      if (window.fx) fx.setStrings(RU_STRINGS);
+    }
+    lang = next; busy = false;
+    document.documentElement.lang = next;
+    document.dispatchEvent(new CustomEvent("fx-demo-lang", { detail: next }));
+    btns.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.lang === next)); });
+    try { localStorage.setItem("fx-demo-lang", next); } catch (e) {}
+  }
+
+  var box = document.createElement("div"); box.className = "lang"; box.setAttribute("role", "group"); box.setAttribute("aria-label", "Язык / Language");
+  var btns = [["ru", "Рус"], ["en", "Eng"]].map(function (p) {
+    var b = document.createElement("button"); b.type = "button"; b.dataset.lang = p[0]; b.textContent = p[1]; b.lang = p[0];
+    b.setAttribute("aria-pressed", String(p[0] === "ru"));
+    b.addEventListener("click", function () { setLang(p[0]); });
+    box.appendChild(b); return b;
+  });
+  /* Кнопки языка не переводятся: каждая подписана на своём языке */
+  btns.forEach(function (b) { b.translate = false; });
+  var actions = document.querySelector(".head-actions"); if (actions) actions.insertBefore(box, actions.firstChild);
+  if (document.documentElement.lang === "en") { document.documentElement.lang = "ru"; setLang("en"); }
 })();
 </script>
 </body>

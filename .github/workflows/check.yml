@@ -100,3 +100,19 @@ jobs:
         run: npx --yes -p typescript@5.6.3 tsc --noEmit --strict --lib dom,es2020 --target es2020 tests/fx-types.ts
       - name: No line in the repo ends with CRLF
         run: "! git grep -I -l $'\\r' -- . ':!*.png' ':!*.jpg'"
+
+  a11y:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: axe (WCAG 2.2 A/AA) on the site and the effects demo, light and dark, desktop and phone
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /dev/null 2>&1 &
+          mkdir -p "$RUNNER_TEMP/a11y" && cp tests/a11y.mjs "$RUNNER_TEMP/a11y/" && cd "$RUNNER_TEMP/a11y"
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund playwright@1.48.2 @axe-core/playwright@4.10.0
+          npx playwright install --with-deps chromium
+          node a11y.mjs

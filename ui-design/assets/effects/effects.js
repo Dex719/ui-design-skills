@@ -11,7 +11,11 @@
 
   /* Режим движения: <html data-motion="full"> — анимации включены вручную (сильнее системной настройки),
      "reduce" — выключены вручную, без атрибута — как в системе (prefers-reduced-motion). */
+  /* Цель текущего вызова fx.*: data-motion="reduce" на любом её предке (кроме <html>) выключает движение
+     только в этой части страницы - например, в одной карточке «без анимации». */
+  var scope = null;
   function reduced() {
+    if (scope && scope.closest && scope.closest('[data-motion="reduce"]:not(:root)')) return true;
     var m = root.getAttribute("data-motion");
     if (m === "full") return false;
     if (m === "reduce") return true;
@@ -1179,6 +1183,7 @@
     var t = document.startViewTransition(function () { done = true; apply(); });
     /* Если страница не рисуется (фоновая вкладка), снимок может не начаться: тогда меняем DOM без перехода. */
     setTimeout(function () { if (!done) t.skipTransition(); }, 400);
+    t.ready.catch(noop);   /* пропущенный переход - не ошибка */
     return t.finished.then(noop, noop);
   }
 
@@ -1195,4 +1200,13 @@
     sheet: sheet, swipeToDelete: swipeToDelete, stream: stream,
     odometer: odometer, viewTransition: viewTransition
   };
+  /* Каждый эффект запоминает свою цель на время синхронной части вызова - для reduced() выше. */
+  Object.keys(window.fx).forEach(function (k) {
+    var fn = window.fx[k];
+    if (typeof fn !== "function" || /^(reduced|systemReduced|setMotion|setStrings|center|announce)$/.test(k)) return;
+    window.fx[k] = function (target) {
+      var prev = scope; scope = isEl(target) ? target : null;
+      try { return fn.apply(this, arguments); } finally { scope = prev; }
+    };
+  });
 })();

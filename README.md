@@ -103,6 +103,9 @@ python3 ui-design/scripts/icon.py --list
 python3 ui-design/scripts/icon.py trash-2 --label "Delete"
 python3 ui-design/scripts/icon.py --sprite --only bell,user,x   # sprite with just these icons
 
+# Only the effects you use: picked fx functions with their helpers + the CSS rules they need
+python3 ui-design/scripts/fx_subset.py --only toast,copy,skeleton -o ./fx   # writes fx/fx.js and fx/fx.css, prints the weight
+
 # Add a manual "full motion" override block to a CSS file
 python3 ui-design/scripts/build_motion_override.py effects.css
 

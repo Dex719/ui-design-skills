@@ -311,6 +311,9 @@ dialog.fx-sheet::backdrop{ background: rgb(0 0 0 / .4); }
 .fx-dmg.is-miss{ color: #c4cbd6; font-style: italic; font-weight: 700; } .fx-dmg.is-block{ color: #e8ebf0; font-weight: 800; }
 .fx-dmg.is-xp{ color: #ffd27a; }
 
+/* data-motion="reduce" на части страницы: движение выключено только внутри неё */
+[data-motion="reduce"]:not(:root), [data-motion="reduce"]:not(:root) *{ animation: none !important; transition: none !important; }
+
 /* Одометр: колонка цифр высотой в одну строку */
 .fx-odo{ display: inline-flex; align-items: baseline; font-variant-numeric: tabular-nums; }
 .fx-odo-col{ display: inline-block; height: 1.15em; line-height: 1.15em; overflow: hidden; }
