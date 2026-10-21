@@ -130,6 +130,10 @@ interface Fx {
   beam(layer: Element, x: number, opts?: { width?: number; color?: string; ms?: number }): FxDone;
   jitter(el: Element, opts?: { ms?: number; amp?: number }): FxDone;
   jitter(el: Element, ms: number, amp?: number): FxDone;
+
+  /* одометр и переходы */
+  odometer(el: HTMLElement, to: number, opts?: { format?: (v: number) => string; duration?: number }): FxDone;
+  viewTransition(apply: () => void): FxDone;
 }
 
 interface Window { fx: Fx }

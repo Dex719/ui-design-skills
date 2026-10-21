@@ -14,4 +14,5 @@ export declare const version: Fx["version"], reduced: Fx["reduced"], systemReduc
   themeSwitch: Fx["themeSwitch"], ring: Fx["ring"],
   tint: Fx["tint"], wave: Fx["wave"], lines: Fx["lines"], flash: Fx["flash"], zoom: Fx["zoom"], slowmo: Fx["slowmo"],
   stamp: Fx["stamp"], afterimage: Fx["afterimage"], beam: Fx["beam"], jitter: Fx["jitter"], flyTo: Fx["flyTo"],
-  sheet: Fx["sheet"], swipeToDelete: Fx["swipeToDelete"], stream: Fx["stream"];
+  sheet: Fx["sheet"], swipeToDelete: Fx["swipeToDelete"], stream: Fx["stream"],
+  odometer: Fx["odometer"], viewTransition: Fx["viewTransition"];

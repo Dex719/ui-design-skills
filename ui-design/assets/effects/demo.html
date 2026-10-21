@@ -277,6 +277,102 @@ dialog.fx-dialog p{ margin: 0 0 20px; color: var(--text-2); }
 .btn-ghost:hover{ background: var(--danger-soft); }
 .stream-out{ min-height: 4.5em; margin: 0 0 12px; font-size: 15px; line-height: 1.5; }
 </style>
+<style>
+/* ---------- Панель: оглавление, поиск, уровень движения, палитра ---------- */
+.toolbar{ position: sticky; top: 0; z-index: 30; margin: -24px 0 0; padding: 12px 0; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.toc{ display: flex; gap: 4px 16px; overflow-x: auto; scrollbar-width: none; font-size: 14px; }
+.toc::-webkit-scrollbar{ display: none; }
+.toc a{ color: var(--text-2); text-decoration: none; white-space: nowrap; padding: 4px 0; }
+.toc a:hover{ color: var(--text); }
+.tools{ display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.tools label{ display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-2); }
+.tools select, .tools input{ font: 15px var(--font); color: var(--text); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r-sm); min-height: 40px; padding: 0 10px; }
+.tools .q{ flex: 1 1 220px; }
+.tools .q input{ width: 100%; }
+.lvl-note{ margin: 0; font-size: 14px; color: var(--text-2); }
+.empty-q{ color: var(--text-2); }
+
+/* ---------- Мета карточки ---------- */
+.meta{ display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-2); }
+.meta b{ color: var(--text); font-weight: 600; }
+.cmp{ display: inline-flex; align-self: flex-start; padding: 2px; gap: 2px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+.cmp button{ font: 500 13px var(--font); color: var(--text-2); background: none; border: 0; border-radius: 6px; min-height: 30px; padding: 0 10px; cursor: pointer; }
+.cmp button[aria-pressed="true"]{ background: var(--surface); color: var(--text); box-shadow: 0 0 0 1px var(--border-strong); }
+details.code{ font-size: 14px; }
+details.code summary{ cursor: pointer; color: var(--accent-text); font-weight: 600; width: max-content; }
+details.code pre{ margin: 8px 0 0; padding: 12px; background: var(--bg); border-radius: var(--r-sm); overflow-x: auto; font: 13px/1.5 var(--mono); }
+details.code .btn{ margin-top: 8px; }
+.card.is-out, .is-out.arena-wrap, .is-out.reveal-grid{ opacity: .45; }
+.out-note{ font-size: 13px; color: var(--warning); font-weight: 600; }
+.is-plain, .is-plain *{ animation: none !important; transition: none !important; }
+
+/* ---------- Новые карточки ---------- */
+.pf-line{ display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--text-2); padding: 4px 0; border-bottom: 1px solid var(--border); }
+.pf-line b{ color: var(--text); font-weight: 600; text-align: right; }
+.pf-sum{ margin: 8px 0 4px; font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pf-form, .pf-receipt{ display: flex; flex-direction: column; gap: 6px; }
+.pf-receipt:focus{ outline: none; }
+
+.seg5{ display: flex; flex-wrap: wrap; gap: 4px; }
+.seg5 button{ font: 500 13px var(--font); min-height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text-2); cursor: pointer; }
+.seg5 button[aria-pressed="true"]{ background: var(--text); border-color: var(--text); color: var(--bg); }
+.st-out{ min-height: 150px; display: flex; flex-direction: column; gap: 8px; }
+.st-box{ display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; border-radius: var(--r-sm); background: var(--surface); border: 1px solid var(--border); font-size: 14px; }
+.st-box b{ font-size: 15px; }
+.st-box.err{ border-color: var(--danger); }
+.st-box.off{ background: var(--warning-soft); border-color: transparent; }
+.st-box p{ margin: 0; color: var(--text-2); }
+
+.odo-val{ margin: 0; font-size: 36px; font-weight: 700; line-height: 1.15; display: flex; align-items: baseline; gap: 6px; }
+.odo-cur{ color: var(--text-2); font-size: 24px; }
+
+.tip-btn svg{ width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tip-btn{ anchor-name: --tip1; }
+.tip{ margin: 0; inset: auto; position: fixed; max-width: 260px; padding: 10px 12px; border: 0; border-radius: var(--r-sm); background: var(--text); color: var(--bg); font-size: 14px; line-height: 1.45; box-shadow: 0 12px 32px -12px rgb(0 0 0 / .4); }
+@supports (top: anchor(bottom)){
+  .tip{ position-anchor: --tip1; top: anchor(bottom); left: anchor(left); margin-top: 8px; position-try-fallbacks: flip-block; }
+}
+@media (prefers-reduced-motion: no-preference){
+  :root:not([data-motion="reduce"]) .tip{ transition: opacity 150ms, display 150ms allow-discrete, overlay 150ms allow-discrete; opacity: 0; }
+  :root:not([data-motion="reduce"]) .tip:popover-open{ opacity: 1; }
+  @starting-style{ :root:not([data-motion="reduce"]) .tip:popover-open{ opacity: 0; } }
+}
+
+.vt-list{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.vt-list button{ width: 100%; display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font: 14px var(--font); cursor: pointer; text-align: left; }
+.vt-list button:hover{ background: var(--surface-2); }
+.vt-list b, .vt-head b{ font-variant-numeric: tabular-nums; }
+.vt-card{ display: flex; flex-direction: column; gap: 10px; }
+.vt-head{ display: flex; justify-content: space-between; gap: 12px; padding: 14px 12px; border-radius: var(--r-sm); background: var(--accent); color: var(--on-accent); font-size: 16px; }
+.vt-card .pf-line{ border-color: var(--border); }
+::view-transition-group(*){ animation-duration: 300ms; animation-timing-function: cubic-bezier(.2,0,0,1); }
+
+.dnd li{ display: flex; align-items: center; gap: 8px; padding: 6px 8px; }
+.dnd .dnd-t{ flex: 1; }
+.dnd li.is-drag{ background: var(--surface-2); box-shadow: 0 0 0 2px var(--focus); }
+.grip{ cursor: grab; touch-action: none; color: var(--text-2); display: grid; place-items: center; width: 28px; height: 32px; }
+.grip svg{ width: 18px; height: 18px; fill: currentColor; stroke: currentColor; stroke-width: 1.5; }
+
+.field .lab{ font-size: 14px; font-weight: 500; }
+.field input.fx-field-error{ border-color: var(--danger); }
+.otp{ display: flex; gap: 6px; }
+.otp input{ width: 44px; min-height: 48px; text-align: center; font: 600 20px var(--font); color: var(--text); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r-sm); padding: 0; }
+@media (max-width: 380px){ .otp input{ width: 38px; } }
+
+.agent{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.agent li{ display: flex; align-items: center; gap: 8px; color: var(--text-2); }
+.agent li i{ width: 18px; height: 18px; flex: none; border-radius: 50%; border: 2px solid var(--border-strong); display: grid; place-items: center; }
+.agent li.is-run{ color: var(--text); font-weight: 600; }
+.agent li.is-run i{ border-color: var(--accent); border-top-color: transparent; }
+@media (prefers-reduced-motion: no-preference){ :root:not([data-motion="reduce"]) .agent li.is-run i{ animation: fx-spin .8s linear infinite; } }
+:root[data-motion="full"] .agent li.is-run i{ animation: fx-spin .8s linear infinite; }
+.agent li.is-done{ color: var(--text); }
+.agent li.is-done i{ border-color: var(--success); background: var(--success); }
+.agent li.is-done i::after{ content: ""; width: 8px; height: 4px; border: 2px solid var(--surface); border-top: 0; border-right: 0; transform: translateY(-1px) rotate(-45deg); }
+.agent li.is-stop i{ border-color: var(--danger); }
+.agent-ask{ padding: 12px; border-radius: var(--r-sm); background: var(--warning-soft); display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+.agent-ask p{ margin: 0; }
+</style>
 </head>
 <body>
 <div class="fx-scroll-progress" aria-hidden="true"></div>
@@ -285,7 +381,7 @@ dialog.fx-dialog p{ margin: 0 0 20px; color: var(--text-2); }
     <div class="head-text">
       <span class="eyebrow fx-enter">ui-design · assets/effects</span>
       <h1 class="fx-enter">Эффекты и микро-анимации</h1>
-      <p class="lede fx-enter">Живые примеры из библиотеки скилла. У каждого эффекта — когда его использовать и с какими параметрами. Переключатель «Анимации» показывает, как эффекты сохраняют смысл без движения.</p>
+      <p class="lede fx-enter">Живые примеры из библиотеки скилла. У каждого эффекта - когда его использовать, уровень движения, код и сравнение «без анимации / с анимацией». Переключатель «Анимации» показывает, как эффекты сохраняют смысл без движения.</p>
     </div>
     <div class="head-actions fx-enter"><button class="btn btn-secondary fx-btn" type="button" id="themeBtn">Сменить тему</button><div class="motion-seg" role="radiogroup" aria-label="Анимации">
         <input type="radio" name="motion" id="mSys" value="system" checked><label for="mSys">Как в системе</label>
@@ -533,6 +629,120 @@ dialog.fx-dialog p{ margin: 0 0 20px; color: var(--text-2); }
         <p class="when">Только для редких праздничных событий: первая цель достигнута, онбординг пройден. Не для рутинных операций и не в серьёзных контекстах.</p>
         <div class="chips"><span class="chip">≈ 1.6 с</span><span class="chip">90 частиц</span><span class="chip">canvas</span></div>
         <div class="demo row"><button class="btn btn-primary fx-btn" type="button" id="confettiBtn">Цель достигнута!</button></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="s-patterns">
+    <h2 class="fx-enter" id="s-patterns">Сценарии и паттерны</h2>
+    <p>Готовые куски экранов: что анимировать и что оставить неподвижным, если цена ошибки высокая.</p>
+    <div class="grid">
+      <article class="card fx-enter">
+        <h3>Оплата целиком</h3>
+        <p class="when">Деньги - минимальный уровень движения: загрузка в кнопке, одна галочка, чек. Сумма видна сразу и не считается.</p>
+        <div class="chips"><span class="chip">загрузка в кнопке</span><span class="chip">галочка 350 мс</span><span class="chip">без счёта суммы</span></div>
+        <div class="demo" id="payFlow">
+          <div class="pf-form" id="pfForm">
+            <div class="pf-line"><span>Получатель</span><b>ТОО «Сауле»</b></div>
+            <div class="pf-line"><span>С карты</span><b>Kaspi Gold •••• 4417</b></div>
+            <div class="pf-line"><span>Комиссия</span><b>0 ₸</b></div>
+            <p class="pf-sum">12 500 ₸</p>
+            <div class="row"><button class="btn btn-primary fx-btn" type="button" id="pfBtn">Оплатить 12 500 ₸</button></div>
+          </div>
+          <div class="pf-receipt" id="pfReceipt" hidden tabindex="-1">
+            <div class="success"><svg class="fx-check" id="pfCheck" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="12" pathLength="1"/><path d="M8.5 14.5l3.8 3.8 7.2-7.6" pathLength="1"/></svg>Оплачено</div>
+            <div class="pf-line"><span>Сумма</span><b>12 500 ₸</b></div>
+            <div class="pf-line"><span>Номер операции</span><b>4 801 227 935</b></div>
+            <div class="row"><button class="btn btn-secondary fx-btn" type="button" id="pfAgain">Новый платёж</button></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Пять состояний списка</h3>
+        <p class="when">Один и тот же список: данные, загрузка, пусто, ошибка, офлайн. У каждого состояния своё действие, а не пустой экран.</p>
+        <div class="chips"><span class="chip">скелетон</span><span class="chip">пустое состояние</span><span class="chip">повтор</span></div>
+        <div class="demo">
+          <div class="seg5" role="group" aria-label="Состояние списка" id="stateSeg">
+            <button type="button" data-state="data" aria-pressed="true">Данные</button>
+            <button type="button" data-state="loading" aria-pressed="false">Загрузка</button>
+            <button type="button" data-state="empty" aria-pressed="false">Пусто</button>
+            <button type="button" data-state="error" aria-pressed="false">Ошибка</button>
+            <button type="button" data-state="offline" aria-pressed="false">Офлайн</button>
+          </div>
+          <div class="st-out" id="stateOut" aria-live="polite"></div>
+        </div>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Одометр баланса</h3>
+        <p class="when">Разряды прокручиваются к новому значению, старшие чуть дольше. Подходит для дашбордов и игр, не для шага оплаты.</p>
+        <div class="chips"><span class="chip">700 мс + 40 мс на разряд</span><span class="chip">fx.odometer</span></div>
+        <div class="demo">
+          <p class="odo-val"><span id="odo">248 500</span> <span class="odo-cur">₸</span></p>
+          <div class="row"><button class="btn btn-secondary fx-btn" type="button" id="odoAdd">Пополнить на 1 250 ₸</button><button class="btn btn-secondary fx-btn" type="button" id="odoBig">Зарплата 420 000 ₸</button></div>
+        </div>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Подсказка на popover</h3>
+        <p class="when">Своя подсказка вместо атрибута title: открывается нажатием и с клавиатуры, закрывается Esc и кликом мимо. Привязка к кнопке через anchor positioning, без него - расчётом.</p>
+        <div class="chips"><span class="chip">popover</span><span class="chip">anchor()</span><span class="chip">150 мс</span></div>
+        <div class="demo row">
+          <span>Комиссия 0,95%</span>
+          <button class="btn btn-secondary btn-icon tip-btn" type="button" popovertarget="tip1" id="tipBtn" aria-label="Как считается комиссия"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
+          <div popover id="tip1" class="tip" role="tooltip">На карты других банков - 0,95% от суммы, минимум 200 ₸. Внутри банка - без комиссии.</div>
+        </div>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Список → карточка</h3>
+        <p class="when">Строка списка превращается в шапку карточки: видно, откуда пришёл экран. View Transitions; без поддержки экран меняется сразу.</p>
+        <div class="chips"><span class="chip">view-transition-name</span><span class="chip">fx.viewTransition</span></div>
+        <div class="demo vt" id="vtBox"></div>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Перетаскивание с клавиатуры</h3>
+        <p class="when">Порядок меняется мышью за ручку или кнопками «Выше» и «Ниже». Новое место объявляется скринридеру.</p>
+        <div class="chips"><span class="chip">FLIP 380 мс</span><span class="chip">WCAG 2.5.7</span></div>
+        <ul class="list dnd" id="dndList">
+          <li data-key="1"><span class="grip" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span><span class="dnd-t">Аренда</span><button class="btn btn-secondary btn-sm" type="button" data-up>Выше</button><button class="btn btn-secondary btn-sm" type="button" data-down>Ниже</button></li>
+          <li data-key="2"><span class="grip" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span><span class="dnd-t">Коммунальные</span><button class="btn btn-secondary btn-sm" type="button" data-up>Выше</button><button class="btn btn-secondary btn-sm" type="button" data-down>Ниже</button></li>
+          <li data-key="3"><span class="grip" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span><span class="dnd-t">Интернет</span><button class="btn btn-secondary btn-sm" type="button" data-up>Выше</button><button class="btn btn-secondary btn-sm" type="button" data-down>Ниже</button></li>
+          <li data-key="4"><span class="grip" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span><span class="dnd-t">Мобильная связь</span><button class="btn btn-secondary btn-sm" type="button" data-up>Выше</button><button class="btn btn-secondary btn-sm" type="button" data-down>Ниже</button></li>
+        </ul>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Телефон, ИИН и код из SMS</h3>
+        <p class="when">Формат виден маской прямо в поле. Код - шесть ячеек: фокус идёт дальше сам, вставка кода целиком работает, Backspace возвращает назад.</p>
+        <div class="chips"><span class="chip">inputmode="numeric"</span><span class="chip">autocomplete="one-time-code"</span></div>
+        <form class="demo" id="maskForm" novalidate>
+          <div class="field"><label for="mPhone">Телефон</label><input id="mPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__"><p class="err" id="mPhoneErr" hidden></p></div>
+          <div class="field"><label for="mIin">ИИН</label><input id="mIin" inputmode="numeric" autocomplete="off" placeholder="000000 000000" maxlength="13"><p class="err" id="mIinErr" hidden></p></div>
+          <div class="field"><span class="lab" id="otpLab">Код из SMS</span>
+            <div class="otp" id="otp" role="group" aria-labelledby="otpLab">
+              <input inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-label="Цифра 1 из 6"><input inputmode="numeric" maxlength="1" aria-label="Цифра 2 из 6"><input inputmode="numeric" maxlength="1" aria-label="Цифра 3 из 6"><input inputmode="numeric" maxlength="1" aria-label="Цифра 4 из 6"><input inputmode="numeric" maxlength="1" aria-label="Цифра 5 из 6"><input inputmode="numeric" maxlength="1" aria-label="Цифра 6 из 6">
+            </div>
+            <p class="hint">Для примера подходит любой код</p>
+          </div>
+          <div class="row"><button class="btn btn-primary fx-btn" type="submit" id="maskBtn">Подтвердить</button></div>
+        </form>
+      </article>
+
+      <article class="card fx-enter">
+        <h3>Прогресс агента ИИ</h3>
+        <p class="when">Агент показывает шаги, его можно остановить в любой момент. Действие наружу (письмо, оплата) - только после явного подтверждения.</p>
+        <div class="chips"><span class="chip">шаги</span><span class="chip">остановка</span><span class="chip">подтверждение</span></div>
+        <div class="demo">
+          <ol class="agent" id="agentSteps" aria-live="polite"></ol>
+          <div class="agent-ask" id="agentAsk" hidden>
+            <p>Отправить сводку на <b>buh@sauley.kz</b>?</p>
+            <div class="row"><button class="btn btn-primary fx-btn" type="button" id="agentYes">Отправить письмо</button><button class="btn btn-secondary fx-btn" type="button" id="agentNo">Не отправлять</button></div>
+          </div>
+          <div class="row"><button class="btn btn-secondary fx-btn" type="button" id="agentRun">Собрать сводку за неделю</button><button class="btn btn-secondary fx-btn" type="button" id="agentStop" hidden>Остановить</button></div>
+        </div>
       </article>
     </div>
   </section>
@@ -1233,6 +1443,305 @@ dialog.fx-dialog p{ margin: 0 0 20px; color: var(--text-2); }
   $("toastActBtn").addEventListener("click", function () {
     fx.toast("Чат перенесён в архив", { action: { label: "Отменить", onClick: function () { fx.toast("Чат возвращён"); } } });
   });
+})();
+</script>
+<script>
+/* Витрина: панель (оглавление, поиск, уровень, палитра), сравнение «без анимации / с анимацией», код карточек и новые примеры. */
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var root = document.documentElement;
+  var el = function (tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  function press(btns, on) { btns.forEach(function (b) { b.setAttribute("aria-pressed", String(b === on)); }); }
+
+  /* ---------- Уровни движения (references/21) ---------- */
+  var LEVELS = ["Минимальный", "Сдержанный", "Продуктовый", "Выразительный"];
+  var LEVEL_WHERE = ["деньги, здоровье, документы, шаг оплаты", "рабочие инструменты, админки, CRM", "приложения, кабинеты, дашборды", "лендинги, промо, игры"];
+
+  /* Карточка → уровень, что остаётся при «меньше движения», код. Ключ - заголовок карточки. */
+  var META = {
+    "Вход: тряска при ошибке, зелёная кнопка при успехе": [2, "без тряски: красная рамка и текст ошибки; кнопка зеленеет сразу", 'fx.fieldError(input, "Неверный пароль", errEl);   // рамка, текст, тряска\nfx.success(button, { label: "Вход выполнен" });  // кнопка → зелёная с галочкой'],
+    "Ошибки при отправке": [0, "движения нет: сообщения у полей и фокус на первом ошибочном", 'field.classList.add("fx-field-error");\nfield.setAttribute("aria-invalid", "true");\nerr.textContent = "Неверная почта"; err.hidden = false;\nfirstBad.focus();'],
+    "Нажатие и загрузка": [0, "без сжатия; во время загрузки кнопка заблокирована, подпись объявляется", '<button class="btn fx-btn">Оплатить 12 500 ₸</button>\n\nfx.loading(button, true);   // спиннер, ширина та же\nfx.loading(button, false);'],
+    "Копирование и лайк": [2, "подпись меняется без движения, частиц нет", 'fx.copy(button, "KZ12 3456 7890", labelEl);\nfx.pop(likeButton);'],
+    "Модалка и тост": [0, "модалка и тост появляются сразу, без масштаба", '<dialog class="fx-dialog">…</dialog>\ndialog.showModal();\nfx.toast("Изменения сохранены");'],
+    "Аккордеон": [2, "раскрывается сразу, без анимации высоты", '<div class="fx-collapse" id="acc1">…</div>\nacc1.classList.toggle("is-open");'],
+    "Скользящее подчёркивание вкладок": [2, "подчёркивание переходит к вкладке сразу", '<div class="fx-tabs" role="tablist">…<span class="fx-tabs-ind"></span></div>\nfx.tabs(tablist);'],
+    "Скелетон": [1, "скелетон статичный, без мерцания", '<div class="fx-skeleton" style="height:12px;width:60%"></div>'],
+    "Прогресс и счётчик": [2, "число сразу финальное, прогресс без плавности", 'fx.countUp(el, 150000, { from: 100000 });'],
+    "Каскад списка": [2, "все строки видны сразу", 'fx.stagger(list);   // шаг 40 мс, не больше 8'],
+    "Сортировка с перестановкой (FLIP)": [1, "строки встают на новые места сразу", 'fx.flip(list, function () {\n  rows.sort(byAmount).forEach(function (li) { list.appendChild(li); });\n});'],
+    "Прорисовка графика и счёт": [2, "столбцы и числа сразу на месте", '<i class="fx-draw-x" style="--i:0;width:48%"></i>\n<b data-count="48000">48 000</b>\n\nfx.countAll("[data-count]", chart);'],
+    "Свайп для удаления + «Отменить»": [2, "строка исчезает сразу, тост с «Отменить» остаётся", 'fx.swipeToDelete(row, {\n  button: deleteButton,\n  onCommit: function () { api.remove(id); },\n  onUndo: function () {}\n});'],
+    "Нижняя шторка": [2, "шторка появляется и закрывается без сдвига", 'var sh = fx.sheet(dialog, { onClose: function () {} });\nsh.open();'],
+    "Потоковый ответ ИИ": [2, "текст появляется кусками без анимации каретки", 'var ctrl = new AbortController();\nfx.stream(out, readableStream, { signal: ctrl.signal });\n// «Стоп»: ctrl.abort()'],
+    "Тост с действием": [2, "тост без сдвига, действие работает так же", 'fx.toast("Чат перенесён в архив", {\n  action: { label: "Отменить", onClick: restore }\n});'],
+    "Новое уведомление: колокольчик": [3, "колокольчик не качается, число на бейдже меняется и объявляется", 'fx.ring(bell, { badge: badgeEl, count: 4 });'],
+    "Блик на премиум-бейдже": [3, "блика нет, бейдж тот же", 'fx.once(badge, "is-glint", 1400);'],
+    "Конфетти": [3, "конфетти нет, остаётся текст события", 'fx.confetti(button);'],
+    "Оплата целиком": [0, "галочка рисуется сразу, чек появляется без сдвига", 'fx.loading(payBtn, true, { label: "Отправляем платёж" });\napi.pay().then(function () {\n  fx.loading(payBtn, false);\n  receipt.hidden = false;\n  fx.check(checkSvg);\n  receipt.focus();\n});'],
+    "Пять состояний списка": [1, "движения нет: каждое состояние показывается сразу", '// данные · загрузка (скелетон) · пусто (действие) · ошибка (повтор) · офлайн (сохранённые данные)\nrender(state);'],
+    "Одометр баланса": [2, "число сразу финальное", 'fx.odometer(el, 249750);'],
+    "Подсказка на popover": [0, "подсказка появляется сразу", '<button popovertarget="tip1" style="anchor-name:--tip1">?</button>\n<div popover id="tip1" role="tooltip"\n  style="position-anchor:--tip1; top:anchor(bottom); left:anchor(left)">…</div>'],
+    "Список → карточка": [2, "экран меняется сразу", 'row.style.viewTransitionName = "acc";\nfx.viewTransition(function () { renderCard(account); });'],
+    "Перетаскивание с клавиатуры": [1, "строка встаёт на новое место сразу", 'fx.flip(list, function () { list.insertBefore(li, li.previousElementSibling); });\nfx.announce("Аренда: место 1 из 4");'],
+    "Телефон, ИИН и код из SMS": [0, "движения нет", '<input type="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__">\n<input inputmode="numeric" autocomplete="one-time-code" maxlength="6">'],
+    "Прогресс агента ИИ": [2, "шаги отмечаются без вращения индикатора", '// шаг: is-run → is-done; «Остановить» прерывает AbortController\n// действие наружу - только после явного «Отправить письмо»']
+  };
+
+  /* ---------- Карточки: мета, сравнение, код ---------- */
+  var cards = [].slice.call(document.querySelectorAll(".card"));
+  cards.forEach(function (card) {
+    var h = card.querySelector("h3"); if (!h) return;
+    var m = META[h.textContent.trim()]; if (!m) return;
+    card.dataset.lvl = m[0];
+    var anchor = card.querySelector(".chips") || h;
+    var meta = el("div", "meta");
+    var l = el("span"); l.appendChild(document.createTextNode("Уровень: ")); l.appendChild(el("b", null, LEVELS[m[0]])); meta.appendChild(l);
+    var r = el("span"); r.appendChild(document.createTextNode("Меньше движения: ")); r.appendChild(document.createTextNode(m[1])); meta.appendChild(r);
+    var out = el("span", "out-note"); out.hidden = true; meta.appendChild(out);
+    anchor.after(meta);
+
+    var cmp = el("div", "cmp"); cmp.setAttribute("role", "group"); cmp.setAttribute("aria-label", "Сравнение: " + h.textContent);
+    var off = el("button", null, "Без анимации"), on = el("button", null, "С анимацией");
+    off.type = on.type = "button"; off.setAttribute("aria-pressed", "false"); on.setAttribute("aria-pressed", "true");
+    off.addEventListener("click", function () { press([off, on], off); card.classList.add("is-plain"); });
+    on.addEventListener("click", function () { press([off, on], on); card.classList.remove("is-plain"); });
+    cmp.appendChild(off); cmp.appendChild(on); meta.after(cmp);
+
+    var det = el("details", "code"), sum = el("summary", null, "Показать код"), pre = el("pre"), code = el("code", null, m[2]);
+    var cp = el("button", "btn btn-secondary btn-sm fx-btn"), cpl = el("span", null, "Скопировать код");
+    cp.type = "button"; cp.appendChild(cpl);
+    cp.addEventListener("click", function () { fx.copy(cp, m[2], cpl); });
+    pre.appendChild(code); det.appendChild(sum); det.appendChild(pre); det.appendChild(cp); card.appendChild(det);
+  });
+  var arena = document.querySelector(".arena-wrap"); if (arena) arena.dataset.lvl = 3;
+  var reveal = document.querySelector(".reveal-grid"); if (reveal) reveal.dataset.lvl = 3;
+
+  /* «Без анимации» в карточке: пока с ней работают, библиотека ведёт себя как при «уменьшить движение». */
+  var plainTimer = 0, savedMode = null;
+  function plainStart(e) {
+    if (!e.target.closest || !e.target.closest(".is-plain")) return;
+    if (savedMode === null) savedMode = root.getAttribute("data-motion") || "";
+    root.setAttribute("data-motion", "reduce");
+    clearTimeout(plainTimer);
+    plainTimer = setTimeout(function () {
+      if (savedMode) root.setAttribute("data-motion", savedMode); else root.removeAttribute("data-motion");
+      savedMode = null;
+    }, 2500);
+  }
+  ["pointerdown", "keydown", "submit"].forEach(function (t) { document.addEventListener(t, plainStart, true); });
+
+  /* ---------- Панель ---------- */
+  var head = document.querySelector(".head");
+  var bar = el("nav", "toolbar"); bar.setAttribute("aria-label", "Разделы и фильтры");
+  var toc = el("div", "toc");
+  [].forEach.call(document.querySelectorAll(".section > h2"), function (h2) {
+    var a = el("a", null, h2.textContent); a.href = "#" + h2.id; toc.appendChild(a);
+  });
+  var tools = el("div", "tools");
+  tools.innerHTML =
+    '<label class="q"><span class="fx-sr">Найти эффект</span><input type="search" id="fxQ" placeholder="Найти эффект: тост, ошибка, свайп" autocomplete="off"></label>' +
+    '<label>Уровень движения <select id="fxLvl"><option value="9">Все эффекты</option><option value="0">Минимальный</option><option value="1">Сдержанный</option><option value="2">Продуктовый</option><option value="3">Выразительный</option></select></label>' +
+    '<label>Палитра <select id="fxPal"><option>bank-petrol</option><option>editorial-terracotta</option><option>forest</option><option>sunflower</option><option>coral-midnight</option></select></label>';
+  var note = el("p", "lvl-note"); note.id = "fxLvlNote"; note.hidden = true;
+  var empty = el("p", "empty-q", "Ничего не найдено. Попробуйте другое слово."); empty.hidden = true;
+  bar.appendChild(toc); bar.appendChild(tools); bar.appendChild(note);
+  var after = $("motionNote") || head; after.after(bar); bar.after(empty);
+
+  /* Поиск */
+  $("fxQ").addEventListener("input", function () {
+    var q = this.value.trim().toLowerCase(), any = false;
+    cards.forEach(function (c) { var hit = !q || c.textContent.toLowerCase().indexOf(q) >= 0; c.hidden = !hit; any = any || hit; });
+    [].forEach.call(document.querySelectorAll(".section"), function (s) {
+      var cs = s.querySelectorAll(".card");
+      if (!cs.length) { s.hidden = !!q && s.textContent.toLowerCase().indexOf(q) < 0; if (!s.hidden) any = true; return; }
+      s.hidden = ![].some.call(cs, function (c) { return !c.hidden; });
+    });
+    empty.hidden = any;
+  });
+
+  /* Уровень движения */
+  $("fxLvl").addEventListener("change", function () {
+    var lv = +this.value;
+    note.hidden = lv > 3;
+    if (lv <= 3) note.textContent = "Уровень «" + LEVELS[lv] + "» - " + LEVEL_WHERE[lv] + ". Приглушены эффекты, которые в него не входят.";
+    [].forEach.call(document.querySelectorAll("[data-lvl]"), function (c) {
+      var outLv = +c.dataset.lvl > lv;
+      c.classList.toggle("is-out", outLv);
+      var n = c.querySelector(".out-note");
+      if (n) { n.hidden = !outLv; n.textContent = outLv ? "Не входит в уровень «" + LEVELS[lv] + "»" : ""; }
+    });
+  });
+
+  /* Палитра */
+  var palLink = document.querySelector('link[href*="palettes/"]');
+  try { var sp = localStorage.getItem("fx-demo-pal"); if (sp) { $("fxPal").value = sp; } } catch (e) {}
+  function applyPal(id) { palLink.href = "../palettes/" + id + ".css"; try { localStorage.setItem("fx-demo-pal", id); } catch (e) {} }
+  if ($("fxPal").value !== "bank-petrol") applyPal($("fxPal").value);
+  $("fxPal").addEventListener("change", function () { applyPal(this.value); });
+
+  /* ---------- Оплата целиком ---------- */
+  $("pfBtn").addEventListener("click", function () {
+    var b = this; if (b.getAttribute("aria-disabled") === "true") return;
+    fx.loading(b, true, { label: "Отправляем платёж" });
+    setTimeout(function () {
+      fx.loading(b, false);
+      $("pfForm").hidden = true; $("pfReceipt").hidden = false;
+      fx.check($("pfCheck")); $("pfReceipt").focus(); fx.announce("Оплачено 12 500 ₸");
+    }, 1400);
+  });
+  $("pfAgain").addEventListener("click", function () { $("pfReceipt").hidden = true; $("pfForm").hidden = false; $("pfBtn").focus(); });
+
+  /* ---------- Пять состояний ---------- */
+  var ROWS = [["Кофейня «Сауле»", "-1 800 ₸"], ["Зарплата", "+420 000 ₸"], ["Такси", "-2 350 ₸"]];
+  function rowsBox() { var ul = el("ul", "list"); ROWS.forEach(function (r) { var li = el("li"); li.textContent = r[0] + " · " + r[1]; ul.appendChild(li); }); return ul; }
+  function stateBox(cls, title, text, btnText, onClick) {
+    var d = el("div", "st-box " + cls); d.appendChild(el("b", null, title)); if (text) d.appendChild(el("p", null, text));
+    if (btnText) { var b = el("button", "btn btn-secondary btn-sm fx-btn", btnText); b.type = "button"; b.addEventListener("click", onClick); d.appendChild(b); }
+    return d;
+  }
+  var stateBtns = [].slice.call(document.querySelectorAll("#stateSeg button"));
+  function setState(s) {
+    press(stateBtns, stateBtns.filter(function (b) { return b.dataset.state === s; })[0]);
+    var o = $("stateOut"); o.textContent = "";
+    if (s === "data") o.appendChild(rowsBox());
+    if (s === "loading") { for (var i = 0; i < 3; i++) { var sk = el("div", "fx-skeleton"); sk.style.height = "40px"; o.appendChild(sk); } o.setAttribute("aria-busy", "true"); return; }
+    if (s === "empty") o.appendChild(stateBox("", "Операций пока нет", "Здесь появятся переводы и покупки.", "Пополнить счёт", function () { setState("data"); }));
+    if (s === "error") o.appendChild(stateBox("err", "Не удалось загрузить операции", "Проверьте соединение и попробуйте ещё раз.", "Повторить", function () { setState("loading"); setTimeout(function () { setState("data"); }, 900); }));
+    if (s === "offline") { o.appendChild(stateBox("off", "Нет интернета", "Показаны операции на 14:20. Новые появятся, когда связь вернётся.")); o.appendChild(rowsBox()); }
+    o.removeAttribute("aria-busy");
+  }
+  stateBtns.forEach(function (b) { b.addEventListener("click", function () { setState(b.dataset.state); }); });
+  setState("data");
+
+  /* ---------- Одометр ---------- */
+  var bal = 248500;
+  fx.odometer($("odo"), bal, { format: function (v) { return Math.round(v).toLocaleString("ru-RU"); } });
+  [["odoAdd", 1250], ["odoBig", 420000]].forEach(function (p) {
+    $(p[0]).addEventListener("click", function () { bal += p[1]; fx.odometer($("odo"), bal); });
+  });
+
+  /* ---------- Подсказка: расчёт позиции, если нет anchor positioning ---------- */
+  var tip = $("tip1"), tipBtn = $("tipBtn");
+  if (!(window.CSS && CSS.supports && CSS.supports("top: anchor(bottom)"))) {
+    tip.addEventListener("toggle", function (e) {
+      if (e.newState !== "open") return;
+      var r = tipBtn.getBoundingClientRect(), w = tip.offsetWidth;
+      tip.style.top = (r.bottom + 8) + "px";
+      tip.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + "px";
+    });
+  }
+  if (!("popover" in HTMLElement.prototype)) { tip.hidden = true; tipBtn.addEventListener("click", function () { tip.hidden = !tip.hidden; }); }
+
+  /* ---------- Список → карточка ---------- */
+  var ACC = [["Kaspi Gold", "248 500 ₸", "KZ12 7220 0000 1234 5678", "15 000 ₸ - Айгерим С."], ["Депозит", "1 200 000 ₸", "KZ55 7220 0000 8765 4321", "+42 000 ₸ - проценты"], ["Kaspi Red", "-18 300 ₸", "KZ90 7220 0000 1111 2222", "-6 400 ₸ - Магнум"]];
+  var vt = $("vtBox");
+  function vtList(focusIdx) {
+    vt.textContent = ""; var ul = el("ul", "vt-list");
+    ACC.forEach(function (a, i) {
+      var li = el("li"), b = el("button"); b.type = "button";
+      b.appendChild(el("span", null, a[0])); b.appendChild(el("b", null, a[1]));
+      b.addEventListener("click", function () { b.style.viewTransitionName = "acc"; fx.viewTransition(function () { vtCard(i); }); });
+      li.appendChild(b); ul.appendChild(li);
+    });
+    vt.appendChild(ul);
+    if (focusIdx != null) { var t = ul.children[focusIdx].firstChild; t.style.viewTransitionName = ""; t.focus(); }
+  }
+  function vtCard(i) {
+    var a = ACC[i]; vt.textContent = "";
+    var c = el("div", "vt-card"), hd = el("div", "vt-head"); hd.style.viewTransitionName = "acc";
+    hd.appendChild(el("span", null, a[0])); hd.appendChild(el("b", null, a[1])); c.appendChild(hd);
+    [["Счёт", a[2]], ["Последняя операция", a[3]]].forEach(function (r) { var l = el("div", "pf-line"); l.appendChild(el("span", null, r[0])); l.appendChild(el("b", null, r[1])); c.appendChild(l); });
+    var back = el("button", "btn btn-secondary btn-sm fx-btn", "Назад к счетам"); back.type = "button";
+    back.addEventListener("click", function () { fx.viewTransition(function () { vtList(i); }).then(function () { var s = vt.querySelectorAll(".vt-list button")[i]; if (s) s.style.viewTransitionName = ""; }); });
+    c.appendChild(back); vt.appendChild(c); back.focus();
+  }
+  vtList();
+
+  /* ---------- Перетаскивание ---------- */
+  var dnd = $("dndList");
+  function announcePos(li) { var all = [].slice.call(dnd.children); fx.announce(li.querySelector(".dnd-t").textContent + ": место " + (all.indexOf(li) + 1) + " из " + all.length); }
+  dnd.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    var li = b.closest("li"), up = b.hasAttribute("data-up");
+    var sib = up ? li.previousElementSibling : li.nextElementSibling; if (!sib) return;
+    fx.flip(dnd, function () { if (up) dnd.insertBefore(li, sib); else dnd.insertBefore(sib, li); }).then(function () { b.focus(); });
+    announcePos(li);
+  });
+  dnd.addEventListener("pointerdown", function (e) {
+    var g = e.target.closest(".grip"); if (!g) return;
+    e.preventDefault();
+    var li = g.closest("li"); li.classList.add("is-drag"); g.setPointerCapture(e.pointerId);
+    function move(ev) {
+      var items = [].slice.call(dnd.children).filter(function (x) { return x !== li; });
+      var before = items.filter(function (x) { var r = x.getBoundingClientRect(); return ev.clientY < r.top + r.height / 2; })[0] || null;
+      if (before === li.nextElementSibling || (before === null && li === dnd.lastElementChild)) return;
+      fx.flip(dnd, function () { dnd.insertBefore(li, before); }, { duration: 200 });
+    }
+    function upH() { li.classList.remove("is-drag"); g.removeEventListener("pointermove", move); g.removeEventListener("pointerup", upH); g.removeEventListener("pointercancel", upH); announcePos(li); }
+    g.addEventListener("pointermove", move); g.addEventListener("pointerup", upH); g.addEventListener("pointercancel", upH);
+  });
+
+  /* ---------- Маски и код ---------- */
+  var ph = $("mPhone"), iin = $("mIin");
+  ph.addEventListener("input", function () {
+    var d = this.value.replace(/\D/g, ""); if (d.charAt(0) === "8" || d.charAt(0) === "7") d = d.slice(1); d = d.slice(0, 10);
+    var t = "+7"; if (d.length) t += " (" + d.slice(0, 3); if (d.length >= 3) t += ")"; if (d.length > 3) t += " " + d.slice(3, 6);
+    if (d.length > 6) t += "-" + d.slice(6, 8); if (d.length > 8) t += "-" + d.slice(8, 10);
+    this.value = d.length ? t : ""; if (this.getAttribute("aria-invalid")) fx.clearFieldError(this, $("mPhoneErr"));
+  });
+  iin.addEventListener("input", function () {
+    var d = this.value.replace(/\D/g, "").slice(0, 12);
+    this.value = d.length > 6 ? d.slice(0, 6) + " " + d.slice(6) : d; if (this.getAttribute("aria-invalid")) fx.clearFieldError(this, $("mIinErr"));
+  });
+  var cells = [].slice.call(document.querySelectorAll("#otp input"));
+  cells.forEach(function (c, i) {
+    c.addEventListener("input", function () {
+      var d = c.value.replace(/\D/g, "");
+      if (d.length > 1) { d.split("").slice(0, 6 - i).forEach(function (ch, k) { cells[i + k].value = ch; }); var last = Math.min(5, i + d.length); cells[last].focus(); return; }
+      c.value = d; if (d && cells[i + 1]) cells[i + 1].focus();
+    });
+    c.addEventListener("keydown", function (e) { if (e.key === "Backspace" && !c.value && cells[i - 1]) { cells[i - 1].focus(); cells[i - 1].value = ""; e.preventDefault(); } });
+    c.addEventListener("paste", function (e) {
+      var d = (e.clipboardData || window.clipboardData).getData("text").replace(/\D/g, "").slice(0, 6); if (!d) return;
+      e.preventDefault(); d.split("").forEach(function (ch, k) { if (cells[k]) cells[k].value = ch; }); cells[Math.min(5, d.length - 1)].focus();
+    });
+  });
+  $("maskForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var bad = [];
+    if (ph.value.replace(/\D/g, "").length !== 11) { fx.fieldError(ph, ph.value ? "Неверный номер" : "Обязательное поле", $("mPhoneErr")); bad.push(ph); } else fx.clearFieldError(ph, $("mPhoneErr"));
+    if (iin.value.replace(/\D/g, "").length !== 12) { fx.fieldError(iin, iin.value ? "Неверный ИИН" : "Обязательное поле", $("mIinErr")); bad.push(iin); } else fx.clearFieldError(iin, $("mIinErr"));
+    var code = cells.map(function (c) { return c.value; }).join("");
+    if (!bad.length && code.length < 6) { cells[code.length].focus(); fx.toast("Введите все 6 цифр кода"); return; }
+    if (bad.length) { bad[0].focus(); return; }
+    fx.success($("maskBtn"), { label: "Подтверждено", reset: 2500 });
+  });
+
+  /* ---------- Агент ИИ ---------- */
+  var STEPS = ["Найти выписки за неделю", "Посчитать расходы по категориям", "Подготовить сводку", "Отправить сводку бухгалтеру"];
+  var agentTimer = 0, agentStep = -1;
+  function renderSteps(state) {
+    var ol = $("agentSteps"); ol.textContent = "";
+    STEPS.forEach(function (s, i) {
+      var li = el("li"); li.appendChild(el("i")); li.appendChild(el("span", null, s));
+      if (i < agentStep) li.className = "is-done";
+      else if (i === agentStep) li.className = state === "stop" ? "is-stop" : "is-run";
+      ol.appendChild(li);
+    });
+  }
+  function agentNext() {
+    agentStep++;
+    if (agentStep === STEPS.length - 1) { renderSteps("ask"); $("agentAsk").hidden = false; $("agentYes").focus(); return; }
+    renderSteps("run"); agentTimer = setTimeout(agentNext, 900);
+  }
+  function agentEnd(text) { clearTimeout(agentTimer); $("agentStop").hidden = true; $("agentAsk").hidden = true; $("agentRun").hidden = false; fx.announce(text); }
+  $("agentRun").addEventListener("click", function () { agentStep = -1; this.hidden = true; $("agentStop").hidden = false; agentNext(); });
+  $("agentStop").addEventListener("click", function () { renderSteps("stop"); agentEnd("Агент остановлен"); fx.toast("Агент остановлен. Готовые шаги сохранены."); $("agentRun").focus(); });
+  $("agentYes").addEventListener("click", function () { agentStep = STEPS.length; renderSteps("done"); agentEnd("Сводка отправлена"); fx.toast("Сводка отправлена на buh@sauley.kz"); $("agentRun").focus(); });
+  $("agentNo").addEventListener("click", function () { renderSteps("stop"); agentEnd("Письмо не отправлено"); fx.toast("Письмо не отправлено. Сводка сохранена в черновиках."); $("agentRun").focus(); });
+  renderSteps("idle");
 })();
 </script>
 </body>

@@ -1126,6 +1126,62 @@
     });
   }
 
+  /* ---------- Одометр и переход между экранами ---------- */
+
+  /**
+   * Одометр: цифры прокручиваются по разрядам к новому значению. Для балансов и счётчиков в дашбордах,
+   * не для сумм, которые сверяют при оплате. Скринридер получает итог через aria-label.
+   * opts.format(v) → строка (по умолчанию разряды по локали), opts.duration — время старшего разряда.
+   */
+  function odometer(el, to, opts) {
+    opts = opts || {};
+    var fmt = opts.format || function (v) { return Math.round(v).toLocaleString(strings.locale); };
+    var text = fmt(to), prev = el._fxOdo || [];
+    el.setAttribute("aria-label", text);
+    el.setAttribute("role", "img");
+    if (reduced() || !el.animate) {
+      el.classList.remove("fx-odo"); el.textContent = text;
+      el._fxOdo = text.replace(/\D/g, "").split("").map(Number);
+      return resolved();
+    }
+    el.classList.add("fx-odo");
+    el.textContent = "";
+    var digits = text.replace(/\D/g, "").split("").map(Number), jobs = [], di = 0, dur = opts.duration || 700;
+    for (var i = 0; i < text.length; i++) {
+      var ch = text.charAt(i);
+      if (!/\d/.test(ch)) { var sep = document.createElement("span"); sep.className = "fx-odo-sep"; sep.textContent = ch; el.appendChild(sep); continue; }
+      var col = document.createElement("span"), strip = document.createElement("span");
+      col.className = "fx-odo-col"; strip.className = "fx-odo-strip";
+      for (var d = 0; d < 10; d++) { var n = document.createElement("span"); n.textContent = d; strip.appendChild(n); }
+      col.appendChild(strip); el.appendChild(col);
+      /* Разряды сравниваются справа: старое число может быть короче нового. */
+      var fromIdx = prev.length - (digits.length - di);
+      var from = fromIdx >= 0 ? prev[fromIdx] : 0, target = digits[di];
+      strip.style.transform = "translateY(" + (-target * 10) + "%)";
+      if (from !== target) {
+        jobs.push(finished(strip.animate([{ transform: "translateY(" + (-from * 10) + "%)" }, { transform: "translateY(" + (-target * 10) + "%)" }],
+          { duration: dur + (digits.length - di) * 40, easing: "cubic-bezier(.2,0,0,1)" })));
+      }
+      di++;
+    }
+    el._fxOdo = digits;
+    return Promise.all(jobs).then(noop);
+  }
+
+  /**
+   * Переход между состояниями экрана через View Transitions API (список → карточка).
+   * apply() меняет DOM; общим элементам задай одинаковый view-transition-name.
+   * Без поддержки браузера и при «уменьшить движение» DOM меняется сразу.
+   */
+  function viewTransition(apply) {
+    if (reduced() || !document.startViewTransition) { apply(); return resolved(); }
+    var done = false;
+    var t = document.startViewTransition(function () { done = true; apply(); });
+    /* Если страница не рисуется (фоновая вкладка), снимок может не начаться: тогда меняем DOM без перехода. */
+    setTimeout(function () { if (!done) t.skipTransition(); }, 400);
+    return t.finished.then(noop, noop);
+  }
+
   window.fx = {
     version: "2.0.0",
     reduced: reduced, systemReduced: systemReduced, setMotion: setMotion, setStrings: setStrings, center: center,
@@ -1136,6 +1192,7 @@
     squashJump: squashJump, sequence: sequence, flip: flip, swap: swap, countAll: countAll, themeSwitch: themeSwitch, ring: ring,
     tint: tint, wave: wave, lines: lines, flash: flash, zoom: zoom, slowmo: slowmo, stamp: stamp,
     afterimage: afterimage, beam: beam, jitter: jitter, flyTo: flyTo,
-    sheet: sheet, swipeToDelete: swipeToDelete, stream: stream
+    sheet: sheet, swipeToDelete: swipeToDelete, stream: stream,
+    odometer: odometer, viewTransition: viewTransition
   };
 })();

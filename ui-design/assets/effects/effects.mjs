@@ -12,5 +12,5 @@ export const {
   squashJump, sequence, flip, swap, countAll, themeSwitch, ring,
   tint, wave, lines, flash, zoom, slowmo, stamp,
   afterimage, beam, jitter, flyTo,
-  sheet, swipeToDelete, stream
+  sheet, swipeToDelete, stream, odometer, viewTransition
 } = fx;

@@ -311,6 +311,13 @@ dialog.fx-sheet::backdrop{ background: rgb(0 0 0 / .4); }
 .fx-dmg.is-miss{ color: #c4cbd6; font-style: italic; font-weight: 700; } .fx-dmg.is-block{ color: #e8ebf0; font-weight: 800; }
 .fx-dmg.is-xp{ color: #ffd27a; }
 
+/* Одометр: колонка цифр высотой в одну строку */
+.fx-odo{ display: inline-flex; align-items: baseline; font-variant-numeric: tabular-nums; }
+.fx-odo-col{ display: inline-block; height: 1.15em; line-height: 1.15em; overflow: hidden; }
+.fx-odo-strip{ display: flex; flex-direction: column; }
+.fx-odo-strip span{ display: block; height: 1.15em; line-height: 1.15em; text-align: center; }
+.fx-odo-sep{ white-space: pre; }
+
 /* >>> motion-full override (сгенерировано build_motion_override.py) */
 :root[data-motion="full"] .fx-press{ transition: transform var(--fx-fast) var(--fx-ease-out); }
   :root[data-motion="full"] .fx-press:active{ transform: scale(.97); }
